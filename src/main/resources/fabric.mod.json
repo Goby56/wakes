@@ -1,0 +1,44 @@
+{
+	"schemaVersion": 1,
+	"id": "wakes",
+	"version": "${version}",
+	"name": "wakes",
+	"description": "A Minecraft mod that does one thing, adding wakes.",
+	"authors": [
+		"Goby56"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/Goby56/wakes"
+	},
+	"license": "GPLv3",
+	"icon": "assets/wakes/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.goby56.wakes.Wakes"
+		],
+		"client": [
+			"com.goby56.wakes.WakesClient"
+		],
+		"fabric-datagen": [
+			"com.goby56.wakes.WakesDataGenerator"
+		]
+	},
+	"mixins": [
+		"wakes.mixins.json",
+		{
+			"config": "wakes.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"blazingly-fast-boats": "*"
+	}
+}
