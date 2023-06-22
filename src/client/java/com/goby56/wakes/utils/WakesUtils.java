@@ -1,4 +1,4 @@
-package com.goby56.wakes;
+package com.goby56.wakes.utils;
 
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WakeParticleType;
