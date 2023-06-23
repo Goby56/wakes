@@ -6,6 +6,8 @@ import com.goby56.wakes.particle.WakeParticleType;
 import com.goby56.wakes.render.debug.DebugUtils;
 import com.goby56.wakes.render.debug.WakeDebugRenderer;
 import com.goby56.wakes.render.model.WakeModel;
+import com.goby56.wakes.utils.WakeData;
+import com.goby56.wakes.utils.WakeNode;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -31,11 +33,11 @@ import java.util.LinkedList;
 public class WakeParticle extends Particle {
     Model wakeModel;
     RenderLayer wakeLayer;
-    LinkedList<Node> wakeNodes;
 
     Entity owner;
     float yaw;
     float prevYaw;
+    LinkedList<Node> wakeNodes;
 
     protected WakeParticle(ClientWorld world, double x, double y, double z) {
         super(world, x, y, z);
@@ -62,6 +64,8 @@ public class WakeParticle extends Particle {
                 this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
                 Vec3d ownerPos = this.owner.getPos().add(vel.rotateY((float) Math.PI).normalize().multiply(1.5f));
                 this.setPos(ownerPos.x, this.getWaterLevel(), ownerPos.z);
+                WakeData instance = WakeData.getInstance();
+                instance.insert(new WakeNode(new Vec3i((int) this.x, (int) this.y, (int) this.z)));
                 this.wakeNodes.add(new Node(vel, new Vec3d(this.x, this.y, this.z), this.yaw));
             }
         }
@@ -122,7 +126,8 @@ public class WakeParticle extends Particle {
 
         float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
 
-        WakeDebugRenderer.drawWakeNodes(this.wakeNodes, camera);
+//        WakeDebugRenderer.drawWakeNodes(this.wakeNodes, camera);
+        WakeDebugRenderer.drawWakeNodes(camera);
 
         modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180));
 

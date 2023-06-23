@@ -5,6 +5,8 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector4i;
 
+import java.util.Arrays;
+
 public class DebugUtils {
     public static Vector4i rgba = new Vector4i(255, 0, 255, 255);
 
@@ -18,8 +20,11 @@ public class DebugUtils {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
 
+//        System.out.println(Arrays.toString(vertices));
+
         bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
         for (Vec3d vertex : vertices) {
+//            System.out.printf("adding vertex: %f, %f, %f   ", vertex.x, vertex.y, vertex.z);
             Vec3d v = vertex.subtract(renderContext);
             addVertex(v, bufferBuilder);
         }
