@@ -1,12 +1,10 @@
 package com.goby56.wakes.utils;
 
-
-import org.joml.Vector2i;
-
 import java.util.ArrayList;
+import java.util.Stack;
 
-public class QuadTree<T extends Position> {
-    private static final int CAPACITY = 4;
+public class QuadTree<T extends Position & Age & Tickable> {
+    private static final int CAPACITY = 64;
 
     private QuadTree<T> NE;
     private QuadTree<T> NW;
@@ -23,14 +21,49 @@ public class QuadTree<T extends Position> {
         this.depth = depth;
     }
 
+    public void tick() {
+        Stack<Integer> indicesToDelete = new Stack<>();
+        int i = 0;
+        for (T node : nodes) {
+            if (!node.isDead()) {
+                node.tick();
+            } else {
+                indicesToDelete.add(i);
+            }
+            i++;
+        }
+        for (i = 0; i < indicesToDelete.size(); i++) {
+            this.nodes.remove((int) indicesToDelete.pop());
+        }
+
+        if (this.NE == null) {
+            return;
+        }
+
+        this.NE.tick();
+        this.NW.tick();
+        this.SW.tick();
+        this.SE.tick();
+    }
+
     public boolean insert(T node) {
         if (!this.bounds.contains(node.x(), node.z())) {
             return false;
         }
 
         if (this.nodes.size() < CAPACITY) {
-            this.nodes.add(node);
-            System.out.printf("inserting node (%d, %d) at depth %d\n", node.x(), node.z(), this.depth);
+            ArrayList<T> nodesNearby = new ArrayList<>();
+            this.query(new AABB(node.x(), node.z(), 1), nodesNearby);
+            boolean nodeAlreadyExists = false;
+            for (T otherNode : this.nodes) {
+                if (node.equals(otherNode)) {
+                    nodeAlreadyExists = true;
+                    otherNode.revive();
+                }
+            }
+            if (!nodeAlreadyExists) {
+                this.nodes.add(node);
+            }
             return true;
         }
 
@@ -41,13 +74,10 @@ public class QuadTree<T extends Position> {
         if (this.NE.insert(node)) return true;
         if (this.NW.insert(node)) return true;
         if (this.SW.insert(node)) return true;
-        if (this.SE.insert(node)) return true;
-
-        return false;
+        return this.SE.insert(node);
     }
 
     public void query(AABB range, ArrayList<T> output) {
-//        System.out.println("Looking in range: " + range);
         if (!this.bounds.intersects(range)) {
             return;
         }
@@ -69,6 +99,7 @@ public class QuadTree<T extends Position> {
         int x = this.bounds.x;
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
+        // TODO FIX IF WIDTH BECOMES SMALLER THAN 1
         this.NE = new QuadTree<>(x + w, z - w, w, depth + 1);
         this.NW = new QuadTree<>(x - w, z - w, w, depth + 1);
         this.SW = new QuadTree<>(x - w, z + w, w, depth + 1);
