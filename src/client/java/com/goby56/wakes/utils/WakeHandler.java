@@ -4,11 +4,14 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class WakeHandler {
     private static WakeHandler INSTANCE;
 
     private final ArrayList<QuadTree<WakeNode>> trees;
+    private final ArrayList<Set<WakeNode>> toBeInserted;
     private final int minY;
     private final int maxY;
 
@@ -17,8 +20,10 @@ public class WakeHandler {
         this.maxY = MinecraftClient.getInstance().world.getTopY();
         int worldHeight = this.maxY - this.minY;
         this.trees = new ArrayList<>(worldHeight);
+        this.toBeInserted = new ArrayList<>(worldHeight);
         for (int i = 0; i < worldHeight; i++) {
             this.trees.add(null);
+            this.toBeInserted.add(new HashSet<>());
         }
     }
 
@@ -30,11 +35,17 @@ public class WakeHandler {
     }
 
     public void tick() {
-        for (QuadTree<WakeNode> tree : this.trees) {
-            if (tree == null) {
-                continue;
+        for (int i = 0; i < this.maxY - this.minY; i++) {
+            QuadTree<WakeNode> tree = this.trees.get(i);
+            if (tree != null) {
+                tree.tick();
+
+                Set<WakeNode> pendingNodes = this.toBeInserted.get(i);
+                for (WakeNode node : pendingNodes) {
+                    tree.insert(node);
+                }
+                pendingNodes.clear();
             }
-            tree.tick();
         }
     }
 
@@ -42,9 +53,10 @@ public class WakeHandler {
         int i = this.getArrayIndex((int) node.height);
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree<>(0, 0, 30000000, 0) );
+            this.trees.add(i, new QuadTree<>(0, 0, 30000000, 0));
         }
-        this.trees.get(i).insert(node);
+
+        this.toBeInserted.get(i).add(node);
     }
 
     public ArrayList<WakeNode> getNearby(Vec3d pos) {

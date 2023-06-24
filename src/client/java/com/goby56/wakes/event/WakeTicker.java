@@ -1,4 +1,4 @@
-package com.goby56.wakes.events;
+package com.goby56.wakes.event;
 
 import com.goby56.wakes.utils.WakeHandler;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;

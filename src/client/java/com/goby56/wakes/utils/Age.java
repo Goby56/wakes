@@ -4,4 +4,5 @@ public interface Age {
     boolean isDead();
     void markDead();
     void revive();
+    void tick();
 }

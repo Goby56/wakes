@@ -3,7 +3,7 @@ package com.goby56.wakes.utils;
 import java.util.ArrayList;
 import java.util.Stack;
 
-public class QuadTree<T extends Position & Age & Tickable> {
+public class QuadTree<T extends Position & Age & Highlightable> {
     private static final int CAPACITY = 64;
 
     private QuadTree<T> NE;
@@ -46,24 +46,32 @@ public class QuadTree<T extends Position & Age & Tickable> {
         this.SE.tick();
     }
 
+    private void tryAdd(T node) {
+        ArrayList<T> nodesNearby = new ArrayList<>();
+        this.query(new AABB(node.x(), node.z(), 1), nodesNearby);
+
+        boolean nodeAlreadyExists = false;
+        for (T otherNode : nodesNearby) {
+            otherNode.setHighlight(true); // For debugging
+            if (node.equals(otherNode)) {
+                nodeAlreadyExists = true;
+                otherNode.revive();
+            }
+        }
+
+        if (!nodeAlreadyExists) {
+            this.nodes.add(node);
+            nodesNearby.forEach(node::updateAdjacency);
+        }
+    }
+
     public boolean insert(T node) {
         if (!this.bounds.contains(node.x(), node.z())) {
             return false;
         }
 
         if (this.nodes.size() < CAPACITY) {
-            ArrayList<T> nodesNearby = new ArrayList<>();
-            this.query(new AABB(node.x(), node.z(), 1), nodesNearby);
-            boolean nodeAlreadyExists = false;
-            for (T otherNode : this.nodes) {
-                if (node.equals(otherNode)) {
-                    nodeAlreadyExists = true;
-                    otherNode.revive();
-                }
-            }
-            if (!nodeAlreadyExists) {
-                this.nodes.add(node);
-            }
+            this.tryAdd(node);
             return true;
         }
 
@@ -109,8 +117,8 @@ public class QuadTree<T extends Position & Age & Tickable> {
     public record AABB(int x, int z, int width) {
 
         public boolean contains(int x, int z) {
-            return this.x - this.width <= x && x < this.x + this.width &&
-                    this.z - this.width <= z && z < this.z + this.width;
+            return this.x - this.width <= x && x <= this.x + this.width &&
+                    this.z - this.width <= z && z <= this.z + this.width;
         }
 
         public boolean intersects(AABB other) {
