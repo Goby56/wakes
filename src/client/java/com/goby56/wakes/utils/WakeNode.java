@@ -1,13 +1,19 @@
 package com.goby56.wakes.utils;
 
+import com.goby56.wakes.WakesClient;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import org.joml.Vector2i;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class WakeNode implements Position<WakeNode>, Age, Highlightable {
-    public final int[][] values = new int[16][16];
+    public final double[][] values = new double[16][16];
 
     public final int x;
     public final int z;
@@ -24,11 +30,23 @@ public class WakeNode implements Position<WakeNode>, Age, Highlightable {
 
     public boolean highlighted = false;
 
+    public Identifier textureID;
+    public NativeImage image;
+
     public WakeNode(Vec3d position, int maxAge) {
         this.x = (int) position.getX();
         this.z = (int) position.getZ();
         this.height = (float) position.getY();
         this.maxAge = maxAge;
+        for (int i = 0; i < 16; i++) {
+            for (int j = 0; j < 16; j++) {
+                this.values[i][j] = Math.random();
+            }
+        }
+        this.textureID = new Identifier(WakesClient.MOD_ID, String.format("wake_texture_at_%d_%d_%d", this.x, (int) this.height, this.z));
+        this.image = new NativeImage(16, 16, false);
+        MinecraftClient.getInstance().getTextureManager().registerTexture(this.textureID, new NativeImageBackedTexture(this.image));
+
     }
 
     @Override
@@ -37,9 +55,15 @@ public class WakeNode implements Position<WakeNode>, Age, Highlightable {
             this.markDead();
             return;
         }
-        if (this.age < 3) {
+        if (this.age < 10) {
             this.highlighted = false;
         }
+//        for (int i = 0; i < 16; i++) {
+//            for (int j = 0; j < 16; j++) {
+//                this.image.setColor(i, j, 1);
+//            }
+//        }
+//        MinecraftClient.getInstance().getTextureManager().registerTexture(this.textureID, new NativeImageBackedTexture(this.image));
         // TODO WAVE CALCULATIONS HERE
         // GET NEARBY NODES?
         // DO MATH

@@ -52,6 +52,7 @@ public class QuadTree<T extends Position & Age & Highlightable> {
 
         boolean nodeAlreadyExists = false;
         for (T otherNode : nodesNearby) {
+            // TODO STILL SOME ISSUES WITH WHAT BLOCKS ARE BEING SELECTED AT NODES NEARBY
             otherNode.setHighlight(true); // For debugging
             if (node.equals(otherNode)) {
                 nodeAlreadyExists = true;

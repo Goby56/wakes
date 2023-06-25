@@ -3,6 +3,7 @@ package com.goby56.wakes;
 import com.goby56.wakes.command.SpawnWakesCommand;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
+import com.goby56.wakes.render.WakeTextureRenderer;
 import com.goby56.wakes.render.debug.WakeDebugRenderer;
 import com.goby56.wakes.render.model.WakeModel;
 import net.fabricmc.api.ClientModInitializer;
@@ -28,9 +29,14 @@ public class WakesClient implements ClientModInitializer {
 
 		ModParticles.registerParticles();
 
+		// Game events
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
+
+		// Rendering events
+		WorldRenderEvents.AFTER_ENTITIES.register(new WakeTextureRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
+		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(SpawnWakesCommand::register);
 	}
 }

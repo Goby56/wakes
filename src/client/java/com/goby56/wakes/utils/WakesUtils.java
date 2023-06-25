@@ -26,6 +26,30 @@ public class WakesUtils {
         WakeHandler.getInstance().insert(wakeNode);
     }
 
+    public static int[] int2rgba(int n) {
+        // TODO TEST THIS
+        int[] rgba = new int[4];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 7; j >= 0; j--) {
+                rgba[i] |= (n >> i * 4 + j) << j;
+                // moving the (i*4+j):th bit of n to the (7 - j):th bit of rgba[i]
+            }
+        }
+        return rgba;
+    }
+
+    public static int rgba2int(int[] rgba) {
+        // TODO TEST IF ACTUALLY WORKS
+        int n = 0;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 7; j >= 0; j--) {
+                n |= (rgba[i] >> j) << (i * 4 + j);
+                // moving the (7-j):th bit of rgba[i] to the (i*4+j):th bit of n
+            }
+        }
+        return n;
+    }
+
     public static float getWaterLevel(World world, Entity entityInWater) {
         // Taken from BoatEntity$getWaterLevelBelow
         Box box = entityInWater.getBoundingBox();
