@@ -30,23 +30,17 @@ public class WakeNode implements Position<WakeNode>, Age, Highlightable {
 
     public boolean highlighted = false;
 
-    public Identifier textureID;
-    public NativeImage image;
-
     public WakeNode(Vec3d position, int maxAge) {
-        this.x = (int) position.getX();
-        this.z = (int) position.getZ();
+        this.x = (int) Math.floor(position.x);
+        this.z = (int) Math.floor(position.z);
         this.height = (float) position.getY();
         this.maxAge = maxAge;
+        Random r = new Random();
         for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 16; j++) {
-                this.values[i][j] = Math.random();
+                this.values[i][j] = r.nextInt(0xFFFFFF);
             }
         }
-        this.textureID = new Identifier(WakesClient.MOD_ID, String.format("wake_texture_at_%d_%d_%d", this.x, (int) this.height, this.z));
-        this.image = new NativeImage(16, 16, false);
-        MinecraftClient.getInstance().getTextureManager().registerTexture(this.textureID, new NativeImageBackedTexture(this.image));
-
     }
 
     @Override

@@ -1,7 +1,13 @@
 package com.goby56.wakes.utils;
 
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,6 +21,9 @@ public class WakeHandler {
     private final int minY;
     private final int maxY;
 
+    public int glTexId = -1;
+    public long imagePointer = -1;
+
     private WakeHandler() {
         this.minY = MinecraftClient.getInstance().world.getBottomY();
         this.maxY = MinecraftClient.getInstance().world.getTopY();
@@ -25,6 +34,22 @@ public class WakeHandler {
             this.trees.add(null);
             this.toBeInserted.add(new HashSet<>());
         }
+
+        // Initialize texture
+        this.glTexId = TextureUtil.generateTextureId();
+
+        GlStateManager._bindTexture(this.glTexId);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LOD, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
+
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
+
+        GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, 16, 16, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
+
+        this.imagePointer = MemoryUtil.nmemAlloc(16 * 16 * 4);
     }
 
     public static WakeHandler getInstance() {

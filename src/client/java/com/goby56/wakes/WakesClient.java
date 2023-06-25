@@ -34,7 +34,7 @@ public class WakesClient implements ClientModInitializer {
 
 		// Rendering events
 		WorldRenderEvents.AFTER_ENTITIES.register(new WakeTextureRenderer());
-		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
+//		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
 		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(SpawnWakesCommand::register);
