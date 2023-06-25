@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
@@ -82,6 +83,16 @@ public class WakeHandler {
         }
 
         this.toBeInserted.get(i).add(node);
+    }
+
+    public ArrayList<WakeNode> query(Frustum frustum) {
+        ArrayList<WakeNode> foundNodes = new ArrayList<>();
+        for (int i = 0; i < this.maxY - this.minY; i++) {
+            if (this.trees.get(i) != null) {
+                this.trees.get(i).query(frustum, i + this.minY, foundNodes);
+            }
+        }
+        return foundNodes;
     }
 
     public ArrayList<WakeNode> getNearby(Vec3d pos) {

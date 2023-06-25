@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import org.joml.Vector2i;
@@ -13,7 +14,9 @@ import java.util.Objects;
 import java.util.Random;
 
 public class WakeNode implements Position<WakeNode>, Age, Highlightable {
-    public final double[][] values = new double[16][16];
+    public double[][] values = new double[16][16];
+    public int sources = 0;
+    public int MAX_QUERY_RANGE = 10;
 
     public final int x;
     public final int z;
@@ -52,6 +55,7 @@ public class WakeNode implements Position<WakeNode>, Age, Highlightable {
         if (this.age < 10) {
             this.highlighted = false;
         }
+
 //        for (int i = 0; i < 16; i++) {
 //            for (int j = 0; j < 16; j++) {
 //                this.image.setColor(i, j, 1);
@@ -123,6 +127,11 @@ public class WakeNode implements Position<WakeNode>, Age, Highlightable {
     @Override
     public void setHighlight(boolean value) {
         this.highlighted = value;
+    }
+
+    @Override
+    public Box toBox() {
+        return new Box(this.x, Math.floor(this.height), this.z, this.x + 1, Math.ceil(this.height), this.z + 1);
     }
 
     @Override

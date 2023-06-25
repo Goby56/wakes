@@ -31,41 +31,10 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
     @Override
     public void afterEntities(WorldRenderContext context) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
-//        if (wakeHandler.glTexId == -1) {
-//            wakeHandler.glTexId = TextureUtil.generateTextureId();
-//
-//            GlStateManager._bindTexture(wakeHandler.glTexId);
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LOD, 0);
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
-//
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
-//            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
-//
-//            GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, 16, 16, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
-//        }
-//
-//        if (wakeHandler.imagePointer == -1) {
-//            wakeHandler.imagePointer = MemoryUtil.nmemAlloc(16 * 16 * 4);
-//        }
-
-//        Random r = new Random();
-//        for (int i = 0; i < 16 * 16; i++) {
-//            MemoryUtil.memPutInt(wakeHandler.imagePointer + i * 4L, 0xFF << 8 * 3 | r.nextInt(0xFFFFFF));
-//        }
-//
-//        GlStateManager._bindTexture(wakeHandler.glTexId);
-//        GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
-//        GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
-//        GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
-//        GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
-//        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, 0, 0, 16, 16, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, wakeHandler.imagePointer);
-
-        ArrayList<WakeNode> nodes = WakeHandler.getInstance().getNearby(context.camera().getPos());
+        ArrayList<WakeNode> nodes = WakeHandler.getInstance().query(context.frustum());
+        System.out.printf("drawing %d nodes\n", nodes.size());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
 
-        Random r = new Random();
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
 
@@ -96,6 +65,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
         buffer.vertex(matrix, x1, y1, z1).texture(1, 1).next();
         buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).next();
         Tessellator.getInstance().draw();
-        // TODO DRAW TEXTURE ON UNDER SIDE
+        // TODO DRAW TEXTURE ON UNDER SIDE MAYBE
     }
 }

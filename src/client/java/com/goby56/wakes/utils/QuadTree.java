@@ -1,5 +1,8 @@
 package com.goby56.wakes.utils;
 
+import net.minecraft.client.render.Frustum;
+import net.minecraft.util.math.Box;
+
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -104,6 +107,24 @@ public class QuadTree<T extends Position & Age & Highlightable> {
         this.SE.query(range, output);
     }
 
+    public void query(Frustum frustum, int y, ArrayList<T> output) {
+        if (!frustum.isVisible(this.bounds.toBox(y))) {
+            return;
+        }
+        for (T node : this.nodes) {
+            if (frustum.isVisible(node.toBox())) {
+                output.add(node);
+            }
+        }
+        if (this.NE == null) {
+            return;
+        }
+        this.NE.query(frustum, y, output);
+        this.NW.query(frustum, y, output);
+        this.SW.query(frustum, y, output);
+        this.SE.query(frustum, y, output);
+    }
+
     private void subdivide() {
         int x = this.bounds.x;
         int z = this.bounds.z;
@@ -127,6 +148,11 @@ public class QuadTree<T extends Position & Age & Highlightable> {
                     this.x + this.width < other.x - other.width ||
                     this.z - this.width > other.z + other.width ||
                     this.z + this.width < other.z - other.width);
+        }
+
+        public Box toBox(int y) {
+            return new Box(this.x - this.width, y, this.z - this.width,
+                           this.x + this.width, y + 1, this.z + this.width);
         }
     }
 }
