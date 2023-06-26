@@ -22,7 +22,7 @@ public class WakesUtils {
     public static void spawnWakeNode(World world, Entity producer) {
         float height = getWaterLevel(world, producer);
         Vec3d pos = new Vec3d(producer.getX(), height, producer.getZ());
-        WakeNode wakeNode = new WakeNode(pos, 60);
+        WakeNode wakeNode = new WakeNode(pos);
         WakeHandler.getInstance().insert(wakeNode);
     }
 

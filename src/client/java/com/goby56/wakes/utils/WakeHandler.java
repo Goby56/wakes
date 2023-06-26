@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.util.math.Vec3d;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
@@ -15,6 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class WakeHandler {
+    public final int MAX_QUERY_RANGE = 10;
+
     private static WakeHandler INSTANCE;
 
     private final ArrayList<QuadTree<WakeNode>> trees;
@@ -85,7 +86,7 @@ public class WakeHandler {
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<WakeNode> query(Frustum frustum) {
+    public ArrayList<WakeNode> getVisible(Frustum frustum) {
         ArrayList<WakeNode> foundNodes = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
@@ -95,16 +96,14 @@ public class WakeHandler {
         return foundNodes;
     }
 
-    public ArrayList<WakeNode> getNearby(Vec3d pos) {
+    public ArrayList<WakeNode> getNearby(int x, int y, int z) {
         ArrayList<WakeNode> foundNodes = new ArrayList<>();
-        QuadTree.AABB range = new QuadTree.AABB((int) pos.getX(), (int) pos.getZ(), 100);
-        for (int y = -10; y < 10; y++) {
-            int i = this.getArrayIndex((int) (pos.getY() + y));
-            if (i == -1) continue;
-            if (this.trees.get(i) != null) {
-                this.trees.get(i).query(range, foundNodes);
-            }
+        int i = this.getArrayIndex(y);
+        if (this.trees.get(i) == null) {
+            return foundNodes;
         }
+        QuadTree.Circle range = new QuadTree.Circle(x, z, this.MAX_QUERY_RANGE);
+        this.trees.get(i).query(range, foundNodes);
         return foundNodes;
     }
 

@@ -6,7 +6,7 @@ import net.minecraft.util.math.Box;
 import java.util.ArrayList;
 import java.util.Stack;
 
-public class QuadTree<T extends Position & Age & Highlightable> {
+public class QuadTree<T extends Position<T> & Age<T>> {
     private static final int CAPACITY = 64;
 
     private QuadTree<T> NE;
@@ -29,6 +29,7 @@ public class QuadTree<T extends Position & Age & Highlightable> {
         int i = 0;
         for (T node : nodes) {
             if (!node.isDead()) {
+                node.preTick();
                 node.tick();
             } else {
                 indicesToDelete.add(i);
@@ -50,16 +51,17 @@ public class QuadTree<T extends Position & Age & Highlightable> {
     }
 
     private void tryAdd(T node) {
+        if (!node.inValidPos()) {
+            return;
+        }
         ArrayList<T> nodesNearby = new ArrayList<>();
         this.query(new AABB(node.x(), node.z(), 1), nodesNearby);
 
         boolean nodeAlreadyExists = false;
         for (T otherNode : nodesNearby) {
-            // TODO STILL SOME ISSUES WITH WHAT BLOCKS ARE BEING SELECTED AT NODES NEARBY
-            otherNode.setHighlight(true); // For debugging
             if (node.equals(otherNode)) {
                 nodeAlreadyExists = true;
-                otherNode.revive();
+                otherNode.revive(node);
             }
         }
 
@@ -107,6 +109,25 @@ public class QuadTree<T extends Position & Age & Highlightable> {
         this.SE.query(range, output);
     }
 
+    public void query(Circle range, ArrayList<T> output) {
+        // TODO UNIFY query(AABB) AND query(Circle) TO ONE METHOD
+        if (!this.bounds.intersects(range)) {
+            return;
+        }
+        for (T node : this.nodes) {
+            if (range.contains(node.x(), node.z())) {
+                output.add(node);
+            }
+        }
+        if (this.NE == null) {
+            return;
+        }
+        this.NE.query(range, output);
+        this.NW.query(range, output);
+        this.SW.query(range, output);
+        this.SE.query(range, output);
+    }
+
     public void query(Frustum frustum, int y, ArrayList<T> output) {
         if (!frustum.isVisible(this.bounds.toBox(y))) {
             return;
@@ -137,7 +158,6 @@ public class QuadTree<T extends Position & Age & Highlightable> {
     }
 
     public record AABB(int x, int z, int width) {
-
         public boolean contains(int x, int z) {
             return this.x - this.width <= x && x <= this.x + this.width &&
                     this.z - this.width <= z && z <= this.z + this.width;
@@ -150,9 +170,24 @@ public class QuadTree<T extends Position & Age & Highlightable> {
                     this.z + this.width < other.z - other.width);
         }
 
+        public boolean intersects(Circle other) {
+            if (this.contains(other.x, other.z)) return true;
+            return !(this.x - this.width > other.x + other.radius ||
+                    this.x + this.width < other.x - other.radius ||
+                    this.z - this.width > other.z + other.radius ||
+                    this.z + this.width < other.z - other.radius);
+        }
+
         public Box toBox(int y) {
             return new Box(this.x - this.width, y, this.z - this.width,
                            this.x + this.width, y + 1, this.z + this.width);
         }
+    }
+
+    public record Circle(int x, int z, int radius) {
+        public boolean contains(int x, int z) {
+            return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.z - z, 2)) <= radius;
+        }
+
     }
 }

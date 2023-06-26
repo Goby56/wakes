@@ -6,6 +6,8 @@ public interface Position<T> {
     int x();
     int z();
 
+    boolean inValidPos();
+
     Box toBox();
 
     void updateAdjacency(T node);

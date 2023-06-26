@@ -36,7 +36,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
 		// TODO CHECK IF VELOCITY IS HIGH ENOUGH
-		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater() && this.getVelocity().horizontalLength() > 0.2;
+		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater() && this.getVelocity().horizontalLength() > 0.1;
 		if (this.shouldSpawnWake) {
 			WakesUtils.spawnWakeNode(this.world, ((Entity) (Object) this));
 		}

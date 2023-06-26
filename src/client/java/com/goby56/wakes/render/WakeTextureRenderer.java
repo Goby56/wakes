@@ -4,42 +4,30 @@ import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
     @Override
     public void afterEntities(WorldRenderContext context) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
-        ArrayList<WakeNode> nodes = WakeHandler.getInstance().query(context.frustum());
-        System.out.printf("drawing %d nodes\n", nodes.size());
+        ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
 
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
 
-            for (int i = 0; i < 16 * 16; i++) {
-                MemoryUtil.memPutInt(wakeHandler.imagePointer + i * 4L, 0xFF << 8 * 3 | (int) node.values[i%4][i%4]);
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, 0xFF << 8 * 3 | (int) node.u[0][z+1][x+1]);
+                }
             }
 
             GlStateManager._bindTexture(wakeHandler.glTexId);
