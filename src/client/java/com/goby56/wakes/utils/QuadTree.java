@@ -9,6 +9,7 @@ import java.util.Stack;
 public class QuadTree<T extends Position<T> & Age<T>> {
     private static final int CAPACITY = 64;
 
+    private QuadTree<T> ROOT;
     private QuadTree<T> NE;
     private QuadTree<T> NW;
     private QuadTree<T> SW;
@@ -18,10 +19,14 @@ public class QuadTree<T extends Position<T> & Age<T>> {
     private final int depth;
     private final ArrayList<T> nodes = new ArrayList<>(CAPACITY);
 
-    public QuadTree(int x, int z, int width, int depth) {
+    public QuadTree(int x, int z, int width) {
+        this(x, z, width, 0, null);
+    }
 
+    private QuadTree(int x, int z, int width, int depth, QuadTree<T> root) {
         this.bounds = new AABB(x, z, width);
         this.depth = depth;
+        this.ROOT = root == null ? this : root;
     }
 
     public void tick() {
@@ -55,7 +60,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
             return;
         }
         ArrayList<T> nodesNearby = new ArrayList<>();
-        this.query(new AABB(node.x(), node.z(), 1), nodesNearby);
+        this.ROOT.query(new AABB(node.x(), node.z(), 1), nodesNearby);
 
         boolean nodeAlreadyExists = false;
         for (T otherNode : nodesNearby) {
@@ -151,10 +156,10 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
         // TODO FIX IF WIDTH BECOMES SMALLER THAN 1
-        this.NE = new QuadTree<>(x + w, z - w, w, depth + 1);
-        this.NW = new QuadTree<>(x - w, z - w, w, depth + 1);
-        this.SW = new QuadTree<>(x - w, z + w, w, depth + 1);
-        this.SE = new QuadTree<>(x + w, z + w, w, depth + 1);
+        this.NE = new QuadTree<>(x + w, z - w, w, depth + 1, this.ROOT);
+        this.NW = new QuadTree<>(x - w, z - w, w, depth + 1, this.ROOT);
+        this.SW = new QuadTree<>(x - w, z + w, w, depth + 1, this.ROOT);
+        this.SE = new QuadTree<>(x + w, z + w, w, depth + 1, this.ROOT);
     }
 
     public record AABB(int x, int z, int width) {

@@ -80,7 +80,7 @@ public class WakeHandler {
         int i = this.getArrayIndex((int) node.height);
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree<>(0, 0, 30000000, 0));
+            this.trees.add(i, new QuadTree<>(0, 0, 30000000));
         }
 
         this.toBeInserted.get(i).add(node);

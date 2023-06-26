@@ -11,8 +11,4 @@ public interface Position<T> {
     Box toBox();
 
     void updateAdjacency(T node);
-    void setNorth(T north);
-    void setEast(T east);
-    void setSouth(T south);
-    void setWest(T west);
 }

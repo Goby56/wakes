@@ -25,6 +25,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float height;
     public Vector2i subPos;
 
+    public double debugOffset = Math.random() * 2;
+
     public WakeNode NORTH = null;
     public WakeNode EAST = null;
     public WakeNode SOUTH = null;
@@ -42,7 +44,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         int sz = (int) Math.floor(16 * (position.z - this.z));
         this.subPos = new Vector2i(sx, sz);
         this.u[0][sz+1][sx+1] = this.initialStrength;
-        this.floodLevel = 8;
+        this.floodLevel = 4;
     }
 
     public WakeNode(int x, int z, float height, int floodLevel) {
@@ -81,18 +83,18 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             }
         }
 
-        if (this.floodLevel > 0) {
+        if (this.floodLevel > 0 && this.t > 0.5) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
+            }
+            if (this.EAST == null) {
+                wakeHandler.insert(new WakeNode(this.x + 1, this.z, this.height, this.floodLevel - 1));
             }
             if (this.SOUTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z + 1, this.height, this.floodLevel - 1));
             }
-            if (this.EAST == null) {
-                wakeHandler.insert(new WakeNode(this.x - 1, this.z, this.height, this.floodLevel - 1));
-            }
             if (this.WEST == null) {
-                wakeHandler.insert(new WakeNode(this.x + 1, this.z, this.height, this.floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x - 1, this.z, this.height, this.floodLevel - 1));
             }
             this.floodLevel = 0;
             // TODO IF BLOCK IS BROKEN (AND WATER APPEARS IN ITS STEAD) RETRY FLOOD FILL
@@ -103,43 +105,23 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public void updateAdjacency(WakeNode node) {
         if (node.x == this.x && node.z == this.z - 1) {
             this.NORTH = node;
-            node.setSouth(this);
+            node.SOUTH = this;
             return;
         }
         if (node.x == this.x + 1 && node.z == this.z) {
             this.EAST = node;
-            node.setWest(this);
+            node.WEST = this;
             return;
         }
         if (node.x == this.x && node.z == this.z + 1) {
             this.SOUTH = node;
-            node.setNorth(this);
+            node.NORTH = this;
             return;
         }
         if (node.x == this.x - 1 && node.z == this.z) {
-            node.setEast(this);
             this.WEST = node;
+            node.EAST = this;
         }
-    }
-
-    @Override
-    public void setNorth(WakeNode north) {
-        this.NORTH = north;
-    }
-
-    @Override
-    public void setEast(WakeNode east) {
-        this.EAST = east;
-    }
-
-    @Override
-    public void setSouth(WakeNode south) {
-        this.SOUTH = south;
-    }
-
-    @Override
-    public void setWest(WakeNode west) {
-        this.WEST = west;
     }
 
     @Override
