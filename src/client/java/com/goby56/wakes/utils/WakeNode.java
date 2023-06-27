@@ -15,8 +15,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
     public float[][][] u = new float[3][18][18];
-    public final float c = 0.87f; // blocks per second
-    public final float initialStrength = 255f;
+    public final float c = 0.88f; // blocks per second kind of
+    public final float initialStrength = 50f;
     private final float alpha = (float) Math.pow(c * 16f/20f, 2);
     public float t = 0;
     public int floodLevel;
@@ -26,13 +26,12 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float height;
     public Vector2i subPos;
 
-    public double debugOffset = Math.random() * 2;
-
     public WakeNode NORTH = null;
     public WakeNode EAST = null;
     public WakeNode SOUTH = null;
     public WakeNode WEST = null;
 
+    // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME
     private final int maxAge = 60;
     private int age = 4;
     private boolean dead = false;
@@ -44,8 +43,12 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         int sx = (int) Math.floor(16 * (position.x - this.x));
         int sz = (int) Math.floor(16 * (position.z - this.z));
         this.subPos = new Vector2i(sx, sz);
-        this.u[0][sz+1][sx+1] = this.initialStrength;
-        this.floodLevel = 5;
+        for (int z = -1; z < 2; z++) {
+            for (int x = -1; x < 2; x++) {
+                this.u[0][sz+1+z][sx+1+x] = this.initialStrength;
+            }
+        }
+        this.floodLevel = 6;
     }
 
     public WakeNode(int x, int z, float height, int floodLevel) {
@@ -72,30 +75,44 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 if (this.WEST != null) this.u[i][z][0] = this.WEST.u[i][z][16];
             }
         }
-        double largest = 0;
-        for (int z = 1; z < 17; z++) {
-            for (int x = 1; x < 17; x++) {
-                this.u[0][z][x] = alpha * (u[1][z][x-1] + u[1][z][x+1] + u[1][z-1][x] + u[1][z+1][x] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
-                if (this.u[0][z][x] > largest) largest = this.u[0][z][x];
-            }
-        }
-        System.out.printf("largest value is: %f\n", largest);
 
         this.u[2] = this.u[1];
         this.u[1] = this.u[0];
 
+        double largest = 0;
+        for (int x = 1; x < 17; x++) {
+            for (int z = 1; z < 17; z++) {
+//                this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
+//                                                 + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
+//                                                 + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1])
+//                                                 + 2*u[1][z][x] - u[2][z][x]);
+                this.u[0][x][z] = alpha * (u[1][x-1][z] + u[1][x+1][z] + u[1][x][z-1] + u[1][x][z+1] - 4*u[1][x][z]) + 2*u[1][x][z] - u[2][x][z];
+                if (this.u[0][x][z] > largest) largest = this.u[0][x][z];
+            }
+        }
+        System.out.printf("largest value is: %f\n", largest);
+
+
         if (this.floodLevel > 0 && this.t > 0.5) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
+            } else {
+                this.NORTH.updateFloodLevel(this.floodLevel - 1);
             }
             if (this.EAST == null) {
                 wakeHandler.insert(new WakeNode(this.x + 1, this.z, this.height, this.floodLevel - 1));
+            } else {
+                this.EAST.updateFloodLevel(this.floodLevel - 1);
             }
             if (this.SOUTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z + 1, this.height, this.floodLevel - 1));
+            } else {
+                this.SOUTH.updateFloodLevel(this.floodLevel - 1);
             }
             if (this.WEST == null) {
                 wakeHandler.insert(new WakeNode(this.x - 1, this.z, this.height, this.floodLevel - 1));
+            } else {
+                this.WEST.updateFloodLevel(this.floodLevel - 1);
             }
             this.floodLevel = 0;
             // TODO IF BLOCK IS BROKEN (AND WATER APPEARS IN ITS STEAD) RETRY FLOOD FILL
@@ -122,6 +139,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         if (node.x == this.x - 1 && node.z == this.z) {
             this.WEST = node;
             node.EAST = this;
+        }
+    }
+
+    public void updateFloodLevel(int newLevel) {
+        this.age = 0;
+        if (newLevel > this.floodLevel) {
+            this.floodLevel = newLevel;
         }
     }
 
@@ -157,10 +181,14 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public void revive(WakeNode node) {
         this.age = 0;
         if (node.subPos != null) {
-            this.floodLevel = 5;
+            this.floodLevel = 8;
             int sx = node.subPos.x;
             int sz = node.subPos.y;
-            this.u[0][sz+1][sx+1] = this.initialStrength;
+            for (int z = -1; z < 2; z++) {
+                for (int x = -1; x < 2; x++) {
+                    this.u[0][sz+1+z][sx+1+x] = this.initialStrength;
+                }
+            }
             this.subPos = node.subPos;
         }
     }

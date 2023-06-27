@@ -29,8 +29,8 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
-            Box box = new Box(pos.x, pos.y + node.debugOffset, pos.z, pos.x + 1, pos.y + node.debugOffset + 0.1, pos.z + 1);
-            DebugRenderer.drawBox(context.matrixStack(), context.consumers(), box, 1f, 0f, 1f, 0.4f);
+//            Box box = new Box(pos.x, pos.y + node.debugOffset, pos.z, pos.x + 1, pos.y + node.debugOffset + 0.1, pos.z + 1);
+//            DebugRenderer.drawBox(context.matrixStack(), context.consumers(), box, 1f, 0f, 1f, 0.4f);
         }
     }
 }

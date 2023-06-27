@@ -23,18 +23,17 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+        RenderSystem.enableBlend();
 
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
 
-            int[] rgba = {0, 0, 0, 200};
+            int[] rgba = {0, 0, 0, 100};
             // TODO FIX GL TRANSPARENCY / OPACITY
-            int val;
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     for (int i = 0; i < 3; i++) {
-                        val = (int) MathHelper.clamp(node.u[i][z+1][x+1] + 128, 0, 255);
-                        rgba[i] = val;
+                        rgba[i] = (int) MathHelper.clamp(node.u[i][z+1][x+1], 0, 255);
                     }
                     MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, WakesUtils.rgbaArr2abgrInt(rgba));
 //                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, 0xFF << 8 * 3 | (int) node.u[0][z+1][x+1]);
