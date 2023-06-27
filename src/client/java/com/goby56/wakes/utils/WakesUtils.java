@@ -2,7 +2,6 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WakeParticleType;
-import com.goby56.wakes.particle.custom.WakeParticle;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
@@ -26,25 +25,21 @@ public class WakesUtils {
         WakeHandler.getInstance().insert(wakeNode);
     }
 
-    public static int[] int2rgba(int n) {
-        // TODO TEST THIS
-        int[] rgba = new int[4];
+    public static int[] abgrInt2rgbaArr(int n) {
+        int[] arr = new int[4];
         for (int i = 0; i < 4; i++) {
-            for (int j = 7; j >= 0; j--) {
-                rgba[i] |= (n >> i * 4 + j) << j;
-                // moving the (i*4+j):th bit of n to the (7 - j):th bit of rgba[i]
+            for (int j = 0; j < 8; j++) {
+                arr[i] |= (n >> i*8+j & 1) << 7-j;
             }
         }
-        return rgba;
+        return arr;
     }
 
-    public static int rgba2int(int[] rgba) {
-        // TODO TEST IF ACTUALLY WORKS
+    public static int rgbaArr2abgrInt(int[] arr) {
         int n = 0;
         for (int i = 0; i < 4; i++) {
-            for (int j = 7; j >= 0; j--) {
-                n |= (rgba[i] >> j) << (i * 4 + j);
-                // moving the (7-j):th bit of rgba[i] to the (i*4+j):th bit of n
+            for (int j = 0; j < 8; j++) {
+                n |= (arr[i] >> j & 1) << i*8+j;
             }
         }
         return n;

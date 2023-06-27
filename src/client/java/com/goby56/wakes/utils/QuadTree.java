@@ -34,7 +34,6 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         int i = 0;
         for (T node : nodes) {
             if (!node.isDead()) {
-                node.preTick();
                 node.tick();
             } else {
                 indicesToDelete.add(i);

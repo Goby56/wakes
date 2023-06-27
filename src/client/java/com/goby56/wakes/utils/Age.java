@@ -4,6 +4,5 @@ public interface Age<T> {
     boolean isDead();
     void markDead();
     void revive(T newNode);
-    void preTick();
     void tick();
 }

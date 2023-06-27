@@ -2,16 +2,19 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;
+import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.*;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
@@ -24,9 +27,17 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterEntities {
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
 
+            int[] rgba = {0, 0, 0, 200};
+            // TODO FIX GL TRANSPARENCY / OPACITY
+            int val;
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
-                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, 0xFF << 8 * 3 | (int) node.u[0][z+1][x+1]);
+                    for (int i = 0; i < 3; i++) {
+                        val = (int) MathHelper.clamp(node.u[i][z+1][x+1] + 128, 0, 255);
+                        rgba[i] = val;
+                    }
+                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, WakesUtils.rgbaArr2abgrInt(rgba));
+//                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, 0xFF << 8 * 3 | (int) node.u[0][z+1][x+1]);
                 }
             }
 

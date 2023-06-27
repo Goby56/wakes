@@ -51,11 +51,6 @@ public class GenericNode implements Position<GenericNode>, Age<GenericNode> {
     }
 
     @Override
-    public void preTick() {
-
-    }
-
-    @Override
     public void tick() {
 
     }
