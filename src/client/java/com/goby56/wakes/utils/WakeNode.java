@@ -15,8 +15,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
     public float[][][] u = new float[3][18][18];
-    public final float c = 0.88f; // blocks per second kind of
-    public final float initialStrength = 50f;
+    public final float c = 0.85f; // blocks per second kind of
+    public final float initialStrength = 200f;
     private final float alpha = (float) Math.pow(c * 16f/20f, 2);
     public float t = 0;
     public int floodLevel;
@@ -76,8 +76,15 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             }
         }
 
-        this.u[2] = this.u[1];
-        this.u[1] = this.u[0];
+        for (int z = 1; z < 17; z++) {
+            for (int x = 1; x < 17; x++) {
+                this.u[2][z][x] = this.u[1][z][x];
+                this.u[1][z][x] = this.u[0][z][x];
+            }
+        }
+//        this.u[2] = this.u[1].;
+//        this.u[1] = this.u[0].clone();
+//        this.u[0] = new float[18][18];
 
         double largest = 0;
         for (int x = 1; x < 17; x++) {
@@ -87,10 +94,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 //                                                 + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1])
 //                                                 + 2*u[1][z][x] - u[2][z][x]);
                 this.u[0][x][z] = alpha * (u[1][x-1][z] + u[1][x+1][z] + u[1][x][z-1] + u[1][x][z+1] - 4*u[1][x][z]) + 2*u[1][x][z] - u[2][x][z];
-                if (this.u[0][x][z] > largest) largest = this.u[0][x][z];
             }
         }
-        System.out.printf("largest value is: %f\n", largest);
 
 
         if (this.floodLevel > 0 && this.t > 0.5) {
