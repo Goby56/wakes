@@ -45,6 +45,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.subPos = new Vector2i(sx, sz);
         for (int z = -1; z < 2; z++) {
             for (int x = -1; x < 2; x++) {
+                // TODO BETTER INSERTION OF INITIAL WAVE HEIGHT
+                // MAYBE INTERPOLATE THROUGH PAST POSITION (DRAW STRAIGHT LINE)
+                // THIS TO MAKE SURE THERE IS A CONTINUOUS TRAIL
+                // ALSO MAKE WIDER INITIAL STRENGTH (MAYBE AS WIDE AS HITBOX)
                 this.u[0][sz+1+z][sx+1+x] = this.initialStrength;
             }
         }

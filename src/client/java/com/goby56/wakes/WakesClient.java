@@ -35,7 +35,7 @@ public class WakesClient implements ClientModInitializer {
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
 
 		// Rendering events
-		WorldRenderEvents.AFTER_ENTITIES.register(new WakeTextureRenderer());
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeTextureRenderer());
 //		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
 		// Commands
