@@ -1,0 +1,8 @@
+{
+  "title.wakes.config": "Wakes config",
+  "category.wakes.debug": "Debug",
+  "option.wakes.wave_speed": "Wave speed",
+  "option.wakes.wave_initial_strength": "Wave initial strength",
+  "option.wakes.wave_decay": "Wave decay",
+  "option.wakes.flood_fill_distance": "Flood fill distance"
+}

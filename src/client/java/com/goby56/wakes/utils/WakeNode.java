@@ -5,7 +5,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector2i;
 
@@ -14,12 +13,14 @@ import java.util.Objects;
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
+    public static float waveSpeed = 0.87f; // blocks per second kind of
+    public static float initialStrength = 200f;
+    public static float waveDecay = 0.95f;
+    public static int floodFillDistance = 6;
+    private static float alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
+
+
     public float[][][] u = new float[3][18][18];
-    public final float c = 0.85f; // blocks per second kind of
-    public final float initialStrength = 200f;
-    private final float alpha = (float) Math.pow(c * 16f/20f, 2);
-    public float t = 0;
-    public int floodLevel;
 
     public final int x;
     public final int z;
@@ -36,6 +37,9 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private int age = 4;
     private boolean dead = false;
 
+    public float t = 0;
+    public int floodLevel;
+
     public WakeNode(Vec3d position) {
         this.x = (int) Math.floor(position.x);
         this.z = (int) Math.floor(position.z);
@@ -49,10 +53,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 // MAYBE INTERPOLATE THROUGH PAST POSITION (DRAW STRAIGHT LINE)
                 // THIS TO MAKE SURE THERE IS A CONTINUOUS TRAIL
                 // ALSO MAKE WIDER INITIAL STRENGTH (MAYBE AS WIDE AS HITBOX)
-                this.u[0][sz+1+z][sx+1+x] = this.initialStrength;
+                this.u[0][sz+1+z][sx+1+x] = WakeNode.initialStrength;
             }
         }
-        this.floodLevel = 6;
+        this.floodLevel = WakeNode.floodFillDistance;
     }
 
     public WakeNode(int x, int z, float height, int floodLevel) {
@@ -60,6 +64,28 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.z = z;
         this.height = height;
         this.floodLevel = floodLevel;
+    }
+
+    public static void setWaveSpeed(float waveSpeed) {
+        WakeNode.waveSpeed = waveSpeed;
+        WakeNode.calculateAlpha();
+    }
+
+    public static void setInitialStrength(float initialStrength) {
+        WakeNode.initialStrength = initialStrength;
+        WakeNode.calculateAlpha();
+    }
+
+    public static void setWaveDecay(float waveDecay) {
+        WakeNode.waveDecay = waveDecay;
+    }
+
+    public static void setFloodFillDistance(int floodFillDistance) {
+        WakeNode.floodFillDistance = floodFillDistance;
+    }
+
+    public static void calculateAlpha() {
+        WakeNode.alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
     }
 
     @Override
@@ -91,13 +117,14 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 //        this.u[0] = new float[18][18];
 
         double largest = 0;
-        for (int x = 1; x < 17; x++) {
-            for (int z = 1; z < 17; z++) {
-//                this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
-//                                                 + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
-//                                                 + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1])
-//                                                 + 2*u[1][z][x] - u[2][z][x]);
-                this.u[0][x][z] = alpha * (u[1][x-1][z] + u[1][x+1][z] + u[1][x][z-1] + u[1][x][z+1] - 4*u[1][x][z]) + 2*u[1][x][z] - u[2][x][z];
+        for (int z = 1; z < 17; z++) {
+            for (int x = 1; x < 17; x++) {
+//                this.u[0][x][z] = (float) (alpha * (0.5*u[1][x-1][z] + 0.25*u[1][x-1][z+1] + 0.5*u[1][x][z+1]
+//                                                 + 0.25*u[1][x+1][z+1] + 0.5*u[1][x+1][z] + 0.25*u[1][x+1][z-1]
+//                                                 + 0.5*u[1][x][z-1] + 0.25*u[1][x-1][z-1])
+//                                                 + 2*u[1][x][z] - u[2][x][z]);
+                this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
+                this.u[0][z][x] *= waveDecay;
             }
         }
 
@@ -190,12 +217,12 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public void revive(WakeNode node) {
         this.age = 0;
         if (node.subPos != null) {
-            this.floodLevel = 8;
+            this.floodLevel = WakeNode.floodFillDistance;
             int sx = node.subPos.x;
             int sz = node.subPos.y;
             for (int z = -1; z < 2; z++) {
                 for (int x = -1; x < 2; x++) {
-                    this.u[0][sz+1+z][sx+1+x] = this.initialStrength;
+                    this.u[0][sz+1+z][sx+1+x] = WakeNode.initialStrength;
                 }
             }
             this.subPos = node.subPos;

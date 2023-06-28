@@ -1,10 +1,13 @@
 package com.goby56.wakes.utils;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WakeParticleType;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -23,6 +26,10 @@ public class WakesUtils {
         Vec3d pos = new Vec3d(producer.getX(), height, producer.getZ());
         WakeNode wakeNode = new WakeNode(pos);
         WakeHandler.getInstance().insert(wakeNode);
+    }
+
+    public static MutableText translatable(String category, String field) {
+        return Text.translatable(String.format("%s.%s.%s", category, WakesClient.MOD_ID, field));
     }
 
     public static int[] abgrInt2rgbaArr(int n) {
