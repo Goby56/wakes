@@ -2,14 +2,15 @@
 	"schemaVersion": 1,
 	"id": "wakes",
 	"version": "${version}",
-	"name": "wakes",
+	"name": "Wakes",
 	"description": "A Minecraft mod that does one thing, adding wakes.",
 	"authors": [
 		"Goby56"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/Goby56/wakes"
+		"homepage": "https://modrinth.com/mods/wakes",
+		"sources": "https://github.com/Goby56/wakes",
+		"issues": "https://github.com/Goby56/wakes/issues"
 	},
 	"license": "GPLv3",
 	"icon": "assets/wakes/icon.png",
@@ -43,5 +44,8 @@
 	},
 	"suggests": {
 		"blazingly-fast-boats": "*"
+	},
+	"recommends": {
+		"modmenu": "*"
 	}
 }

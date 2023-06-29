@@ -49,8 +49,8 @@ public class SpawnWakesCommand {
             return -1;
         }
 
-        WakeNode wakeNode = new WakeNode(new Vec3d(pos.x, waterHeight, pos.z));
-        WakeHandler.getInstance().insert(wakeNode);
+//        WakeNode wakeNode = new WakeNode(new Vec3d(pos.x, waterHeight, pos.z));
+//        WakeHandler.getInstance().insert(wakeNode);
 //        for (int x = -size; x < size; x++) {
 //            for (int z = -size; z < size; z++) {
 //                WakeNode wakeNode = new WakeNode(new Vec3d(pos.x + x, waterHeight, pos.z + z));

@@ -5,6 +5,7 @@ import com.goby56.wakes.utils.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -12,6 +13,8 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
@@ -38,6 +41,25 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
+
+        if (wakeHandler.glTexId == -1) {
+            wakeHandler.glTexId = TextureUtil.generateTextureId();
+
+            GlStateManager._bindTexture(wakeHandler.glTexId);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LOD, 0);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
+
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
+            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
+
+            GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, 16, 16, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
+        }
+
+        if (wakeHandler.imagePointer == -1) {
+            wakeHandler.imagePointer = MemoryUtil.nmemAlloc(16 * 16 * 4);
+        }
 
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());

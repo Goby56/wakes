@@ -24,13 +24,22 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Shadow public abstract Vec3d getVelocity();
 
+	@Shadow public abstract Vec3d getPos();
+
 	public boolean shouldSpawnWake = false;
 
 	public boolean hasWake = false;
 
+	public Vec3d prevWakeProdPos = null;
+
 	@Override
 	public boolean shouldSpawnWake() {
 		return this.shouldSpawnWake;
+	}
+
+	@Override
+	public Vec3d getPrevPos() {
+		return this.prevWakeProdPos;
 	}
 
 	@Inject(at = @At("TAIL"), method = "tick")
@@ -38,7 +47,10 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		// TODO CHECK IF VELOCITY IS HIGH ENOUGH
 		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater() && this.getVelocity().horizontalLength() > 0.1;
 		if (this.shouldSpawnWake) {
-			WakesUtils.spawnWakeNode(this.world, ((Entity) (Object) this));
+			WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
+			this.prevWakeProdPos = this.getPos();
+		} else {
+			this.prevWakeProdPos = null;
 		}
 //		if (this.shouldSpawnWake && !this.hasWake) {
 //			WakesUtils.spawnWake(this.world, ((Entity) (Object) this));

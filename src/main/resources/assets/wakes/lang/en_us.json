@@ -4,5 +4,7 @@
   "option.wakes.wave_speed": "Wave speed",
   "option.wakes.wave_initial_strength": "Wave initial strength",
   "option.wakes.wave_decay": "Wave decay",
-  "option.wakes.flood_fill_distance": "Flood fill distance"
+  "option.wakes.flood_fill_distance": "Flood fill distance",
+  "option.wakes.use_9_point_stencil": "Use 9 point stencil for laplace operator",
+  "option.wakes.draw_debug_boxes": "Draw debug boxes"
 }
