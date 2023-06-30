@@ -1,14 +1,11 @@
 package com.goby56.wakes.utils;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Vector2i;
 
 import java.util.*;
 
@@ -16,11 +13,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
     public static float waveSpeed = 0.95f; // blocks per second kind of
-    public static float initialStrength = 255f;
-    public static float waveDecay = 0.85f;
-    public static int floodFillDistance = 6;
+    public static float initialStrength = 100f;
+    public static float waveDecay = 0.9f;
+    public static int floodFillDistance = 3;
     public static boolean use9PointStencil = true;
+    public static float ticksBeforeFill = 2;
     private static float alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
+
 
     public float[][][] u = new float[3][18][18];
     public float[][] initialValues = new float[18][18];
@@ -35,8 +34,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public WakeNode WEST = null;
 
     // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME
-    private final int maxAge = 30;
-    private int age = 0;
+    public final int maxAge = 30;
+    public int age = 0;
     private boolean dead = false;
 
     public float t = 0;
@@ -87,23 +86,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         WakeNode.calculateAlpha();
     }
 
-    public static void setInitialStrength(float initialStrength) {
-        WakeNode.initialStrength = initialStrength;
-        WakeNode.calculateAlpha();
-    }
-
-    public static void setWaveDecay(float waveDecay) {
-        WakeNode.waveDecay = waveDecay;
-    }
-
-    public static void setFloodFillDistance(int floodFillDistance) {
-        WakeNode.floodFillDistance = floodFillDistance;
-    }
-
-    public static void setUse9PointStencil(boolean use9PointStencil) {
-        WakeNode.use9PointStencil = use9PointStencil;
-    }
-
     public static void calculateAlpha() {
         WakeNode.alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
     }
@@ -125,6 +107,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 if (this.WEST != null) this.u[i][z][0] = this.WEST.u[i][z][16];
             }
         }
+
         for (int z = 1; z < 17; z++) {
             for (int x = 1; x < 17; x++) {
                 this.u[0][z][x] += this.initialValues[z][x];
@@ -132,6 +115,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
                 this.u[2][z][x] = this.u[1][z][x];
                 this.u[1][z][x] = this.u[0][z][x];
+
             }
         }
 
@@ -149,7 +133,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             }
         }
 
-        if (this.floodLevel > 0 && this.t > 0.5) {
+        if (this.floodLevel > 0 && this.age > WakeNode.ticksBeforeFill) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
             } else {
@@ -260,22 +244,24 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         return new Vec3d(this.x, this.height, this.z);
     }
 
-    public record Footprint(double fromX, double fromZ, double toX, double toZ, float width, float height) {
+    public record Footprint(double fromX, double fromZ, double toX, double toZ, float width, float height, double velocity) {
         public Set<WakeNode> getNodesAffected() {
             int x1 = (int) (fromX * 16);
             int z1 = (int) (fromZ * 16);
             int x2 = (int) (toX * 16);
             int z2 = (int) (toZ * 16);
-            int w = (int) (width * 16 / 2);
+            int w = (int) (0.8 * width * 16 / 2);
             // TODO MAKE MORE EFFICIENT THICK LINE DRAWER
             float len = (float) Math.sqrt(Math.pow(z1 - z2, 2) + Math.pow(x2 - x1, 2));
             float nx = (z1 - z2) / len;
             float nz = (x2 - x1) / len;
             ArrayList<Long> pixelsAffected = new ArrayList<>();
+//            WakesUtils.bresenhamLine((int) (x1 - nx * w), (int) (z1 - nz * w), (int) (x2 - nx * w), (int) (z2 - nz * w), pixelsAffected);
+//            WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
+//            WakesUtils.bresenhamLine((int) (x1 + nx * w), (int) (z1 + nz * w), (int) (x2 + nx * w), (int) (z2 + nz * w), pixelsAffected);
             for (int i = -w; i < w; i++) {
                 WakesUtils.bresenhamLine((int) (x1 + nx * i), (int) (z1 + nz * i), (int) (x2 + nx * i), (int) (z2 + nz * i), pixelsAffected);
             }
-//            ArrayList<Long> pixelsAffected = WakesUtils.bresenhamLine(x1, z1, x2, z1, null);
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);

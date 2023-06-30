@@ -76,6 +76,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
     }
 
     public boolean insert(T node) {
+        // TODO DUPLICATE INSERTIONS MAY STILL BE PRESENT. FIX
         if (!this.bounds.contains(node.x(), node.z())) {
             return false;
         }

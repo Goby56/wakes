@@ -9,30 +9,46 @@ import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
 
-import java.awt.*;
 import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
-    private static void renderTexture(Matrix4f matrix, float x0, float y0, float z0, float x1, float y1, float z1) {
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.enableDepthTest();
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        buffer.vertex(matrix, x0, y0, z0).texture(0, 0).next();
-        buffer.vertex(matrix, x0, (y0+y1)/2, z1).texture(0, 1).next();
-        buffer.vertex(matrix, x1, y1, z1).texture(1, 1).next();
-        buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).next();
-        Tessellator.getInstance().draw();
-        // TODO DRAW TEXTURE ON UNDER SIDE MAYBE
+    public enum WakeColor {
+        TRANSPARENT(0, 0, 0, 0, 0, 125),
+        DARK_GRAY(147, 153, 166, 210, 125, 175),
+        GRAY(158, 165, 176, 210, 175, 215),
+        LIGHT_GRAY(196, 202, 209, 210, 215, 230),
+        WHITE(255, 255, 255, 255, 230, 255);
+
+        public final int argb;
+        private final int from;
+        private final int to;
+
+        WakeColor(int red, int green, int blue, int alpha, int from, int to) {
+            this.from = from;
+            this.to = to;
+            this.argb = ColorHelper.Argb.getArgb(alpha, blue, green, red); // abgr actually because big-endian?
+        }
+
+        public static int getColor(float avg) {
+            double clampedRange = 255 * (1 - 1 / (0.1 * Math.abs(avg) + 1));
+            for (WakeColor color : WakeColor.values()) {
+                if (color.from <= clampedRange && clampedRange <= color.to) {
+                    return color.argb;
+                }
+            }
+            return WHITE.argb;
+        }
     }
 
     @Override
@@ -41,6 +57,8 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
+//        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
 
         if (wakeHandler.glTexId == -1) {
             wakeHandler.glTexId = TextureUtil.generateTextureId();
@@ -61,23 +79,19 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             wakeHandler.imagePointer = MemoryUtil.nmemAlloc(16 * 16 * 4);
         }
 
+        float avg;
+        int col;
+        float a;
+        float r;
+        float g;
+        float b;
         for (WakeNode node : nodes) {
             Vec3d pos = node.getPos().add(context.camera().getPos().negate());
 
-            int[] rgba = {0, 0, 0, 100};
-            int val;
-            // TODO FIX GL TRANSPARENCY / OPACITY
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
-                    rgba[3] = 0;
-                    for (int i = 0; i < 3; i++) {
-                        val = (int) MathHelper.clamp(node.u[i][z+1][x+1], 0, 255);
-                        rgba[i] = val;
-                        rgba[3] += val;
-                    }
-                    rgba[3] /= 3;
-                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, WakesUtils.rgbaArr2abgrInt(rgba));
-//                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, 0xFF << 8 * 3 | (int) node.u[0][z+1][x+1]);
+                    avg = (node.u[0][z+1][x+1] + node.u[1][z+1][x+1] + node.u[2][z+1][x+1]) / 3;
+                    MemoryUtil.memPutInt(wakeHandler.imagePointer + (z*16+x)*4, WakeColor.getColor(avg));
                 }
             }
 
@@ -90,7 +104,27 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             RenderSystem.setShaderTexture(0, wakeHandler.glTexId);
 
-            renderTexture(matrix, (float) pos.x, (float) pos.y, (float) pos.z, (float) (pos.x + 1), (float) pos.y, (float) (pos.z + 1));
+            col = BiomeColors.getWaterColor(context.world(), new BlockPos(node.x, (int) node.height, node.z));
+            r = (float) (col >> 16 & 0xFF) / 255f;
+            g = (float) (col >> 8 & 0xFF) / 255f;
+            b = (float) (col & 0xFF) / 255f;
+            // TODO FIX WATER COLOR BLENDING
+            renderTexture(matrix, (float) pos.x, (float) pos.y, (float) pos.z, (float) (pos.x + 1), (float) pos.y, (float) (pos.z + 1), 1, 1, 1, 0.9f);
         }
+        RenderSystem.defaultBlendFunc();
+    }
+
+    private static void renderTexture(Matrix4f matrix, float x0, float y0, float z0, float x1, float y1, float z1, float r, float g, float b, float a) {
+        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        RenderSystem.enableDepthTest();
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        buffer.vertex(matrix, x0, y0, z0).texture(0, 0).color(r, g, b, a).next();
+        buffer.vertex(matrix, x0, (y0+y1)/2, z1).texture(0, 1).color(r, g, b, a).next();
+        buffer.vertex(matrix, x1, y1, z1).texture(1, 1).color(r, g, b, a).next();
+        buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).color(r, g, b, a).next();
+        Tessellator.getInstance().draw();
+        // TODO DRAW TEXTURE ON UNDER SIDE MAYBE
     }
 }

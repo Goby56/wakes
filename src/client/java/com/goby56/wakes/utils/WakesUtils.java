@@ -18,11 +18,22 @@ import net.minecraft.world.World;
 import java.util.ArrayList;
 
 public class WakesUtils {
-    public static void spawnWake(World world, Entity owner) {
-        WakeParticleType wake = ModParticles.WAKE.withOwner(owner);
-        Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+
+    public static void placeSingleSplash(World world, Entity producer) {
+        WakeHandler instance = WakeHandler.getInstance();
+        if (instance == null) {
+            return;
+        }
+        float height = getWaterLevel(world, producer);
+        // TODO DEPENDING ON PRODUCER VELOCITY MAKE BIGGER SPLASH
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ())));
     }
+
+//    public static void spawnWake(World world, Entity owner) {
+//        WakeParticleType wake = ModParticles.WAKE.withOwner(owner);
+//        Vec3d pos = owner.getPos();
+//        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+//    }
 
     public static void placeWakeTrail(World world, Entity producer) {
         WakeHandler instance = WakeHandler.getInstance();
@@ -37,7 +48,7 @@ public class WakesUtils {
             return;
         }
 
-        WakeNode.Footprint wakeFootprint = new WakeNode.Footprint(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), producer.getWidth(), height);
+        WakeNode.Footprint wakeFootprint = new WakeNode.Footprint(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), producer.getWidth(), height, producer.getVelocity().horizontalLength());
         for (WakeNode node : wakeFootprint.getNodesAffected()) {
             instance.insert(node);
         }
@@ -45,7 +56,7 @@ public class WakesUtils {
 
     public static void bresenhamLine(int x1, int y1, int x2, int y2, ArrayList<Long> points) {
         // https://www.youtube.com/watch?v=IDFB5CDpLDE credit
-        // and of course Bresenham himself
+        // and of course Bresenham himself :P
         int dy = y2 - y1;
         int dx = x2 - x1;
         if (dx == 0) {

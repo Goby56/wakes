@@ -3,6 +3,8 @@ package com.goby56.wakes.mixin.client;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.entity.Entity;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,7 +46,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
-		// TODO CHECK IF VELOCITY IS HIGH ENOUGH
 		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater() && this.getVelocity().horizontalLength() > 0.1;
 		if (this.shouldSpawnWake) {
 			WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
@@ -55,6 +56,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 //		if (this.shouldSpawnWake && !this.hasWake) {
 //			WakesUtils.spawnWake(this.world, ((Entity) (Object) this));
 //		}
-		this.hasWake = this.shouldSpawnWake;
+//		this.hasWake = this.shouldSpawnWake;
+	}
+
+	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
+	private void onSwimmingStart(CallbackInfo ci) {
+		WakesUtils.placeSingleSplash(this.world, ((Entity) (Object) this));
 	}
 }
