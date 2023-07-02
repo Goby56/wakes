@@ -1,0 +1,5 @@
+accessWidener v1 named
+
+accessible field net/minecraft/entity/vehicle/BoatEntity paddlePhases [F
+
+accessible field net/minecraft/entity/vehicle/BoatEntity NEXT_PADDLE_PHASE F

@@ -24,7 +24,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(WakeNode::setWaveSpeed)
                 .build());
 
-        debug.addEntry(entryBuilder.startFloatField(WakesUtils.translatable("option", "wave_initial_strength"), WakeNode.initialStrength)
+        debug.addEntry(entryBuilder.startIntField(WakesUtils.translatable("option", "wave_initial_strength"), WakeNode.initialStrength)
                 .setDefaultValue(WakeNode.initialStrength)
                 .setSaveConsumer(strength -> WakeNode.initialStrength = strength)
                 .build());

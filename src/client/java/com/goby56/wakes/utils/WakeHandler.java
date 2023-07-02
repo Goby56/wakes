@@ -1,18 +1,10 @@
 package com.goby56.wakes.utils;
 
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,8 +18,10 @@ public class WakeHandler {
     private final int minY;
     private final int maxY;
 
-    public int glTexId = -1;
-    public long imagePointer = -1;
+    public int glWakeTexId = -1;
+    public long wakeImgPtr = -1;
+    public int glFoamTexId = -1;
+    public long foamImgPtr = -1;
 
     private WakeHandler(ClientWorld world) {
         this.minY = world.getBottomY();

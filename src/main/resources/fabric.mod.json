@@ -29,6 +29,7 @@
 			"com.goby56.wakes.config.ModMenuIntegration"
 		]
 	},
+	"accessWidener": "wakes.accesswidener",
 	"mixins": [
 		"wakes.mixins.json",
 		{

@@ -1,6 +1,7 @@
 package com.goby56.wakes.utils;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
@@ -13,7 +14,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
     public static float waveSpeed = 0.95f; // blocks per second kind of
-    public static float initialStrength = 100f;
+    public static int initialStrength = 100;
     public static float waveDecay = 0.9f;
     public static int floodFillDistance = 3;
     public static boolean use9PointStencil = true;
@@ -41,7 +42,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float t = 0;
     public int floodLevel;
 
-    public WakeNode(Vec3d position) {
+    public WakeNode(Vec3d position, int initialStrength) {
         this.x = (int) Math.floor(position.x);
         this.z = (int) Math.floor(position.z);
         this.height = (float) position.getY();
@@ -49,7 +50,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         int sz = (int) Math.floor(16 * (position.z - this.z));
         for (int z = -1; z < 2; z++) {
             for (int x = -1; x < 2; x++) {
-                this.u[0][sz+1+z][sx+1+x] = WakeNode.initialStrength;
+                this.u[0][sz+1+z][sx+1+x] = initialStrength;
             }
         }
         this.floodLevel = WakeNode.floodFillDistance;
@@ -70,13 +71,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.floodLevel = WakeNode.floodFillDistance;
     }
 
-    public void setInitialValue(long pos) {
+    public void setInitialValue(long pos, int val) {
         int[] xz = WakesUtils.longAsPos(pos);
         if (xz[0] < 0) xz[0] += 16;
         if (xz[1] < 0) xz[1] += 16;
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
-                this.initialValues[xz[1]+i+1][xz[0]+j+1] = WakeNode.initialStrength;
+                this.initialValues[xz[1]+i+1][xz[0]+j+1] = val;
             }
         }
     }
@@ -244,24 +245,58 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         return new Vec3d(this.x, this.height, this.z);
     }
 
-    public record Footprint(double fromX, double fromZ, double toX, double toZ, float width, float height, double velocity) {
-        public Set<WakeNode> getNodesAffected() {
+    public static class Factory {
+        public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
+            Set<WakeNode> nodesAffected = new HashSet<>();
+            double velocity = boat.getVelocity().horizontalLength();
+            for (int i = 0; i < 2; i++) {
+                if (boat.isPaddleMoving(i)) {
+                    double phase = boat.paddlePhases[i] % (2*Math.PI);
+                    if (BoatEntity.NEXT_PADDLE_PHASE / 2 <= phase && phase <= BoatEntity.EMIT_SOUND_EVENT_PADDLE_ROTATION + BoatEntity.NEXT_PADDLE_PHASE) {
+                        Vec3d rot = boat.getRotationVec(1.0f);
+                        double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
+                        double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
+                        Vec3d paddlePos = new Vec3d(x, height, z);
+                        Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
+                        Vec3d from = paddlePos.subtract(dir);
+                        Vec3d to = paddlePos.add(dir);
+                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, height, WakeNode.initialStrength, velocity));
+                    }
+                }
+            }
+            return nodesAffected;
+        }
+
+        public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity) {
+            int x1 = (int) (fromX * 16);
+            int z1 = (int) (fromZ * 16);
+            int x2 = (int) (toX * 16);
+            int z2 = (int) (toZ * 16);
+
+            ArrayList<Long> pixelsAffected = new ArrayList<>();
+            WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
+            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity);
+        }
+
+        public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity, float width) {
             int x1 = (int) (fromX * 16);
             int z1 = (int) (fromZ * 16);
             int x2 = (int) (toX * 16);
             int z2 = (int) (toZ * 16);
             int w = (int) (0.8 * width * 16 / 2);
+
             // TODO MAKE MORE EFFICIENT THICK LINE DRAWER
             float len = (float) Math.sqrt(Math.pow(z1 - z2, 2) + Math.pow(x2 - x1, 2));
             float nx = (z1 - z2) / len;
             float nz = (x2 - x1) / len;
             ArrayList<Long> pixelsAffected = new ArrayList<>();
-//            WakesUtils.bresenhamLine((int) (x1 - nx * w), (int) (z1 - nz * w), (int) (x2 - nx * w), (int) (z2 - nz * w), pixelsAffected);
-//            WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
-//            WakesUtils.bresenhamLine((int) (x1 + nx * w), (int) (z1 + nz * w), (int) (x2 + nx * w), (int) (z2 + nz * w), pixelsAffected);
             for (int i = -w; i < w; i++) {
                 WakesUtils.bresenhamLine((int) (x1 + nx * i), (int) (z1 + nz * i), (int) (x2 + nx * i), (int) (z2 + nz * i), pixelsAffected);
             }
+            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity);
+        }
+
+        private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);
@@ -281,7 +316,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             for (Long nodePos : pixelsInNodes.keySet()) {
                 WakeNode node = new WakeNode(nodePos, height);
                 for (Long subPos : pixelsInNodes.get(nodePos)) {
-                    node.setInitialValue(subPos);
+                    node.setInitialValue(subPos, (int) (waveStrength * velocity));
                 }
                 nodesAffected.add(node);
             }

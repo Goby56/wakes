@@ -9,7 +9,7 @@ import java.util.Stack;
 public class QuadTree<T extends Position<T> & Age<T>> {
     private static final int CAPACITY = 64;
 
-    private QuadTree<T> ROOT;
+    private final QuadTree<T> ROOT;
     private QuadTree<T> NE;
     private QuadTree<T> NW;
     private QuadTree<T> SW;
@@ -155,7 +155,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         int x = this.bounds.x;
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
-        // TODO FIX IF WIDTH BECOMES SMALLER THAN 1
+        // TODO FIX IF WIDTH BECOMES SMALLER THAN 1 (POTENTIALLY)
         this.NE = new QuadTree<>(x + w, z - w, w, depth + 1, this.ROOT);
         this.NW = new QuadTree<>(x - w, z - w, w, depth + 1, this.ROOT);
         this.SW = new QuadTree<>(x - w, z + w, w, depth + 1, this.ROOT);

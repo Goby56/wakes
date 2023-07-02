@@ -2,9 +2,8 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.WakeParticleType;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.MutableText;
@@ -26,7 +25,7 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
         // TODO DEPENDING ON PRODUCER VELOCITY MAKE BIGGER SPLASH
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ())));
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakeNode.initialStrength));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -42,14 +41,19 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
 
+        if (producer instanceof BoatEntity boat) {
+            for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
+                instance.insert(node);
+            }
+        }
+
         Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
         if (prevPos == null) {
-            instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ())));
+            instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakeNode.initialStrength));
             return;
         }
 
-        WakeNode.Footprint wakeFootprint = new WakeNode.Footprint(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), producer.getWidth(), height, producer.getVelocity().horizontalLength());
-        for (WakeNode node : wakeFootprint.getNodesAffected()) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), height, WakeNode.initialStrength, producer.getVelocity().horizontalLength(), producer.getWidth())) {
             instance.insert(node);
         }
     }
