@@ -1,6 +1,7 @@
 package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -25,7 +26,7 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
         // TODO DEPENDING ON PRODUCER VELOCITY MAKE BIGGER SPLASH
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakeNode.initialStrength));
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakesConfig.initialStrength));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -49,11 +50,11 @@ public class WakesUtils {
 
         Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
         if (prevPos == null) {
-            instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakeNode.initialStrength));
+            instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakesConfig.initialStrength));
             return;
         }
 
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), height, WakeNode.initialStrength, producer.getVelocity().horizontalLength(), producer.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), height, WakesConfig.initialStrength, producer.getVelocity().horizontalLength(), producer.getWidth())) {
             instance.insert(node);
         }
     }

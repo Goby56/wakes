@@ -1,5 +1,6 @@
 package com.goby56.wakes.utils;
 
+import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
@@ -13,14 +14,7 @@ import java.util.*;
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
-    public static float waveSpeed = 0.95f; // blocks per second kind of
-    public static int initialStrength = 100;
-    public static float waveDecay = 0.9f;
-    public static int floodFillDistance = 3;
-    public static boolean use9PointStencil = true;
-    public static float ticksBeforeFill = 2;
-    private static float alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
-
+    private static float alpha = (float) Math.pow(WakesConfig.waveSpeed * 16f/20f, 2);
 
     public float[][][] u = new float[3][18][18];
     public float[][] initialValues = new float[18][18];
@@ -53,7 +47,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 this.u[0][sz+1+z][sx+1+x] = initialStrength;
             }
         }
-        this.floodLevel = WakeNode.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     public WakeNode(int x, int z, float height, int floodLevel) {
@@ -68,7 +62,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.x = xz[0];
         this.z = xz[1];
         this.height = height;
-        this.floodLevel = WakeNode.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     public void setInitialValue(long pos, int val) {
@@ -82,13 +76,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
     }
 
-    public static void setWaveSpeed(float waveSpeed) {
-        WakeNode.waveSpeed = waveSpeed;
-        WakeNode.calculateAlpha();
-    }
-
     public static void calculateAlpha() {
-        WakeNode.alpha = (float) Math.pow(waveSpeed * 16f/20f, 2);
+        WakeNode.alpha = (float) Math.pow(WakesConfig.waveSpeed * 16f/20f, 2);
     }
 
     @Override
@@ -122,7 +111,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
         for (int z = 1; z < 17; z++) {
             for (int x = 1; x < 17; x++) {
-                if (use9PointStencil) {
+                if (WakesConfig.use9PointStencil) {
                     this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
                             + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
                             + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1] - 3*u[1][z][x])
@@ -130,11 +119,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 } else {
                     this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
                 }
-                this.u[0][z][x] *= waveDecay;
+                this.u[0][z][x] *= WakesConfig.waveDecay;
             }
         }
 
-        if (this.floodLevel > 0 && this.age > WakeNode.ticksBeforeFill) {
+        if (this.floodLevel > 0 && this.age > WakesConfig.ticksBeforeFill) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
             } else {
@@ -221,7 +210,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     @Override
     public void revive(WakeNode node) {
         this.age = 0;
-        this.floodLevel = WakeNode.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
         this.initialValues = node.initialValues;
     }
 
@@ -260,7 +249,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                         Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
                         Vec3d from = paddlePos.subtract(dir);
                         Vec3d to = paddlePos.add(dir);
-                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, height, WakeNode.initialStrength, velocity));
+                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, height, WakesConfig.paddleStrength, velocity));
                     }
                 }
             }

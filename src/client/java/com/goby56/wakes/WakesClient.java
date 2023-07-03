@@ -22,6 +22,9 @@ public class WakesClient implements ClientModInitializer {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		LOGGER.info("Registering client specific stuff for " + MOD_ID);
 
+		// Mod configs
+//		AutoConfig.register(WakesConfig.class, GsonConfigSerializer::new);
+
 		EntityModelLayerRegistry.registerModelLayer(WakeModel.MODEL_LAYER, WakeModel::getTexturedModelData);
 
 		ModParticles.registerParticles();

@@ -1,13 +1,34 @@
 {
-  "title.wakes.config": "Wakes config",
-  "category.wakes.debug": "Debug",
+  "config.wakes.title": "Wakes config",
+
+  "config_category.wakes.wake_colors": "Wake colors",
+  "option_group.wakes.interval1": "Color interval 1",
+  "option_group.wakes.interval2": "Color interval 2",
+  "option_group.wakes.interval3": "Color interval 3",
+  "option_group.wakes.interval4": "Color interval 4",
+  "option_group.wakes.interval5": "Color interval 5",
+  "option_group.wakes.interval6": "Color interval 6",
+  "option_group.wakes.interval7": "Color interval 7",
+  "option_group.wakes.interval8": "Color interval 8",
+  "option_group.wakes.interval9": "Color interval 9",
+  "option.wakes.threshold": "Threshold",
+  "option.wakes.color": "Color",
+  "color.wakes.transparent": "Transparent",
+  "color.wakes.dark_gray": "Dark gray",
+  "color.wakes.gray": "Gray",
+  "color.wakes.light_gray": "Light gray",
+  "color.wakes.white": "White",
+
+  "config_category.wakes.wake_behaviour": "Wake behaviour",
   "option.wakes.wave_speed": "Wave speed",
-  "option.wakes.wave_initial_strength": "Wave initial strength",
+  "option.wakes.initial_wave_strength": "Initial wave strength",
+  "option.wakes.paddle_strength": "Paddle strength",
   "option.wakes.wave_decay": "Wave decay",
+
+  "config_category.wakes.debug": "Debug",
   "option.wakes.flood_fill_distance": "Flood fill distance",
   "option.wakes.use_9_point_stencil": "Use 9 point stencil for laplace operator",
   "option.wakes.draw_debug_boxes": "Draw debug boxes",
-  "option.wakes.minimum_value": "Minimum max value of wave",
   "option.wakes.use_age_decay": "Use age decay",
   "option.wakes.ticks_before_fill": "Ticks before flood fill"
 }

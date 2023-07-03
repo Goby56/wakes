@@ -19,6 +19,10 @@ repositories {
 	mavenCentral()
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.terraformersmc.com/releases/" }
+	maven {
+		name "Xander Maven"
+		url "https://maven.isxander.dev/releases"
+	}
 }
 
 loom {
@@ -58,6 +62,7 @@ sourceSets {
 }
 dependencies {
 	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+	implementation "com.google.code.gson:gson:2.10.1"
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -67,9 +72,12 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-	modApi("me.shedaniel.cloth:cloth-config-fabric:11.0.99") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
+	modImplementation "dev.isxander.yacl:yet-another-config-lib-fabric:3.0.2+1.20"
+
+//	modApi("me.shedaniel.cloth:cloth-config-fabric:11.0.99") {
+//		exclude(group: "net.fabricmc.fabric-api")
+//	}
+
 	modApi "com.terraformersmc:modmenu:7.1.0"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.0-M1"

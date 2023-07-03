@@ -1,5 +1,6 @@
 package com.goby56.wakes.render.debug;
 
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.particle.custom.WakeParticle;
 import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
-    public static boolean drawDebugBoxes = false;
 
     public static void drawWakeNodes(LinkedList<WakeParticle.Node> nodes, Camera camera) {
         Vec3d[] vertices = new Vec3d[nodes.size()];
@@ -28,7 +28,7 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
-        if (!drawDebugBoxes) {
+        if (!WakesConfig.drawDebugBoxes) {
             return;
         }
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
