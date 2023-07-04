@@ -1,8 +1,6 @@
 package com.goby56.wakes.utils;
 
 import com.goby56.wakes.config.WakesConfig;
-import dev.isxander.yacl3.api.NameableEnum;
-import net.minecraft.text.Text;
 import net.minecraft.util.Pair;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.math.ColorHelper;
@@ -10,7 +8,7 @@ import net.minecraft.util.math.ColorHelper;
 import java.util.ArrayList;
 
 
-public enum WakeColor implements NameableEnum, StringIdentifiable {
+public enum WakeColor implements StringIdentifiable {
     TRANSPARENT(0, 0, 0, 0),
     DARK_GRAY(147, 153, 166, 40),
     GRAY(158, 165, 176, 100),
@@ -33,10 +31,6 @@ public enum WakeColor implements NameableEnum, StringIdentifiable {
         this.argb = ColorHelper.Argb.getArgb(alpha, blue, green, red); // abgr actually because big-endian?
     }
 
-    private static int getAlpha(int opacity) {
-        return 255 * opacity / 100;
-    }
-
     public static WakeColor getColor(float avg) {
 //            double clampedRange = 255 * (1 - 1 / (0.1 * Math.abs(avg) + 1));
         double clampedRange = 100 / (1 + Math.exp(-0.1 * avg)) - 50;
@@ -48,15 +42,6 @@ public enum WakeColor implements NameableEnum, StringIdentifiable {
             }
         }
         return WHITE;
-    }
-
-    public static void updateIntervals() {
-
-    }
-
-    @Override
-    public Text getDisplayName() {
-        return WakesUtils.translatable("color", name().toLowerCase());
     }
 
     @Override

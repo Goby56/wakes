@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,5 +39,9 @@ public class WakesClient implements ClientModInitializer {
 
 		// Commands
 //		ClientCommandRegistrationCallback.EVENT.register(SpawnWakesCommand::register);
+	}
+
+	public static boolean isYACLLoaded() {
+		return FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
 	}
 }
