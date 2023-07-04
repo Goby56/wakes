@@ -52,10 +52,12 @@ public class WakeHandler {
                 tree.tick();
 
                 Set<WakeNode> pendingNodes = this.toBeInserted.get(i);
-                for (WakeNode node : pendingNodes) {
-                    tree.insert(node);
+                synchronized (pendingNodes) {
+                    for (WakeNode node : pendingNodes) {
+                        tree.insert(node);
+                    }
+                    pendingNodes.clear();
                 }
-                pendingNodes.clear();
             }
         }
     }
