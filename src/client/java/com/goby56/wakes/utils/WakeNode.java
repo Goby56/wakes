@@ -247,8 +247,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                         double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
                         Vec3d paddlePos = new Vec3d(x, height, z);
                         Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
-                        Vec3d from = paddlePos.subtract(dir);
-                        Vec3d to = paddlePos.add(dir);
+                        Vec3d from = paddlePos;
+                        Vec3d to = paddlePos.add(dir.multiply(2));
                         nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, height, WakesConfig.paddleStrength, velocity));
                     }
                 }
