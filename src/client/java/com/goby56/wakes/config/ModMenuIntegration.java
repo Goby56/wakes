@@ -14,8 +14,8 @@ import java.net.URI;
 public class ModMenuIntegration implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        // Concept taken from @enjarai
-        // https://github.com/enjarai/do-a-barrel-roll/blob/1.20/dev/src/main/java/nl/enjarai/doabarrelroll/compat/modmenu/ModMenuIntegration.java#L18
+        // Great idea taken from Benjamin Norton: https://github.com/Benjamin-Norton
+        // Do a barrel roll is a sick mod. Go download: https://modrinth.com/mod/do-a-barrel-roll
         if (WakesClient.isYACLLoaded()) {
             return YACLIntegration::createScreen;
         } else {
@@ -29,5 +29,6 @@ public class ModMenuIntegration implements ModMenuApi {
                     ScreenTexts.YES,
                     ScreenTexts.NO);
         }
+        // https://github.com/enjarai/do-a-barrel-roll/blob/1.20/dev/src/main/java/nl/enjarai/doabarrelroll/compat/modmenu/ModMenuIntegration.java#L18
     }
 }
