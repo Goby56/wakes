@@ -6,11 +6,14 @@ import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakeColor;
+import com.google.gson.Gson;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WakesConfig {
 
@@ -27,7 +30,7 @@ public class WakesConfig {
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
 
-    public ColorInterval[] colorIntervals = new ColorInterval[] {
+    public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
             new ColorInterval(WakeColor.GRAY, -35, -30),
@@ -37,7 +40,7 @@ public class WakesConfig {
             new ColorInterval(WakeColor.WHITE, 10, 20),
             new ColorInterval(WakeColor.LIGHT_GRAY, 20, 40),
             new ColorInterval(WakeColor.GRAY, 40, 50)
-    };
+    );
 
     public boolean useWaterBlending = true;
 
@@ -78,8 +81,11 @@ public class WakesConfig {
 //            }
 
             JsonObject configJson = jankson.load(configFile);
-            return jankson.fromJsonCarefully(configJson, WakesConfig.class);
-        } catch (IOException | SyntaxError | DeserializationException e) {
+            String normalized = configJson.toJson(false, false);
+
+//            return jankson.fromJson(configJson, WakesConfig.class);
+            return new Gson().fromJson(normalized, WakesConfig.class);
+        } catch (IOException | SyntaxError e) {
             e.printStackTrace();
             return new WakesConfig();
         }

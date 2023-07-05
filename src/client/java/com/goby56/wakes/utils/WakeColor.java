@@ -30,9 +30,7 @@ public enum WakeColor implements StringIdentifiable {
     public static WakeColor getColor(float avg) {
 //            double clampedRange = 255 * (1 - 1 / (0.1 * Math.abs(avg) + 1));
         double clampedRange = 100 / (1 + Math.exp(-0.1 * avg)) - 50;
-        WakesConfig.ColorInterval interval;
-        for (int i = 0; i < 9; i++) {
-            interval = WakesClient.CONFIG_INSTANCE.colorIntervals[i];
+        for (WakesConfig.ColorInterval interval : WakesClient.CONFIG_INSTANCE.colorIntervals) {
             if (interval.lower <= clampedRange && clampedRange <= interval.upper) {
                 return interval.color;
             }
