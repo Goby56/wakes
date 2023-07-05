@@ -1,21 +1,29 @@
 package com.goby56.wakes.config;
 
+import blue.endless.jankson.Jankson;
+import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.api.SyntaxError;
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakeColor;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class WakesConfig {
 
-    public static float waveSpeed = 0.95f;
-    public static int initialStrength = 20;
-    public static int paddleStrength = 100;
-    public static float waveDecay = 0.9f;
-    public static boolean useAgeDecay = false;
+    public float waveSpeed = 0.95f;
+    public int initialStrength = 20;
+    public int paddleStrength = 100;
+    public float waveDecay = 0.9f;
+    public boolean useAgeDecay = false;
 
-    public static int floodFillDistance = 3;
-    public static boolean use9PointStencil = true;
-    public static int ticksBeforeFill = 2;
-    public static boolean drawDebugBoxes = false;
+    public int floodFillDistance = 3;
+    public boolean use9PointStencil = true;
+    public int ticksBeforeFill = 2;
+    public boolean drawDebugBoxes = false;
 
-    public static ColorInterval[] colorIntervals = new ColorInterval[] {
+    public ColorInterval[] colorIntervals = new ColorInterval[] {
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
             new ColorInterval(WakeColor.GRAY, -35, -30),
@@ -24,10 +32,10 @@ public class WakesConfig {
             new ColorInterval(WakeColor.LIGHT_GRAY, 2, 10),
             new ColorInterval(WakeColor.WHITE, 10, 20),
             new ColorInterval(WakeColor.LIGHT_GRAY, 20, 40),
-            new ColorInterval(WakeColor.GRAY, 40, 50),
+            new ColorInterval(WakeColor.GRAY, 40, 50)
     };
 
-    public static boolean useWaterBlending = true;
+    public boolean useWaterBlending = true;
 
     public static class ColorInterval {
         public WakeColor color;
@@ -54,5 +62,35 @@ public class WakesConfig {
 
     }
 
+    public static WakesConfig loadConfig() {
+        Jankson jankson = Jankson.builder().build();
+        try {
+            File configFile = new File(WakesClient.CONFIG_PATH);
+            if (!configFile.exists()) return new WakesConfig();
 
+            JsonObject configJson = jankson.load(configFile);
+            return jankson.fromJson(configJson, WakesConfig.class);
+        } catch (IOException | SyntaxError e) {
+            e.printStackTrace();
+            return new WakesConfig();
+        }
+    }
+
+    public void saveConfig() {
+        File configFile = new File(WakesClient.CONFIG_PATH);
+        Jankson jankson = Jankson.builder().build();
+        String result = jankson.toJson(this).toJson(true, true);
+
+        try {
+            boolean usable = configFile.exists() || configFile.createNewFile();
+            if (!usable) return;
+
+            FileOutputStream out = new FileOutputStream(configFile, false);
+            out.write(result.getBytes());
+            out.flush();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

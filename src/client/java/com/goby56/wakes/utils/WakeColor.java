@@ -1,5 +1,6 @@
 package com.goby56.wakes.utils;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.util.Pair;
 import net.minecraft.util.StringIdentifiable;
@@ -36,7 +37,7 @@ public enum WakeColor implements StringIdentifiable {
         double clampedRange = 100 / (1 + Math.exp(-0.1 * avg)) - 50;
         WakesConfig.ColorInterval interval;
         for (int i = 0; i < 9; i++) {
-            interval = WakesConfig.colorIntervals[i];
+            interval = WakesClient.CONFIG_INSTANCE.colorIntervals[i];
             if (interval.lower <= clampedRange && clampedRange <= interval.upper) {
                 return interval.color;
             }

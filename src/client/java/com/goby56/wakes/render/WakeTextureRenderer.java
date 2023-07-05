@@ -1,5 +1,6 @@
 package com.goby56.wakes.render;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakeColor;
 import com.goby56.wakes.utils.WakeHandler;
@@ -61,7 +62,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             x = (float) pos.x;
             y = (float) pos.y;
             z = (float) pos.z;
-            a = WakesConfig.useAgeDecay ? (float) Math.pow(2, -node.t) : 1f;
+            a = WakesClient.CONFIG_INSTANCE.useAgeDecay ? (float) Math.pow(2, -node.t) : 1f;
 
             for (int i = 0; i < 16; i++) {
                 for (int j = 0; j < 16; j++) {
@@ -82,7 +83,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             r = (float) (waterCol >> 16 & 0xFF) / 255f;
             g = (float) (waterCol >> 8 & 0xFF) / 255f;
             b = (float) (waterCol & 0xFF) / 255f;
-            if (WakesConfig.useWaterBlending) {
+            if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
                 renderTexture(wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a);
             } else {
                 renderTexture(wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, 1f, 1f, 1f, a);

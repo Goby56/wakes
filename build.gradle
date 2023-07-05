@@ -62,7 +62,7 @@ sourceSets {
 }
 dependencies {
 	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-	implementation "com.google.code.gson:gson:2.10.1"
+//	implementation "com.google.code.gson:gson:2.10.1"
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -83,6 +83,8 @@ dependencies {
 	modApi "com.terraformersmc:modmenu:7.1.0"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.0-M1"
+
+	include(implementation("blue.endless:jankson:${project.jankson_version}"))
 }
 
 processResources {

@@ -1,5 +1,6 @@
 package com.goby56.wakes;
 
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.WakeTextureRenderer;
@@ -16,7 +17,9 @@ import org.slf4j.LoggerFactory;
 public class WakesClient implements ClientModInitializer {
 
 	public static final String MOD_ID = "wakes";
+	public static final String CONFIG_PATH = String.format("%s/%s.json", FabricLoader.getInstance().getConfigDir().toString(), MOD_ID);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static WakesConfig CONFIG_INSTANCE;
 
 	@Override
 	public void onInitializeClient() {
@@ -25,6 +28,7 @@ public class WakesClient implements ClientModInitializer {
 
 		// Mod configs
 //		AutoConfig.register(WakesConfig.class, GsonConfigSerializer::new);
+		CONFIG_INSTANCE = WakesConfig.loadConfig();
 
 		EntityModelLayerRegistry.registerModelLayer(WakeModel.MODEL_LAYER, WakeModel::getTexturedModelData);
 

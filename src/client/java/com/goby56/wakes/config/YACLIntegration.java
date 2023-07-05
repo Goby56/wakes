@@ -1,5 +1,6 @@
 package com.goby56.wakes.config;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakeColor;
 import com.goby56.wakes.utils.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
@@ -15,11 +16,12 @@ import net.minecraft.client.gui.screen.Screen;
 
 public class YACLIntegration {
     public static Screen createScreen(Screen parent) {
+        WakesConfig config = WakesClient.CONFIG_INSTANCE;
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("wake_colors")
                         .option(booleanOption("use_water_blending")
-                                .binding(true, () -> WakesConfig.useWaterBlending, val -> WakesConfig.useWaterBlending = val)
+                                .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .group(intervalGroup(0, WakeColor.TRANSPARENT, -50, -45))
@@ -34,47 +36,48 @@ public class YACLIntegration {
                         .build())
                 .category(configCategory("wake_behaviour")
                         .option(optionOf(Float.class, "wave_speed")
-                                .binding(0.95f, () -> WakesConfig.waveSpeed, val -> {
-                                    WakesConfig.waveSpeed = val;
+                                .binding(0.95f, () -> config.waveSpeed, val -> {
+                                    config.waveSpeed = val;
                                     WakeNode.calculateAlpha();
                                 })
                                 .controller(opt -> floatSlider(opt, 0f, 2f, 0.01f))
                                 .build())
                         .option(optionOf(Integer.class, "initial_wave_strength")
-                                .binding(20, () -> WakesConfig.initialStrength, val -> WakesConfig.initialStrength = val)
+                                .binding(20, () -> config.initialStrength, val -> config.initialStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
                                 .build())
                         .option(optionOf(Integer.class, "paddle_strength")
-                                .binding(100, () -> WakesConfig.paddleStrength, val -> WakesConfig.paddleStrength = val)
+                                .binding(100, () -> config.paddleStrength, val -> config.paddleStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
                                 .build())
                         .option(optionOf(Float.class, "wave_decay")
-                                .binding(0.9f, () -> WakesConfig.waveDecay, val -> WakesConfig.waveDecay = val)
+                                .binding(0.9f, () -> config.waveDecay, val -> config.waveDecay = val)
                                 .controller(opt -> floatSlider(opt, 0f, 1f, 0.01f))
                                 .build())
                         .option(booleanOption("use_age_decay")
-                                .binding(false, () -> WakesConfig.useAgeDecay, val -> WakesConfig.useAgeDecay = val)
+                                .binding(false, () -> config.useAgeDecay, val -> config.useAgeDecay = val)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .build())
                 .category(configCategory("debug")
                         .option(optionOf(Integer.class, "flood_fill_distance")
-                                .binding(3, () -> WakesConfig.floodFillDistance, val -> WakesConfig.floodFillDistance = val)
+                                .binding(3, () -> config.floodFillDistance, val -> config.floodFillDistance = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
                                 .build())
                         .option(optionOf(Integer.class, "ticks_before_fill")
-                                .binding(2, () -> WakesConfig.ticksBeforeFill, val -> WakesConfig.ticksBeforeFill = val)
+                                .binding(2, () -> config.ticksBeforeFill, val -> config.ticksBeforeFill = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
                                 .build())
                         .option(booleanOption("use_9_point_stencil")
-                                .binding(true, () -> WakesConfig.use9PointStencil, val -> WakesConfig.use9PointStencil = val)
+                                .binding(true, () -> config.use9PointStencil, val -> config.use9PointStencil = val)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .option(booleanOption("draw_debug_boxes")
-                                .binding(false, () -> WakesConfig.drawDebugBoxes, val -> WakesConfig.drawDebugBoxes = val)
+                                .binding(false, () -> config.drawDebugBoxes, val -> config.drawDebugBoxes = val)
                                 .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .build())
+                .save(config::saveConfig)
                 .build()
                 .generateScreen(parent);
     }
@@ -112,18 +115,19 @@ public class YACLIntegration {
     }
 
     private static OptionGroup intervalGroup(int n, WakeColor defaultColor, int defaultLower, int defaultUpper) {
+        WakesConfig config = WakesClient.CONFIG_INSTANCE;
         return OptionGroup.createBuilder()
                 .name(WakesUtils.translatable("option_group", "interval" + (n+1)))
                 .option(optionOf(Integer.class, "lower")
-                        .binding(defaultLower, () -> WakesConfig.colorIntervals[n].lower, WakesConfig.colorIntervals[n]::setLower)
+                        .binding(defaultLower, () -> config.colorIntervals[n].lower, config.colorIntervals[n]::setLower)
                         .controller(opt -> integerSlider(opt, -50, 50))
                         .build())
                 .option(optionOf(Integer.class, "upper")
-                        .binding(defaultUpper, () -> WakesConfig.colorIntervals[n].upper, WakesConfig.colorIntervals[n]::setUpper)
+                        .binding(defaultUpper, () -> config.colorIntervals[n].upper, config.colorIntervals[n]::setUpper)
                         .controller(opt -> integerSlider(opt, -50, 50))
                         .build())
                 .option(optionOf(WakeColor.class, "color")
-                        .binding(defaultColor, () -> WakesConfig.colorIntervals[n].color, WakesConfig.colorIntervals[n]::setColor)
+                        .binding(defaultColor, () -> config.colorIntervals[n].color, config.colorIntervals[n]::setColor)
                         .controller(opt -> EnumControllerBuilder.create(opt)
                                 .enumClass(WakeColor.class)
                                 .valueFormatter(val -> WakesUtils.translatable("config", "color." + val.name().toLowerCase())))
