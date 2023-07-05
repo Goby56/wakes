@@ -2,9 +2,11 @@ package com.goby56.wakes.config;
 
 import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.api.DeserializationException;
 import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakeColor;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,6 +17,8 @@ public class WakesConfig {
     public float waveSpeed = 0.95f;
     public int initialStrength = 20;
     public int paddleStrength = 100;
+    public int splashStrength = 100;
+    public double minimumProducerVelocity = 0.1;
     public float waveDecay = 0.9f;
     public boolean useAgeDecay = false;
 
@@ -66,11 +70,16 @@ public class WakesConfig {
         Jankson jankson = Jankson.builder().build();
         try {
             File configFile = new File(WakesClient.CONFIG_PATH);
-            if (!configFile.exists()) return new WakesConfig();
+//            if (!configFile.exists()) {
+//                WakesClient.LOGGER.info(String.format("No config file found for wakes-%s. Creating a new one...", WakesClient.METADATA.getVersion().getFriendlyString()));
+//                WakesConfig config = new WakesConfig();
+//                config.saveConfig();
+//                return config;
+//            }
 
             JsonObject configJson = jankson.load(configFile);
-            return jankson.fromJson(configJson, WakesConfig.class);
-        } catch (IOException | SyntaxError e) {
+            return jankson.fromJsonCarefully(configJson, WakesConfig.class);
+        } catch (IOException | SyntaxError | DeserializationException e) {
             e.printStackTrace();
             return new WakesConfig();
         }

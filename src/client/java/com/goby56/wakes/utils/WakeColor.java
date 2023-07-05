@@ -2,12 +2,8 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import net.minecraft.util.Pair;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.math.ColorHelper;
-
-import java.util.ArrayList;
-
 
 public enum WakeColor implements StringIdentifiable {
     TRANSPARENT(0, 0, 0, 0),
@@ -25,8 +21,7 @@ public enum WakeColor implements StringIdentifiable {
     PURPLE(149, 51, 214, 255),
     PINK(214, 51, 192, 255);
 
-    public int argb;
-    public ArrayList<Pair<Integer, Integer>> intervals;
+    public final int argb;
 
     WakeColor(int red, int green, int blue, int alpha) {
         this.argb = ColorHelper.Argb.getArgb(alpha, blue, green, red); // abgr actually because big-endian?

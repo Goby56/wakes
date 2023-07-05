@@ -34,6 +34,8 @@
   "option.wakes.wave_speed": "Wave speed",
   "option.wakes.initial_wave_strength": "Initial wave strength",
   "option.wakes.paddle_strength": "Paddle strength",
+  "option.wakes.splash_strength": "Splash strength on impact",
+  "option.wakes.minimum_producer_velocity": "Velocity required to produce a wake",
   "option.wakes.wave_decay": "Wave decay",
   "option.wakes.use_age_decay": "Use age decay",
 

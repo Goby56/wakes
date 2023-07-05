@@ -25,8 +25,7 @@ public class WakesUtils {
             return;
         }
         float height = getWaterLevel(world, producer);
-        // TODO DEPENDING ON PRODUCER VELOCITY MAKE BIGGER SPLASH
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakesClient.CONFIG_INSTANCE.initialStrength));
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.getVelocity().y)));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -47,6 +46,8 @@ public class WakesUtils {
                 instance.insert(node);
             }
         }
+
+        if (producer.getVelocity().horizontalLength() < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) return;
 
         Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
         if (prevPos == null) {

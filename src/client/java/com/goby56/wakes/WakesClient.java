@@ -11,12 +11,14 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WakesClient implements ClientModInitializer {
 
 	public static final String MOD_ID = "wakes";
+	public static ModMetadata METADATA;
 	public static final String CONFIG_PATH = String.format("%s/%s.json", FabricLoader.getInstance().getConfigDir().toString(), MOD_ID);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static WakesConfig CONFIG_INSTANCE;
@@ -25,6 +27,7 @@ public class WakesClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		LOGGER.info("Registering client specific stuff for " + MOD_ID);
+		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
 
 		// Mod configs
 //		AutoConfig.register(WakesConfig.class, GsonConfigSerializer::new);

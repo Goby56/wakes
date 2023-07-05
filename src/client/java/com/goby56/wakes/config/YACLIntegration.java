@@ -8,10 +8,7 @@ import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
-import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
-import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
-import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
+import dev.isxander.yacl3.api.controller.*;
 import net.minecraft.client.gui.screen.Screen;
 
 public class YACLIntegration {
@@ -49,6 +46,14 @@ public class YACLIntegration {
                         .option(optionOf(Integer.class, "paddle_strength")
                                 .binding(100, () -> config.paddleStrength, val -> config.paddleStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
+                                .build())
+                        .option(optionOf(Integer.class, "splash_strength")
+                                .binding(100, () -> config.splashStrength, val -> config.splashStrength = val)
+                                .controller(opt -> integerSlider(opt, 0, 150))
+                                .build())
+                        .option(optionOf(Double.class, "minimum_producer_velocity")
+                                .binding(0.1, () -> config.minimumProducerVelocity, val -> config.minimumProducerVelocity = val)
+                                .controller(DoubleFieldControllerBuilder::create)
                                 .build())
                         .option(optionOf(Float.class, "wave_decay")
                                 .binding(0.9f, () -> config.waveDecay, val -> config.waveDecay = val)

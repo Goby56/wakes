@@ -46,7 +46,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
-		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater() && this.getVelocity().horizontalLength() > 0.1;
+		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater();
 		if (this.shouldSpawnWake) {
 			WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
 			this.prevWakeProdPos = this.getPos();
@@ -61,6 +61,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
 	private void onSwimmingStart(CallbackInfo ci) {
+		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 		WakesUtils.placeSingleSplash(this.world, ((Entity) (Object) this));
 	}
 }
