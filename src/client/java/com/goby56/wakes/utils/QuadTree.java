@@ -82,6 +82,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         }
 
         if (this.nodes.size() < CAPACITY) {
+            // TODO MAYBE FIX DUPLICATE INSERTIONS BY MAKING tryAdd RETURN BOOLEAN
             this.tryAdd(node);
             return true;
         }

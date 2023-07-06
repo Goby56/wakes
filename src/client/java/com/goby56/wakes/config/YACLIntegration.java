@@ -19,7 +19,6 @@ public class YACLIntegration {
                 .category(configCategory("wake_colors")
                         .option(booleanOption("use_water_blending")
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
-                                .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .group(intervalGroup(0, WakeColor.TRANSPARENT, -50, -45))
                         .group(intervalGroup(1, WakeColor.DARK_GRAY, -45, -35))
@@ -32,6 +31,16 @@ public class YACLIntegration {
                         .group(intervalGroup(8, WakeColor.GRAY, 40, 50))
                         .build())
                 .category(configCategory("wake_behaviour")
+                        .group(group("wake_spawning")
+                                .option(wakeSpawningRulesOption("boat_wake_rules"))
+                                .option(wakeSpawningRulesOption("player_wake_rules"))
+                                .option(wakeSpawningRulesOption("other_players_wake_rules"))
+                                .option(wakeSpawningRulesOption("mobs_wake_rules"))
+                                .option(wakeSpawningRulesOption("items_wake_rules"))
+                                .option(booleanOption("wakes_in_running_water")
+                                        .binding(false, () -> config.wakesInRunningWater, val -> config.wakesInRunningWater = val)
+                                        .build())
+                                .build())
                         .option(optionOf(Float.class, "wave_speed")
                                 .binding(0.95f, () -> config.waveSpeed, val -> {
                                     config.waveSpeed = val;
@@ -61,7 +70,6 @@ public class YACLIntegration {
                                 .build())
                         .option(booleanOption("use_age_decay")
                                 .binding(false, () -> config.useAgeDecay, val -> config.useAgeDecay = val)
-                                .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .build())
                 .category(configCategory("debug")
@@ -75,11 +83,9 @@ public class YACLIntegration {
                                 .build())
                         .option(booleanOption("use_9_point_stencil")
                                 .binding(true, () -> config.use9PointStencil, val -> config.use9PointStencil = val)
-                                .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .option(booleanOption("draw_debug_boxes")
                                 .binding(false, () -> config.drawDebugBoxes, val -> config.drawDebugBoxes = val)
-                                .controller(TickBoxControllerBuilder::create)
                                 .build())
                         .build())
                 .save(config::saveConfig)
@@ -116,7 +122,19 @@ public class YACLIntegration {
 
     private static Option.Builder<Boolean> booleanOption(String name) {
         return Option.<Boolean>createBuilder()
-                .name(WakesUtils.translatable("option", name));
+                .name(WakesUtils.translatable("option", name))
+                .controller(TickBoxControllerBuilder::create);
+    }
+
+    private static Option<WakesConfig.WakeSpawningRule> wakeSpawningRulesOption(String name) {
+        WakesConfig config = WakesClient.CONFIG_INSTANCE;
+        return Option.<WakesConfig.WakeSpawningRule>createBuilder()
+                .name(WakesUtils.translatable("option", name))
+                .binding(WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES, () -> config.wakeSpawningRules.get(name), val -> config.wakeSpawningRules.put(name, val))
+                .controller(opt -> EnumControllerBuilder.create(opt)
+                        .enumClass(WakesConfig.WakeSpawningRule.class)
+                        .valueFormatter(val -> WakesUtils.translatable("wake_spawn_rule", val.name().toLowerCase())))
+                .build();
     }
 
     private static OptionGroup intervalGroup(int n, WakeColor defaultColor, int defaultLower, int defaultUpper) {

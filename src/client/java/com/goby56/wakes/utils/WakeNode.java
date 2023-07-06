@@ -5,10 +5,12 @@ import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import java.util.*;
 
@@ -194,6 +196,15 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     @Override
+    public String toString() {
+        return "WakeNode{" +
+                "x=" + x +
+                ", z=" + z +
+                ", height=" + height +
+                '}';
+    }
+
+    @Override
     public Box toBox() {
         return new Box(this.x, Math.floor(this.height), this.z, this.x + 1, Math.ceil(this.height), this.z + 1);
     }
@@ -227,8 +238,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     @Override
     public boolean inValidPos() {
-        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(new BlockPos(this.x, (int) this.height, this.z));
-        return fluidState.isIn(FluidTags.WATER);
+        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(new BlockPos(this.x, (int) Math.floor(this.height), this.z));
+        if (fluidState.isIn(FluidTags.WATER)) {
+            return fluidState.isStill() || WakesClient.CONFIG_INSTANCE.wakesInRunningWater;
+        }
+        return false;
     }
 
     public Vec3d getPos() {

@@ -31,6 +31,18 @@
   "config.wakes.color.turquoise": "Turquoise",
 
   "config_category.wakes.wake_behaviour": "Wake behaviour",
+  "option_group.wakes.wake_spawning": "Wake spawning",
+  "option.wakes.boat_wake_rules": "Boats",
+  "option.wakes.player_wake_rules": "Player",
+  "option.wakes.other_players_wake_rules": "Other players",
+  "option.wakes.mobs_wake_rules": "Mobs",
+  "option.wakes.items_wake_rules": "Items",
+  "wake_spawn_rule.wakes.wakes_and_splashes": "Wakes & splashes",
+  "wake_spawn_rule.wakes.only_wakes": "Only wakes",
+  "wake_spawn_rule.wakes.only_splashes": "Only splashes",
+  "wake_spawn_rule.wakes.disabled": "Disabled",
+  "option.wakes.wakes_in_running_water": "Wakes in running water",
+
   "option.wakes.wave_speed": "Wave speed",
   "option.wakes.initial_wave_strength": "Initial wave strength",
   "option.wakes.paddle_strength": "Paddle strength",

@@ -6,6 +6,7 @@ import net.minecraft.client.world.ClientWorld;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.OptionalInt;
 import java.util.Set;
 
 public class WakeHandler {
@@ -64,6 +65,7 @@ public class WakeHandler {
 
     public void insert(WakeNode node) {
         int i = this.getArrayIndex((int) node.height);
+        if (i < 0) return;
 
         if (this.trees.get(i) == null) {
             this.trees.add(i, new QuadTree<>(0, 0, 30000000));
@@ -85,6 +87,7 @@ public class WakeHandler {
     public ArrayList<WakeNode> getNearby(int x, int y, int z) {
         ArrayList<WakeNode> foundNodes = new ArrayList<>();
         int i = this.getArrayIndex(y);
+        if (i < 0) return foundNodes;
         if (this.trees.get(i) == null) {
             return foundNodes;
         }

@@ -1,5 +1,7 @@
 package com.goby56.wakes.mixin.client;
 
+import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.entity.Entity;
@@ -48,7 +50,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	private void tick(CallbackInfo info) {
 		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater();
 		if (this.shouldSpawnWake) {
-			WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
+			WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
+			if (spawningRule == WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES ||
+				spawningRule == WakesConfig.WakeSpawningRule.ONLY_WAKES) {
+				WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
+			}
 			this.prevWakeProdPos = this.getPos();
 		} else {
 			this.prevWakeProdPos = null;
@@ -62,6 +68,10 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
 	private void onSwimmingStart(CallbackInfo ci) {
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER
-		WakesUtils.placeSingleSplash(this.world, ((Entity) (Object) this));
+		WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
+		if (spawningRule == WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES ||
+			spawningRule == WakesConfig.WakeSpawningRule.ONLY_SPLASHES) {
+			WakesUtils.placeSingleSplash(this.world, ((Entity) (Object) this));
+		}
 	}
 }

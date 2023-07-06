@@ -3,7 +3,7 @@
 	"id": "wakes",
 	"version": "${version}",
 	"name": "Wakes",
-	"description": "A Minecraft mod that does one thing, adding wakes.",
+	"description": "Adds wakes after entities if they travel fast enough",
 	"authors": [
 		"Goby56"
 	],
