@@ -249,6 +249,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         return new Vec3d(this.x, this.height, this.z);
     }
 
+    public BlockPos blockPos() {
+        return new BlockPos(this.x, (int) Math.floor(this.height), this.z);
+    }
+
     public static class Factory {
         public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
             Set<WakeNode> nodesAffected = new HashSet<>();
