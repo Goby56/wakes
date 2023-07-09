@@ -11,7 +11,8 @@ In some cases there will be an option to disable this.
 
 ### Known incompatibilties
 - LS RenderPearl
-- BSL (cant figure out how to turn off wavy water, aside from that it works fine)
+- BSL (can't figure out how to turn off wavy water, aside from that it works fine)
+- Overimagined Shaders (works when camera is close to the water)
 
 ## Optifine shaders
 Currently not supported
