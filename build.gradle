@@ -23,6 +23,18 @@ repositories {
 		name "Xander Maven"
 		url "https://maven.isxander.dev/releases"
 	}
+
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
 }
 
 loom {
@@ -61,8 +73,6 @@ sourceSets {
 	}
 }
 dependencies {
-	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-//	implementation "com.google.code.gson:gson:2.10.1"
 
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -72,17 +82,17 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-	modCompileOnly("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
+	modImplementation "dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}"
 
-//	modApi("me.shedaniel.cloth:cloth-config-fabric:11.0.99") {
-//		exclude(group: "net.fabricmc.fabric-api")
-//	}
+	modImplementation "maven.modrinth:iris:${project.iris_version}"
+	modImplementation "org.anarres:jcpp:1.4.14"
+	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
 
-	modApi "com.terraformersmc:modmenu:7.1.0"
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.0-M1"
+
+	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 
 	include(implementation("blue.endless:jankson:${project.jankson_version}"))
 }
