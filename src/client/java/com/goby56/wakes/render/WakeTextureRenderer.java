@@ -123,6 +123,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
         if (IrisApi.getInstance().getConfig().areShadersEnabled()) {
+            // Huge thanks to IMS https://github.com/IMS212 with shader compatibility
             RenderSystem.setShader(GameRenderer::getRenderTypeEntityTranslucentProgram);
 
             buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
