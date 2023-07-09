@@ -46,6 +46,8 @@ public class WakesConfig {
     public boolean use9PointStencil = true;
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
+    public boolean renderWakes = true;
+    public boolean spawnWakes = true;
 
     // Colors
     public boolean useWaterBlending = true;
@@ -121,12 +123,12 @@ public class WakesConfig {
         Jankson jankson = Jankson.builder().build();
         try {
             File configFile = new File(WakesClient.CONFIG_PATH);
-//            if (!configFile.exists()) {
-//                WakesClient.LOGGER.info(String.format("No config file found for wakes-%s. Creating a new one...", WakesClient.METADATA.getVersion().getFriendlyString()));
+            if (!configFile.exists()) {
+                WakesClient.LOGGER.info(String.format("No config file found for wakes-%s. Edit one or more configs to to create one.", WakesClient.METADATA.getVersion().getFriendlyString()));
 //                WakesConfig config = new WakesConfig();
 //                config.saveConfig();
-//                return config;
-//            }
+                return new WakesConfig();
+            }
 
             JsonObject configJson = jankson.load(configFile);
             String normalized = configJson.toJson(false, false);

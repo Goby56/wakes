@@ -56,6 +56,8 @@
   "option.wakes.use_9_point_stencil": "Use 9 point stencil for laplace operator",
   "option.wakes.draw_debug_boxes": "Draw debug boxes",
   "option.wakes.ticks_before_fill": "Ticks before flood fill",
+  "option.wakes.render_wakes": "Render wakes",
+  "option.wakes.spawn_wakes": "Spawn wakes",
 
   "config.wakes.yacl_missing": "Yet Another Config Lib is not in your mods folder",
   "config.wakes.yacl_missing.message": "If you want to edit the configs you need YACL V3. Do you want to install it?"

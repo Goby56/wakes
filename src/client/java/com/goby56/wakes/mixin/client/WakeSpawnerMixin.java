@@ -30,6 +30,8 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Shadow public abstract Vec3d getPos();
 
+	@Shadow public abstract boolean removeScoreboardTag(String tag);
+
 	public boolean shouldSpawnWake = false;
 
 	public boolean hasWake = false;
@@ -48,6 +50,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
+		if (!WakesClient.CONFIG_INSTANCE.spawnWakes) {
+			return;
+		}
 		this.shouldSpawnWake = this.isTouchingWater() && !this.isSubmergedInWater();
 		if (this.shouldSpawnWake) {
 			WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
@@ -67,6 +72,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
 	private void onSwimmingStart(CallbackInfo ci) {
+		if (!WakesClient.CONFIG_INSTANCE.spawnWakes) {
+			return;
+		}
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 		WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
 		if (spawningRule == WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES ||

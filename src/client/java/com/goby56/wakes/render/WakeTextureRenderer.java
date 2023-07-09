@@ -34,6 +34,9 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
+        if (!WakesClient.CONFIG_INSTANCE.renderWakes) {
+            return;
+        }
         WakeHandler wakeHandler = WakeHandler.getInstance();
         ArrayList<WakeNode> nodes = WakeHandler.getInstance().getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
@@ -114,15 +117,20 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         // TODO SWITCH TO STANDARD RENDER LAYERS (DIRECT DRAW CALLS MAY BE SLOW)
         // TODO DRAW TEXTURE ON UNDER SIDE MAYBE
         RenderSystem.setShaderTexture(0, textureID);
-        RenderSystem.setShader(GameRenderer::getPositionColorTexProgram);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalProgram);
         RenderSystem.enableDepthTest();
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE);
-        buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).next();
-        buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, 1f).texture(0, 1).next();
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, 1f).texture(1, 1).next();
-        buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, 1f).texture(1, 0).next();
+//        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE);
+//        buffer.vertex(matrix, x0, y0, z0).color(r, g, b, 1f).texture(0, 0).next();
+//        buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, 1f).texture(0, 1).next();
+//        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, 1f).texture(1, 1).next();
+//        buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, 1f).texture(1, 0).next();
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
+        buffer.vertex(matrix, x0, y0, z0).texture(0, 0).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x0, (y0+y1)/2, z1).texture(0, 1).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x1, y1, z1).texture(1, 1).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
         Tessellator.getInstance().draw();
     }
 
