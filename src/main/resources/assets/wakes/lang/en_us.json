@@ -2,6 +2,9 @@
   "config.wakes.title": "Wakes config",
 
   "config_category.wakes.wake_colors": "Wake colors",
+  "option.wakes.blend_mode": "Blending mode",
+  "blending_function.wakes.default": "Default",
+  "blending_function.wakes.screen": "Screen",
   "option.wakes.use_water_blending": "Use water blending",
   "option_group.wakes.interval1": "Color interval 1",
   "option_group.wakes.interval2": "Color interval 2",

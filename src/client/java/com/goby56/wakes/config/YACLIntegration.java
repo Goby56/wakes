@@ -1,6 +1,7 @@
 package com.goby56.wakes.config;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.render.BlendingFunction;
 import com.goby56.wakes.utils.WakeColor;
 import com.goby56.wakes.utils.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
@@ -17,6 +18,12 @@ public class YACLIntegration {
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("wake_colors")
+                        .option(optionOf(BlendingFunction.class, "blend_mode")
+                                .binding(BlendingFunction.SCREEN, () -> config.blendMode, val -> config.blendMode = val)
+                                .controller(opt -> EnumControllerBuilder.create(opt)
+                                        .enumClass(BlendingFunction.class)
+                                        .valueFormatter(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
+                                .build())
                         .option(booleanOption("use_water_blending")
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .build())

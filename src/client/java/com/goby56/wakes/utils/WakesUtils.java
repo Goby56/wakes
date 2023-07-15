@@ -4,6 +4,7 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
@@ -25,7 +26,8 @@ public class WakesUtils {
             return;
         }
         float height = getWaterLevel(world, producer);
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.getVelocity().y)));
+        // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * ((ProducesWake) producer).getVerticalVelocity())));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -35,28 +37,36 @@ public class WakesUtils {
 //    }
 
     public static void placeWakeTrail(World world, Entity producer) {
-        WakeHandler instance = WakeHandler.getInstance();
-        if (instance == null) {
+        WakeHandler wakeHandler = WakeHandler.getInstance();
+        if (wakeHandler == null) {
             return;
         }
         float height = getWaterLevel(world, producer);
+        double velocity = ((ProducesWake) producer).getHorizontalVelocity();
+//        System.out.printf("%s (%s) has a velocity of %f\n", producer.getType().toString(), producer.getEntityName(), velocity);
 
         if (producer instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
-                instance.insert(node);
+                wakeHandler.insert(node);
             }
         }
 
-        if (producer.getVelocity().horizontalLength() < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) return;
-
-        Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
-        if (prevPos == null) {
-            instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), WakesClient.CONFIG_INSTANCE.initialStrength));
+        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
+            ((ProducesWake) producer).setPrevPos(null);
             return;
         }
 
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, producer.getX(), producer.getZ(), height, WakesClient.CONFIG_INSTANCE.initialStrength, producer.getVelocity().horizontalLength(), producer.getWidth())) {
-            instance.insert(node);
+        Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
+        Vec3d currPos = new Vec3d(producer.getX(), height, producer.getZ());
+        ((ProducesWake) producer).setPrevPos(currPos);
+        if (prevPos == null) {
+//            for (WakeNode node : WakeNode.Factory.nodeLine(currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, producer.getVelocity(), producer.getWidth())) {
+//                wakeHandler.insert(node);
+//            }
+            return;
+        }
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, producer.getWidth())) {
+            wakeHandler.insert(node);
         }
     }
 

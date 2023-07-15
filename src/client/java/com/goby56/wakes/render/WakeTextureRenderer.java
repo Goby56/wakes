@@ -35,6 +35,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
+
         if (!WakesClient.CONFIG_INSTANCE.renderWakes) {
             return;
         }
@@ -43,7 +44,12 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
 
-        RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR);
+        BlendingFunction blendMode = WakesClient.CONFIG_INSTANCE.blendMode;
+        if (blendMode == BlendingFunction.DEFAULT) {
+            RenderSystem.defaultBlendFunc();
+        } else {
+            RenderSystem.blendFunc(blendMode.srcFactor, blendMode.dstFactor);
+        }
 
         if (wakeHandler.glFoamTexId == -1) {
             wakeHandler.glFoamTexId = initTexture();

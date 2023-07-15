@@ -238,7 +238,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     @Override
     public boolean inValidPos() {
-        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(new BlockPos(this.x, (int) Math.floor(this.height), this.z));
+        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(this.blockPos());
         if (fluidState.isIn(FluidTags.WATER)) {
             return fluidState.isStill() || WakesClient.CONFIG_INSTANCE.wakesInRunningWater;
         }
@@ -256,7 +256,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public static class Factory {
         public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
             Set<WakeNode> nodesAffected = new HashSet<>();
-            double velocity = boat.getVelocity().horizontalLength();
+            double velocity = Math.max(WakesClient.CONFIG_INSTANCE.minimumProducerVelocity, boat.getVelocity().horizontalLength());
             for (int i = 0; i < 2; i++) {
                 if (boat.isPaddleMoving(i)) {
                     double phase = boat.paddlePhases[i] % (2*Math.PI);
@@ -302,6 +302,22 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 WakesUtils.bresenhamLine((int) (x1 + nx * i), (int) (z1 + nz * i), (int) (x2 + nx * i), (int) (z2 + nz * i), pixelsAffected);
             }
             return pixelsToNodes(pixelsAffected, height, waveStrength, velocity);
+        }
+
+        public static Set<WakeNode> nodeLine(double x, double z, float height, float waveStrength, Vec3d velocity, float width) {
+            Vec3d dir = velocity.normalize();
+            double nx = -dir.z;
+            double nz = dir.x;
+            int w = (int) (0.8 * width * 16 / 2);
+
+            int x1 = (int) (x * 16 - nx * w);
+            int z1 = (int) (z * 16 - nz * w);
+            int x2 = (int) (x * 16 + nx * w);
+            int z2 = (int) (z * 16 + nz * w);
+
+            ArrayList<Long> pixelsAffected = new ArrayList<>();
+            WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
+            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity.horizontalLength());
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {

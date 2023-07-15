@@ -4,6 +4,7 @@ import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.render.BlendingFunction;
 import com.goby56.wakes.utils.WakeColor;
 import com.google.gson.Gson;
 import net.minecraft.client.MinecraftClient;
@@ -51,6 +52,7 @@ public class WakesConfig {
 
     // Colors
     public boolean useWaterBlending = true;
+    public BlendingFunction blendMode = BlendingFunction.SCREEN;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
@@ -89,26 +91,39 @@ public class WakesConfig {
     }
 
     public enum WakeSpawningRule {
-        WAKES_AND_SPLASHES,
-        ONLY_WAKES,
-        ONLY_SPLASHES,
-        DISABLED;
+        WAKES_AND_SPLASHES(true, true),
+        ONLY_WAKES(true, false),
+        ONLY_SPLASHES(false, true),
+        DISABLED(false, false);
+
+        public final boolean spawnsWake;
+        public final boolean spawnsSplashes;
+
+        WakeSpawningRule(boolean spawnsWake, boolean spawnsSplashes) {
+            this.spawnsWake = spawnsWake;
+            this.spawnsSplashes = spawnsSplashes;
+        }
     }
 
     public WakeSpawningRule getSpawningRule(Entity producer) {
         if (producer instanceof BoatEntity boat) {
+            // TODO FIX OTHER PLAYERS IN BOAT NOT VISIBLE
             if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
+//                System.out.println("getting other players");
                 return wakeSpawningRules.get("other_players_wake_rules");
             }
+//            System.out.println("getting client player");
             return wakeSpawningRules.get("boat_wake_rules");
         }
         if (producer instanceof PlayerEntity player) {
+            if (player.isSpectator()) {
+                return WakeSpawningRule.DISABLED;
+            }
             if (player instanceof ClientPlayerEntity) {
                 // TODO FIX PLAYER ONLY WAKES
                 return wakeSpawningRules.get("player_wake_rules");
-            } else {
-                return wakeSpawningRules.get("other_players_wake_rules");
             }
+            return wakeSpawningRules.get("other_players_wake_rules");
         }
         if (producer instanceof LivingEntity) {
             return wakeSpawningRules.get("mobs_wake_rules");
