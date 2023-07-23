@@ -92,7 +92,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             // TODO LAMB DYNAMIC LIGHTS COMPAT
-            light = Math.max(0.25f, context.world().getLightLevel(node.blockPos()) / 15f);
+            light = Math.max(0.1f, context.world().getLightLevel(node.blockPos()) / 15f);
 
             if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
                 r = light * (float) (waterCol >> 16 & 0xFF) / 255f;
@@ -103,7 +103,8 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
                 g = light;
                 b = light;
             }
-            a = WakesClient.CONFIG_INSTANCE.useAgeDecay ? (float) Math.pow(2, -node.t) : 1f;
+            a = WakesClient.CONFIG_INSTANCE.useAgeDecay ? (float) (-Math.pow(node.t, 2) + 1) : 1f;
+            a *= WakesClient.CONFIG_INSTANCE.wakeOpacity;
 
             renderTexture(wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a);
             renderTexture(wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, light, light, light, a);
@@ -129,23 +130,23 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
-        if (IrisApi.getInstance().getConfig().areShadersEnabled()) {
+        if (WakesClient.areShadersEnabled()) {
             // Huge thanks to IMS https://github.com/IMS212 with shader compatibility
             RenderSystem.setShader(GameRenderer::getRenderTypeEntityTranslucentProgram);
 
             buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-            buffer.vertex(matrix, x0, y0, z0).color(r, g, b, 1f).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, 1f).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x1, y1, z1).color(r, g, b, 1f).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, 1f).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(0f, 1f, 0f).next();
         } else {
             RenderSystem.setShader(GameRenderer::getPositionTexColorNormalProgram);
 
             buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
-            buffer.vertex(matrix, x0, y0, z0).texture(0, 0).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x0, (y0+y1)/2, z1).texture(0, 1).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x1, y1, z1).texture(1, 1).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
-            buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).color(r, g, b, 1f).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x0, y0, z0).texture(0, 0).color(r, g, b, a).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x0, (y0+y1)/2, z1).texture(0, 1).color(r, g, b, a).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x1, y1, z1).texture(1, 1).color(r, g, b, a).normal(0f, 1f, 0f).next();
+            buffer.vertex(matrix, x1, (y0+y1)/2, z0).texture(1, 0).color(r, g, b, a).normal(0f, 1f, 0f).next();
         }
 
         Tessellator.getInstance().draw();

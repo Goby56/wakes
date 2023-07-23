@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.irisshaders.iris.api.v0.IrisApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,5 +51,12 @@ public class WakesClient implements ClientModInitializer {
 
 	public static boolean isYACLLoaded() {
 		return FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
+	}
+
+	public static boolean areShadersEnabled() {
+		if (FabricLoader.getInstance().isModLoaded("iris")) {
+			return IrisApi.getInstance().getConfig().areShadersEnabled();
+		}
+		return false;
 	}
 }
