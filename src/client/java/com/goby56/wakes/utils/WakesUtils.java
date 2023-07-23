@@ -27,7 +27,7 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
         // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * ((ProducesWake) producer).getVerticalVelocity())));
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.getVelocity().y)));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -43,7 +43,6 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
         double velocity = ((ProducesWake) producer).getHorizontalVelocity();
-//        System.out.printf("%s (%s) has a velocity of %f\n", producer.getType().toString(), producer.getEntityName(), velocity);
 
         if (producer instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
@@ -51,18 +50,10 @@ public class WakesUtils {
             }
         }
 
-        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
-            ((ProducesWake) producer).setPrevPos(null);
-            return;
-        }
-
         Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
         Vec3d currPos = new Vec3d(producer.getX(), height, producer.getZ());
         ((ProducesWake) producer).setPrevPos(currPos);
-        if (prevPos == null) {
-//            for (WakeNode node : WakeNode.Factory.nodeLine(currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, producer.getVelocity(), producer.getWidth())) {
-//                wakeHandler.insert(node);
-//            }
+        if (prevPos == null || velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
             return;
         }
         for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, producer.getWidth())) {

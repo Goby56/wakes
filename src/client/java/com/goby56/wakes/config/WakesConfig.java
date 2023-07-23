@@ -107,12 +107,11 @@ public class WakesConfig {
 
     public WakeSpawningRule getSpawningRule(Entity producer) {
         if (producer instanceof BoatEntity boat) {
-            // TODO FIX OTHER PLAYERS IN BOAT NOT VISIBLE
-            if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
-//                System.out.println("getting other players");
-                return wakeSpawningRules.get("other_players_wake_rules");
+            if (wakeSpawningRules.get("boat_wake_rules") == WakeSpawningRule.WAKES_AND_SPLASHES) {
+                if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
+                    return wakeSpawningRules.get("other_players_wake_rules");
+                }
             }
-//            System.out.println("getting client player");
             return wakeSpawningRules.get("boat_wake_rules");
         }
         if (producer instanceof PlayerEntity player) {
@@ -120,7 +119,6 @@ public class WakesConfig {
                 return WakeSpawningRule.DISABLED;
             }
             if (player instanceof ClientPlayerEntity) {
-                // TODO FIX PLAYER ONLY WAKES
                 return wakeSpawningRules.get("player_wake_rules");
             }
             return wakeSpawningRules.get("other_players_wake_rules");

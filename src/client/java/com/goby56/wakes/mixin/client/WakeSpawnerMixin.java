@@ -79,12 +79,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.prevWakeProdPos = pos;
 	}
 
-	@Inject(at = @At("HEAD"), method = "move")
+	@Inject(at = @At("HEAD"), method = "tick")
 	private void tick(CallbackInfo info) {
-		Vec3d vel = this.pos.subtract(this.prevX, this.prevY, this.prevZ);
-		if (this.isPlayer()) {
-			System.out.println(vel);
-		}
+		Vec3d vel = this.prevWakeProdPos == null ? Vec3d.ZERO : this.pos.subtract(this.prevWakeProdPos);
 		this.horizontalNumericalVelocity = vel.horizontalLength();
 		this.verticalNumericalVelocity = vel.y;
 
@@ -94,8 +91,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 		if (this.isTouchingWater() && !this.isSubmergedInWater()) {
 			if (WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this)).spawnsWake) {
-				// TODO FUCKING NOT SHOWING FOR OTHER PLAYERS. MUST BE SOMETHING WRONG WITH VELOCITY. VELOCITY IS STUCK OR NOT CHANGING
 				WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
+			} else {
+				this.prevWakeProdPos = null;
 			}
 		} else {
 			this.prevWakeProdPos = null;
