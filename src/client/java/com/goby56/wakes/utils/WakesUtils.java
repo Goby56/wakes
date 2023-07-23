@@ -27,7 +27,7 @@ public class WakesUtils {
         }
         float height = getWaterLevel(world, producer);
         // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.getVelocity().y)));
+        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.fallDistance)));
     }
 
 //    public static void spawnWake(World world, Entity owner) {

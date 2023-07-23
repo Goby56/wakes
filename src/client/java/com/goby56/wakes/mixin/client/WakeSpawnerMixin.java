@@ -44,6 +44,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Shadow public abstract boolean isPlayer();
 
+	@Shadow public float fallDistance;
 	public boolean shouldSpawnWake = false;
 
 	public boolean hasWake = false;
