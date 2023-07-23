@@ -18,6 +18,7 @@ public class YACLIntegration {
         Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity")
                 .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
                 .controller(opt -> integerSlider(opt, 0, 100))
+                .available(config.blendMode.canVaryOpacity)
                 .build();
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
