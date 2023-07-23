@@ -85,11 +85,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     @Override
     public void tick() {
-        this.t += 1/20f;
         if (this.age++ >= this.maxAge) {
             this.markDead();
             return;
         }
+        this.t = this.age / (float) this.maxAge;
 
         for (int i = 2; i >= 1; i--) {
             if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][16];

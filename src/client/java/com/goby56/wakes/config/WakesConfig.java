@@ -40,7 +40,6 @@ public class WakesConfig {
     public int splashStrength = 100;
     public double minimumProducerVelocity = 0.1;
     public float waveDecay = 0.9f;
-    public boolean useAgeDecay = false;
 
     // Debug
     public int floodFillDistance = 3;
@@ -50,9 +49,11 @@ public class WakesConfig {
     public boolean renderWakes = true;
     public boolean spawnWakes = true;
 
-    // Colors
+    // Appearance
+    public float wakeOpacity = 1f;
     public boolean useWaterBlending = true;
-    public BlendingFunction blendMode = BlendingFunction.SCREEN;
+    public boolean useAgeDecay = true;
+    public BlendingFunction blendMode = BlendingFunction.DEFAULT;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
