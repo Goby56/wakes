@@ -3,12 +3,10 @@ package com.goby56.wakes.config;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.BlendingFunction;
 import com.goby56.wakes.utils.WakeColor;
+import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
-import dev.isxander.yacl3.api.ConfigCategory;
-import dev.isxander.yacl3.api.Option;
-import dev.isxander.yacl3.api.OptionGroup;
-import dev.isxander.yacl3.api.YetAnotherConfigLib;
+import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
 import net.minecraft.client.gui.screen.Screen;
 
@@ -23,6 +21,12 @@ public class YACLIntegration {
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("wake_appearance")
+                        .option(optionOf(WakesConfig.Resolution.class, "wake_resolution")
+                                .binding(WakesConfig.Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
+                                .controller(opt -> EnumControllerBuilder.create(opt)
+                                        .enumClass(WakesConfig.Resolution.class)
+                                        .valueFormatter(val -> WakesUtils.translatable("resolution", val.toString())))
+                                .build())
                         .option(wakeOpacityOption)
                         .option(optionOf(BlendingFunction.class, "blend_mode")
                                 .binding(BlendingFunction.DEFAULT, () -> config.blendMode, val -> {

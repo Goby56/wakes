@@ -17,10 +17,11 @@ import java.util.*;
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
-    private static float alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f/20f, 2);
+    public final int res;
 
-    public float[][][] u = new float[3][18][18];
-    public float[][] initialValues = new float[18][18];
+    private static float alpha;
+    public float[][][] u;
+    public float[][] initialValues;
 
     public final int x;
     public final int z;
@@ -31,7 +32,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public WakeNode SOUTH = null;
     public WakeNode WEST = null;
 
-    // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME
+    // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME (MAYBE)
     public final int maxAge = 30;
     public int age = 0;
     private boolean dead = false;
@@ -40,11 +41,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public int floodLevel;
 
     public WakeNode(Vec3d position, int initialStrength) {
+        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.initValues();
         this.x = (int) Math.floor(position.x);
         this.z = (int) Math.floor(position.z);
         this.height = (float) position.getY();
-        int sx = (int) Math.floor(16 * (position.x - this.x));
-        int sz = (int) Math.floor(16 * (position.z - this.z));
+        int sx = (int) Math.floor(res * (position.x - this.x));
+        int sz = (int) Math.floor(res * (position.z - this.z));
         for (int z = -1; z < 2; z++) {
             for (int x = -1; x < 2; x++) {
                 this.u[0][sz+1+z][sx+1+x] = initialStrength;
@@ -53,14 +56,18 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
     }
 
-    public WakeNode(int x, int z, float height, int floodLevel) {
+    private WakeNode(int x, int z, float height, int floodLevel) {
+        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.initValues();
         this.x = x;
         this.z = z;
         this.height = height;
         this.floodLevel = floodLevel;
     }
 
-    public WakeNode(long pos, float height) {
+    private WakeNode(long pos, float height) {
+        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.initValues();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
         this.z = xz[1];
@@ -68,52 +75,60 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
     }
 
+    private void initValues() {
+         this.u = new float[3][res+2][res+2];
+         this.initialValues = new float[res+2][res+2];
+    }
+
     public void setInitialValue(long pos, int val) {
+        float resFactor = this.res / 16f;
         int[] xz = WakesUtils.longAsPos(pos);
-        if (xz[0] < 0) xz[0] += 16;
-        if (xz[1] < 0) xz[1] += 16;
+        if (xz[0] < 0) xz[0] += res;
+        if (xz[1] < 0) xz[1] += res;
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
-                this.initialValues[xz[1]+i+1][xz[0]+j+1] = val;
+                this.initialValues[xz[1]+i+1][xz[0]+j+1] = val * resFactor;
             }
         }
     }
 
     public static void calculateAlpha() {
-        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f/20f, 2);
+        int dist = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        float time = 20f; // ticks
+        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * dist / time, 2);
     }
 
     @Override
     public void tick() {
-        if (this.age++ >= this.maxAge) {
+        if (this.isDead()) return;
+        if (this.age++ >= this.maxAge || this.res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
             return;
         }
         this.t = this.age / (float) this.maxAge;
 
         for (int i = 2; i >= 1; i--) {
-            if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][16];
-            if (this.SOUTH != null) this.u[i][17] = this.SOUTH.u[i][1];
-            for (int z = 0; z < 18; z++) {
+            if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][res];
+            if (this.SOUTH != null) this.u[i][res+1] = this.SOUTH.u[i][1];
+            for (int z = 0; z < res+2; z++) {
                 if (this.EAST == null && this.WEST == null) break;
-                if (this.EAST != null) this.u[i][z][17] = this.EAST.u[i][z][1];
-                if (this.WEST != null) this.u[i][z][0] = this.WEST.u[i][z][16];
+                if (this.EAST != null) this.u[i][z][res+1] = this.EAST.u[i][z][1];
+                if (this.WEST != null) this.u[i][z][0] = this.WEST.u[i][z][res];
             }
         }
 
-        for (int z = 1; z < 17; z++) {
-            for (int x = 1; x < 17; x++) {
+        for (int z = 1; z < res+1; z++) {
+            for (int x = 1; x < res+1; x++) {
                 this.u[0][z][x] += this.initialValues[z][x];
                 this.initialValues[z][x] = 0;
 
                 this.u[2][z][x] = this.u[1][z][x];
                 this.u[1][z][x] = this.u[0][z][x];
-
             }
         }
 
-        for (int z = 1; z < 17; z++) {
-            for (int x = 1; x < 17; x++) {
+        for (int z = 1; z < res+1; z++) {
+            for (int x = 1; x < res+1; x++) {
                 if (WakesClient.CONFIG_INSTANCE.use9PointStencil) {
                     this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
                             + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
@@ -276,10 +291,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity) {
-            int x1 = (int) (fromX * 16);
-            int z1 = (int) (fromZ * 16);
-            int x2 = (int) (toX * 16);
-            int z2 = (int) (toZ * 16);
+            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+            int x1 = (int) (fromX * res);
+            int z1 = (int) (fromZ * res);
+            int x2 = (int) (toX * res);
+            int z2 = (int) (toZ * res);
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
@@ -287,11 +303,12 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity, float width) {
-            int x1 = (int) (fromX * 16);
-            int z1 = (int) (fromZ * 16);
-            int x2 = (int) (toX * 16);
-            int z2 = (int) (toZ * 16);
-            int w = (int) (0.8 * width * 16 / 2);
+            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+            int x1 = (int) (fromX * res);
+            int z1 = (int) (fromZ * res);
+            int x2 = (int) (toX * res);
+            int z2 = (int) (toZ * res);
+            int w = (int) (0.8 * width * res / 2);
 
             // TODO MAKE MORE EFFICIENT THICK LINE DRAWER
             float len = (float) Math.sqrt(Math.pow(z1 - z2, 2) + Math.pow(x2 - x1, 2));
@@ -305,15 +322,16 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeLine(double x, double z, float height, float waveStrength, Vec3d velocity, float width) {
+            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
             Vec3d dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
-            int w = (int) (0.8 * width * 16 / 2);
+            int w = (int) (0.8 * width * res / 2);
 
-            int x1 = (int) (x * 16 - nx * w);
-            int z1 = (int) (z * 16 - nz * w);
-            int x2 = (int) (x * 16 + nx * w);
-            int z2 = (int) (z * 16 + nz * w);
+            int x1 = (int) (x * res - nx * w);
+            int z1 = (int) (z * res - nz * w);
+            int x2 = (int) (x * res + nx * w);
+            int z2 = (int) (z * res + nz * w);
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
@@ -321,12 +339,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
+            WakesConfig.Resolution res = WakesClient.CONFIG_INSTANCE.wakeResolution;
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);
-                long k = WakesUtils.posAsLong(pos[0] >> 4, pos[1] >> 4);
-                pos[0] %= 16;
-                pos[1] %= 16;
+                long k = WakesUtils.posAsLong(pos[0] >> res.power, pos[1] >> res.power);
+                pos[0] %= res.res;
+                pos[1] %= res.res;
                 long v = WakesUtils.posAsLong(pos[0], pos[1]);
                 if (pixelsInNodes.containsKey(k)) {
                     pixelsInNodes.get(k).add(v);

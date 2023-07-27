@@ -2,9 +2,11 @@ package com.goby56.wakes.utils;
 
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.function.Function;
 
 public class QuadTree<T extends Position<T> & Age<T>> {
     private static final int CAPACITY = 64;
@@ -56,6 +58,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
 
     private void tryAdd(T node) {
         if (!node.inValidPos()) {
+            System.out.printf("tried to add %s but it was in an invalid pos\n", node);
             return;
         }
         ArrayList<T> nodesNearby = new ArrayList<>();
@@ -68,6 +71,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
                 otherNode.revive(node);
             }
         }
+
 
         if (!nodeAlreadyExists) {
             this.nodes.add(node);
@@ -161,6 +165,24 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         this.NW = new QuadTree<>(x - w, z - w, w, depth + 1, this.ROOT);
         this.SW = new QuadTree<>(x - w, z + w, w, depth + 1, this.ROOT);
         this.SE = new QuadTree<>(x + w, z + w, w, depth + 1, this.ROOT);
+    }
+
+    public void prune() {
+        this.nodes.forEach(T::markDead);
+        this.nodes.clear();
+
+        if (this.NE == null) {
+            return;
+        }
+        this.NE.prune();
+        this.NW.prune();
+        this.SW.prune();
+        this.SE.prune();
+    }
+
+    private void distribute() {
+        // TODO METHOD THAT DISTRIBUTES METHOD CALLS TO ALL BRANCHES
+        throw new NotImplementedException();
     }
 
     public record AABB(int x, int z, int width) {

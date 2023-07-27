@@ -1,12 +1,14 @@
 package com.goby56.wakes.utils;
 
+import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
+import org.antlr.v4.runtime.misc.OrderedHashSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.OptionalInt;
 import java.util.Set;
 
 public class WakeHandler {
@@ -15,7 +17,9 @@ public class WakeHandler {
     private static WakeHandler INSTANCE;
 
     private final ArrayList<QuadTree<WakeNode>> trees;
-    private final ArrayList<Set<WakeNode>> toBeInserted;
+    private final ArrayList<OrderedHashSet<WakeNode>> toBeInserted;
+    public boolean resetScheduled = false;
+    private WakesConfig.Resolution newResolution = null;
     private final int minY;
     private final int maxY;
 
@@ -25,6 +29,7 @@ public class WakeHandler {
     public long foamImgPtr = -1;
 
     private WakeHandler(ClientWorld world) {
+        WakeNode.calculateAlpha();
         this.minY = world.getBottomY();
         this.maxY = world.getTopY();
         int worldHeight = this.maxY - this.minY;
@@ -32,7 +37,7 @@ public class WakeHandler {
         this.toBeInserted = new ArrayList<>(worldHeight);
         for (int i = 0; i < worldHeight; i++) {
             this.trees.add(null);
-            this.toBeInserted.add(new HashSet<>());
+            this.toBeInserted.add(new OrderedHashSet<>());
         }
     }
 
@@ -48,22 +53,30 @@ public class WakeHandler {
 
     public void tick() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
+            if (this.resetScheduled) {
+                this.toBeInserted.get(i).clear();
+                continue;
+            }
             QuadTree<WakeNode> tree = this.trees.get(i);
             if (tree != null) {
                 tree.tick();
 
-                Set<WakeNode> pendingNodes = this.toBeInserted.get(i);
-                synchronized (pendingNodes) {
-                    for (WakeNode node : pendingNodes) {
-                        tree.insert(node);
-                    }
-                    pendingNodes.clear();
+                OrderedHashSet<WakeNode> pendingNodes = this.toBeInserted.get(i);
+                // Iterating through current pending nodes - new nodes may be added
+                // at the same time, thus preventing CME
+                for (int j = pendingNodes.size() - 1; j >= 0; j--) {
+                    tree.insert(pendingNodes.get(j));
+                    pendingNodes.remove(j);
                 }
             }
+        }
+        if (this.resetScheduled) {
+            this.changeResolution();
         }
     }
 
     public void insert(WakeNode node) {
+        if (this.resetScheduled) return;
         int i = this.getArrayIndex((int) node.height);
         if (i < 0) return;
 
@@ -101,5 +114,37 @@ public class WakeHandler {
             return -1;
         }
         return height + Math.abs(this.minY);
+    }
+
+    public static void scheduleResolutionChange(WakesConfig.Resolution newRes) {
+        WakeHandler wakeHandler = WakeHandler.getInstance();
+        if (wakeHandler == null) {
+            WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
+            WakeNode.calculateAlpha();
+            return;
+        }
+        wakeHandler.resetScheduled = true;
+        wakeHandler.newResolution = newRes;
+    }
+
+    private void changeResolution() {
+        this.reset();
+        this.glWakeTexId = -1;
+        this.wakeImgPtr = -1;
+        this.glFoamTexId = -1;
+        this.foamImgPtr = -1;
+        WakesClient.CONFIG_INSTANCE.wakeResolution = this.newResolution;
+        WakeNode.calculateAlpha();
+        this.resetScheduled = false;
+        this.newResolution = null;
+    }
+
+    private void reset() {
+        for (int i = 0; i < this.maxY - this.minY; i++) {
+            QuadTree<WakeNode> tree = this.trees.get(i);
+            if (tree != null) {
+                tree.prune();
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
   "config.wakes.title": "Wakes config",
 
   "config_category.wakes.wake_appearance": "Wake appearance",
+  "option.wakes.wake_resolution": "Wake resolution",
   "option.wakes.wake_opacity": "Wake opacity",
   "option.wakes.blend_mode": "Wake style",
   "blending_function.wakes.default": "Subtle",

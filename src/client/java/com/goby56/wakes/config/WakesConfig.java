@@ -14,6 +14,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.util.math.MathHelper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,6 +51,7 @@ public class WakesConfig {
     public boolean spawnWakes = true;
 
     // Appearance
+    public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
     public boolean useWaterBlending = true;
     public boolean useAgeDecay = true;
@@ -103,6 +105,28 @@ public class WakesConfig {
         WakeSpawningRule(boolean spawnsWake, boolean spawnsSplashes) {
             this.spawnsWake = spawnsWake;
             this.spawnsSplashes = spawnsSplashes;
+        }
+    }
+
+    public enum Resolution {
+        FOUR(4),
+        EIGHT(8),
+        SIXTEEN(16),
+        THIRTY2(32),
+        SIXTY4(64),
+        HUNDRED28(128);
+
+        public final int res;
+        public final int power;
+
+        Resolution(int res) {
+            this.res = res;
+            this.power = MathHelper.floorLog2(res);
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(this.res);
         }
     }
 
