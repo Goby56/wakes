@@ -50,10 +50,14 @@ public class WakesUtils {
             }
         }
 
+//        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
+//            ((ProducesWake) producer).setPrevPos(null);
+//        }
+
         Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
         Vec3d currPos = new Vec3d(producer.getX(), height, producer.getZ());
         ((ProducesWake) producer).setPrevPos(currPos);
-        if (prevPos == null || velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
+        if (prevPos == null) {
             return;
         }
         for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, producer.getWidth())) {
@@ -76,7 +80,7 @@ public class WakesUtils {
                 points.add(posAsLong(x1, y));
             }
         } else {
-            int k = dy / dx;
+            float k = (float) dy / dx;
             int adjust = k >= 0 ? 1 : -1;
             int offset = 0;
             if (k <= 1 && k >= -1) {
