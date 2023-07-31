@@ -59,13 +59,15 @@ public class WakeHandler {
             if (tree != null) {
                 tree.tick();
 
-                int length = this.toBeInserted.get(i).size();
+
+                OrderedHashSet<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 // Iterating through current pending nodes - new nodes may be added
                 // at the same time, thus preventing CME
                 // If this crashes I don't know what
-                for (int j = length - 1; j >= 0; --j) {
-                    tree.insert(this.toBeInserted.get(i).get(j));
-                    this.toBeInserted.get(i).remove(j);
+                for (int j = pendingNodes.size() - 1; j >= 0; --j) {
+                    if (j > pendingNodes.size() - 1) continue; // don't know why this is needed
+                    tree.insert(pendingNodes.get(j));
+                    pendingNodes.remove(j);
                 }
             }
         }
