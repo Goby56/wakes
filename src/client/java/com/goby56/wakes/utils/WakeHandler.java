@@ -8,8 +8,6 @@ import net.minecraft.client.world.ClientWorld;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 public class WakeHandler {
     public final int MAX_QUERY_RANGE = 10;
@@ -61,12 +59,13 @@ public class WakeHandler {
             if (tree != null) {
                 tree.tick();
 
-                OrderedHashSet<WakeNode> pendingNodes = this.toBeInserted.get(i);
+                int length = this.toBeInserted.get(i).size();
                 // Iterating through current pending nodes - new nodes may be added
                 // at the same time, thus preventing CME
-                for (int j = pendingNodes.size() - 1; j >= 0; --j) {
-                    tree.insert(pendingNodes.get(j));
-                    pendingNodes.remove(j);
+                // If this crashes I don't know what
+                for (int j = length - 1; j >= 0; --j) {
+                    tree.insert(this.toBeInserted.get(i).get(j));
+                    this.toBeInserted.get(i).remove(j);
                 }
             }
         }
