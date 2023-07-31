@@ -58,7 +58,6 @@ public class QuadTree<T extends Position<T> & Age<T>> {
 
     private void tryAdd(T node) {
         if (!node.inValidPos()) {
-            System.out.printf("tried to add %s but it was in an invalid pos\n", node);
             return;
         }
         ArrayList<T> nodesNearby = new ArrayList<>();

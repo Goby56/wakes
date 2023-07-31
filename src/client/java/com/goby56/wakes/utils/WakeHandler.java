@@ -64,7 +64,7 @@ public class WakeHandler {
                 OrderedHashSet<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 // Iterating through current pending nodes - new nodes may be added
                 // at the same time, thus preventing CME
-                for (int j = pendingNodes.size() - 1; j >= 0; j--) {
+                for (int j = pendingNodes.size() - 1; j >= 0; --j) {
                     tree.insert(pendingNodes.get(j));
                     pendingNodes.remove(j);
                 }

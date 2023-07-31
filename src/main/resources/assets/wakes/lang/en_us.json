@@ -10,6 +10,10 @@
   "option.wakes.use_water_blending": "Use water blending",
   "option.wakes.use_age_decay": "Use age decay",
 
+  "resolution.wakes.8": "8",
+  "resolution.wakes.16": "16",
+  "resolution.wakes.32": "32",
+
   "config_category.wakes.wake_behaviour": "Wake behaviour",
   "option_group.wakes.wake_spawning": "Wake spawning",
   "option.wakes.boat_wake_rules": "Boats",

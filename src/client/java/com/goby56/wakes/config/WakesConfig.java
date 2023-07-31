@@ -109,12 +109,9 @@ public class WakesConfig {
     }
 
     public enum Resolution {
-        FOUR(4),
         EIGHT(8),
         SIXTEEN(16),
-        THIRTY2(32),
-        SIXTY4(64),
-        HUNDRED28(128);
+        THIRTYTWO(32);
 
         public final int res;
         public final int power;

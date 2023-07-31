@@ -95,7 +95,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public static void calculateAlpha() {
         int dist = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
         float time = 20f; // ticks
-        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * dist / time, 2);
+        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f / time, 2);
     }
 
     @Override
