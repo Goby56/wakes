@@ -110,8 +110,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
                 g = 1f;
                 b = 1f;
             }
-            a = WakesClient.CONFIG_INSTANCE.useAgeDecay ? (float) (-Math.pow(node.t, 2) + 1) : 1f;
-            a *= WakesClient.CONFIG_INSTANCE.wakeOpacity;
+            a = (float) (-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity;
 
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 1f, 1f, 1f, a, light);

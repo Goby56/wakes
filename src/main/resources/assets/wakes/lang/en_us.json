@@ -8,7 +8,6 @@
   "blending_function.wakes.default": "Subtle",
   "blending_function.wakes.screen": "Vibrant",
   "option.wakes.use_water_blending": "Use water blending",
-  "option.wakes.use_age_decay": "Use age decay",
 
   "resolution.wakes.8": "8",
   "resolution.wakes.16": "16",

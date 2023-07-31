@@ -54,7 +54,6 @@ public class WakesConfig {
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
     public boolean useWaterBlending = true;
-    public boolean useAgeDecay = true;
     public BlendingFunction blendMode = BlendingFunction.DEFAULT;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
