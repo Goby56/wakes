@@ -5,9 +5,10 @@ import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
-import org.antlr.v4.runtime.misc.OrderedHashSet;
 
 import java.util.ArrayList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class WakeHandler {
     public final int MAX_QUERY_RANGE = 10;
@@ -15,7 +16,7 @@ public class WakeHandler {
     private static WakeHandler INSTANCE;
 
     private final ArrayList<QuadTree<WakeNode>> trees;
-    private final ArrayList<OrderedHashSet<WakeNode>> toBeInserted;
+    private final ArrayList<Queue<WakeNode>> toBeInserted;
     public boolean resetScheduled = false;
     private WakesConfig.Resolution newResolution = null;
     private final int minY;
@@ -35,7 +36,7 @@ public class WakeHandler {
         this.toBeInserted = new ArrayList<>(worldHeight);
         for (int i = 0; i < worldHeight; i++) {
             this.trees.add(null);
-            this.toBeInserted.add(new OrderedHashSet<>());
+            this.toBeInserted.add(new QueueSet<>());
         }
     }
 
@@ -60,14 +61,9 @@ public class WakeHandler {
                 tree.tick();
 
 
-                OrderedHashSet<WakeNode> pendingNodes = this.toBeInserted.get(i);
-                // Iterating through current pending nodes - new nodes may be added
-                // at the same time, thus preventing CME
-                // If this crashes I don't know what
-                for (int j = pendingNodes.size() - 1; j >= 0; --j) {
-                    if (j > pendingNodes.size() - 1) continue; // don't know why this is needed
-                    tree.insert(pendingNodes.get(j));
-                    pendingNodes.remove(j);
+                Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
+                while (pendingNodes.peek() != null) {
+                    tree.insert(pendingNodes.poll());
                 }
             }
         }
