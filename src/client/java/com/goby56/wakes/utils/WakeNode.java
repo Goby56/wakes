@@ -41,7 +41,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public int floodLevel;
 
     public WakeNode(Vec3d position, int initialStrength) {
-        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.res = wakeHandler.resolution.res;
         this.initValues();
         this.x = (int) Math.floor(position.x);
         this.z = (int) Math.floor(position.z);
@@ -57,7 +57,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     private WakeNode(int x, int z, float height, int floodLevel) {
-        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.res = wakeHandler.resolution.res;
         this.initValues();
         this.x = x;
         this.z = z;
@@ -66,7 +66,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     private WakeNode(long pos, float height) {
-        this.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.res = wakeHandler.resolution.res;
         this.initValues();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
@@ -93,7 +93,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     public static void calculateAlpha() {
-        int dist = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
         float time = 20f; // ticks
         WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f / time, 2);
     }
@@ -101,7 +100,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     @Override
     public void tick() {
         if (this.isDead()) return;
-        if (this.age++ >= this.maxAge || this.res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= this.maxAge || this.res != wakeHandler.resolution.res) {
             this.markDead();
             return;
         }
@@ -291,7 +290,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity) {
-            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+            int res = WakeHandler.getInstance().resolution.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -303,7 +302,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity, float width) {
-            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+            int res = WakeHandler.getInstance().resolution.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -322,7 +321,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeLine(double x, double z, float height, float waveStrength, Vec3d velocity, float width) {
-            int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+            int res = WakeHandler.getInstance().resolution.res;
             Vec3d dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
@@ -339,7 +338,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
-            WakesConfig.Resolution res = WakesClient.CONFIG_INSTANCE.wakeResolution;
+            WakesConfig.Resolution res = WakeHandler.getInstance().resolution;
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);

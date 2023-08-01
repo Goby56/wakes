@@ -18,6 +18,7 @@ public class WakeHandler {
     private final ArrayList<QuadTree<WakeNode>> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
     public boolean resetScheduled = false;
+    public WakesConfig.Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
     private WakesConfig.Resolution newResolution = null;
     private final int minY;
     private final int maxY;
@@ -114,10 +115,9 @@ public class WakeHandler {
     }
 
     public static void scheduleResolutionChange(WakesConfig.Resolution newRes) {
+        WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null) {
-            WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
-            WakeNode.calculateAlpha();
             return;
         }
         wakeHandler.resetScheduled = true;
@@ -130,8 +130,7 @@ public class WakeHandler {
         this.wakeImgPtr = -1;
         this.glFoamTexId = -1;
         this.foamImgPtr = -1;
-        WakesClient.CONFIG_INSTANCE.wakeResolution = this.newResolution;
-        WakeNode.calculateAlpha();
+        this.resolution = this.newResolution;
         this.resetScheduled = false;
         this.newResolution = null;
     }
@@ -142,6 +141,12 @@ public class WakeHandler {
             if (tree != null) {
                 tree.prune();
             }
+        }
+    }
+
+    public static class WorldNotFoundException extends Exception {
+        public WorldNotFoundException() {
+            super("WakeHandler singleton was accessed too early! Player needs to be in a world.");
         }
     }
 }

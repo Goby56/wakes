@@ -55,7 +55,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             RenderSystem.blendFunc(blendMode.srcFactor, blendMode.dstFactor);
         }
 
-        int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        int res = wakeHandler.resolution.res;
         if (wakeHandler.glFoamTexId == -1) {
             wakeHandler.glFoamTexId = initTexture(res);
         }
