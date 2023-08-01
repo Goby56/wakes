@@ -253,7 +253,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     @Override
     public boolean inValidPos() {
         FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(this.blockPos());
-        if (fluidState.isIn(FluidTags.WATER)) {
+        FluidState fluidStateAbove = MinecraftClient.getInstance().world.getFluidState(this.blockPos().up());
+        if (fluidState.isIn(FluidTags.WATER) && !fluidStateAbove.isIn(FluidTags.WATER)) {
             return fluidState.isStill() || WakesClient.CONFIG_INSTANCE.wakesInRunningWater;
         }
         return false;
