@@ -134,7 +134,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
-        RenderSystem.setShader(GameRenderer::getRenderTypeEntityTranslucentProgram);
+        RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapProgram);
 
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
