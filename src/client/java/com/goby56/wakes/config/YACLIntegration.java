@@ -9,11 +9,14 @@ import com.goby56.wakes.utils.WakesUtils;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 
 public class YACLIntegration {
     public static Screen createScreen(Screen parent) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
         Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity")
+                .description(OptionDescription.createBuilder()
+                        .text(Text.translatable("description.wakes.wake_opacity")).build())
                 .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
                 .controller(opt -> integerSlider(opt, 0, 100))
                 .available(config.blendMode.canVaryOpacity)
@@ -22,6 +25,9 @@ public class YACLIntegration {
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("wake_appearance")
                         .option(optionOf(WakesConfig.Resolution.class, "wake_resolution")
+                                .description(
+                                        OptionDescription.createBuilder()
+                                                .text(Text.translatable("description.wakes.wake_resolution")).build())
                                 .binding(WakesConfig.Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
                                 .controller(opt -> EnumControllerBuilder.create(opt)
                                         .enumClass(WakesConfig.Resolution.class)
@@ -29,6 +35,9 @@ public class YACLIntegration {
                                 .build())
                         .option(wakeOpacityOption)
                         .option(optionOf(BlendingFunction.class, "blend_mode")
+                                .description(OptionDescription.createBuilder()
+                                        .text(Text.translatable("description.wakes.blend_mode.default"))
+                                        .text(Text.translatable("description.wakes.blend_mode.screen")).build())
                                 .binding(BlendingFunction.DEFAULT, () -> config.blendMode, val -> {
                                     config.blendMode = val;
                                     wakeOpacityOption.setAvailable(val.canVaryOpacity);
@@ -38,6 +47,7 @@ public class YACLIntegration {
                                         .valueFormatter(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
                                 .build())
                         .option(booleanOption("use_water_blending")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.use_water_blending")).build())
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .build())
                         .build())
@@ -49,10 +59,12 @@ public class YACLIntegration {
                                 .option(wakeSpawningRulesOption("mobs_wake_rules"))
                                 .option(wakeSpawningRulesOption("items_wake_rules"))
                                 .option(booleanOption("wakes_in_running_water")
+                                        .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.wakes_in_running_water")).build())
                                         .binding(false, () -> config.wakesInRunningWater, val -> config.wakesInRunningWater = val)
                                         .build())
                                 .build())
                         .option(optionOf(Float.class, "wave_speed")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.wave_speed")).build())
                                 .binding(0.95f, () -> config.waveSpeed, val -> {
                                     config.waveSpeed = val;
                                     WakeNode.calculateAlpha();
@@ -60,22 +72,27 @@ public class YACLIntegration {
                                 .controller(opt -> floatSlider(opt, 0f, 2f, 0.01f))
                                 .build())
                         .option(optionOf(Integer.class, "initial_wave_strength")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.initial_wave_strength")).build())
                                 .binding(20, () -> config.initialStrength, val -> config.initialStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
                                 .build())
                         .option(optionOf(Integer.class, "paddle_strength")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.paddle_strength")).build())
                                 .binding(100, () -> config.paddleStrength, val -> config.paddleStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
                                 .build())
                         .option(optionOf(Integer.class, "splash_strength")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.splash_strength")).build())
                                 .binding(100, () -> config.splashStrength, val -> config.splashStrength = val)
                                 .controller(opt -> integerSlider(opt, 0, 150))
                                 .build())
                         .option(optionOf(Double.class, "minimum_producer_velocity")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.minimum_producer_velocity")).build())
                                 .binding(0.1, () -> config.minimumProducerVelocity, val -> config.minimumProducerVelocity = val)
                                 .controller(DoubleFieldControllerBuilder::create)
                                 .build())
                         .option(optionOf(Float.class, "wave_decay")
+                                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.wave_decay")).build())
                                 .binding(0.9f, () -> config.waveDecay, val -> config.waveDecay = val)
                                 .controller(opt -> floatSlider(opt, 0f, 1f, 0.01f))
                                 .build())
@@ -153,6 +170,7 @@ public class YACLIntegration {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
         return Option.<WakesConfig.WakeSpawningRule>createBuilder()
                 .name(WakesUtils.translatable("option", name))
+                .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.spawning_rules")).build())
                 .binding(WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES, () -> config.wakeSpawningRules.get(name), val -> config.wakeSpawningRules.put(name, val))
                 .controller(opt -> EnumControllerBuilder.create(opt)
                         .enumClass(WakesConfig.WakeSpawningRule.class)
