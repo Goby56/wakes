@@ -56,7 +56,7 @@ public class WakeParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner != null && this.owner instanceof ProducesWake wakeOwner) {
-            if (!wakeOwner.shouldSpawnWake() || (this.owner instanceof PlayerEntity player && player.isSpectator())) {
+            if (!wakeOwner.onWaterSurface() || (this.owner instanceof PlayerEntity player && player.isSpectator())) {
                 this.owner = null;
             } else {
                 Vec3d vel = this.owner.getVelocity();

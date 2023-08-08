@@ -3,6 +3,8 @@ package com.goby56.wakes.utils;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.model.ModelPart;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -20,14 +22,13 @@ import java.util.ArrayList;
 
 public class WakesUtils {
 
-    public static void placeSingleSplash(World world, Entity producer) {
+    public static void placeSingleSplash(Entity entity) {
         WakeHandler instance = WakeHandler.getInstance();
         if (instance == null) {
             return;
         }
-        float height = getWaterLevel(world, producer);
         // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
-        instance.insert(new WakeNode(new Vec3d(producer.getX(), height, producer.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * producer.fallDistance)));
+        instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
     }
 
 //    public static void spawnWake(World world, Entity owner) {
@@ -36,31 +37,32 @@ public class WakesUtils {
 //        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
 //    }
 
-    public static void placeWakeTrail(World world, Entity producer) {
+    public static void placeWakeTrail(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null) {
             return;
         }
-        float height = getWaterLevel(world, producer);
-        double velocity = ((ProducesWake) producer).getHorizontalVelocity();
+        ProducesWake producer = (ProducesWake) entity;
+        double velocity = producer.getHorizontalVelocity();
+        float height = producer.producingHeight();
 
-        if (producer instanceof BoatEntity boat) {
+        if (entity instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
                 wakeHandler.insert(node);
             }
         }
 
 //        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
-//            ((ProducesWake) producer).setPrevPos(null);
+//            ((ProducesWake) entity).setPrevPos(null);
 //        }
 
-        Vec3d prevPos = ((ProducesWake) producer).getPrevPos();
-        Vec3d currPos = new Vec3d(producer.getX(), height, producer.getZ());
-        ((ProducesWake) producer).setPrevPos(currPos);
+        Vec3d prevPos = producer.getPrevPos();
+        Vec3d currPos = new Vec3d(entity.getX(), height, entity.getZ());
+        producer.setPrevPos(currPos);
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, producer.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
             wakeHandler.insert(node);
         }
     }
@@ -164,14 +166,22 @@ public class WakesUtils {
     }
 
     public static float getWaterLevel(World world, Entity entityInWater) {
-        // Taken from BoatEntity$getWaterLevelBelow
         Box box = entityInWater.getBoundingBox();
-        int minX = MathHelper.floor(box.minX);
-        int maxX = MathHelper.ceil(box.maxX);
-        int minY = MathHelper.floor(box.minY);
-        int maxY = MathHelper.ceil(box.maxY);
-        int minZ = MathHelper.floor(box.minZ);
-        int maxZ = MathHelper.ceil(box.maxZ);
+        return getWaterLevel(world,
+                MathHelper.floor(box.minX), MathHelper.ceil(box.maxX),
+                MathHelper.floor(box.minY), MathHelper.ceil(box.maxY),
+                MathHelper.floor(box.minZ), MathHelper.ceil(box.maxZ));
+    }
+
+//    public static float getWaterLevel(ModelPart.Cuboid cuboidInWater) {
+//        return getWaterLevel(
+//                (int) cuboidInWater.minX, (int) cuboidInWater.maxX,
+//                (int) cuboidInWater.minY, (int) cuboidInWater.maxY,
+//                (int) cuboidInWater.minZ, (int) cuboidInWater.maxZ);
+//    }
+
+    private static float getWaterLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+        // Taken from BoatEntity$getWaterLevelBelow
         BlockPos.Mutable blockPos = new BlockPos.Mutable();
 
         yLoop:
@@ -191,5 +201,6 @@ public class WakesUtils {
             return blockPos.getY() + f;
         }
         return maxY + 1;
+
     }
 }

@@ -6,7 +6,6 @@ import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,7 +44,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow public abstract boolean isPlayer();
 
 	@Shadow public float fallDistance;
-	public boolean shouldSpawnWake = false;
+	public boolean onWaterSurface = false;
 
 	public boolean hasWake = false;
 
@@ -54,9 +53,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	public double horizontalNumericalVelocity = 0;
 	public double verticalNumericalVelocity = 0;
 
+	public Float producingWaterLevel = null;
+
 	@Override
-	public boolean shouldSpawnWake() {
-		return this.shouldSpawnWake;
+	public boolean onWaterSurface() {
+		return this.onWaterSurface;
 	}
 
 	@Override
@@ -80,23 +81,34 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.prevWakeProdPos = pos;
 	}
 
+	@Override
+	public float producingHeight() {
+		return this.producingWaterLevel;
+	}
+
 	@Inject(at = @At("HEAD"), method = "tick")
 	private void tick(CallbackInfo info) {
 		Vec3d vel = this.prevWakeProdPos == null ? Vec3d.ZERO : this.pos.subtract(this.prevWakeProdPos);
 		this.horizontalNumericalVelocity = vel.horizontalLength();
 		this.verticalNumericalVelocity = vel.y;
+		this.onWaterSurface = this.isTouchingWater() && !this.isSubmergedInWater();
 
 		if (!WakesClient.CONFIG_INSTANCE.spawnWakes) {
 			return;
 		}
 
-		if (this.isTouchingWater() && !this.isSubmergedInWater()) {
+		if (this.onWaterSurface) {
+			if (this.producingWaterLevel == null)
+				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
+
 			if (WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this)).spawnsWake) {
-				WakesUtils.placeWakeTrail(this.world, ((Entity) (Object) this));
+				WakesUtils.placeWakeTrail(((Entity) (Object) this));
 			} else {
 				this.prevWakeProdPos = null;
 			}
+
 		} else {
+			this.producingWaterLevel = null;
 			this.prevWakeProdPos = null;
 		}
 //		if (this.shouldSpawnWake && !this.hasWake) {
@@ -113,7 +125,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 		WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
 		if (spawningRule.spawnsSplashes) {
-			WakesUtils.placeSingleSplash(this.world, ((Entity) (Object) this));
+			if (this.producingWaterLevel == null)
+				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
+			WakesUtils.placeSingleSplash(((Entity) (Object) this));
 		}
 	}
 }

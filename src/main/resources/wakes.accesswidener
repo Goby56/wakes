@@ -3,3 +3,5 @@ accessWidener v1 named
 accessible field net/minecraft/entity/vehicle/BoatEntity paddlePhases [F
 
 accessible field net/minecraft/entity/vehicle/BoatEntity NEXT_PADDLE_PHASE F
+
+accessible field net/minecraft/client/model/ModelPart$Cuboid sides [Lnet/minecraft/client/model/ModelPart$Quad;

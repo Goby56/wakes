@@ -84,7 +84,8 @@ dependencies {
 
 	modImplementation "dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}"
 
-	modImplementation "maven.modrinth:iris:${project.iris_version}"
+	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
+//	modImplementation "maven.modrinth:sodium:${project.sodium_version}"
 	modImplementation "org.anarres:jcpp:1.4.14"
 	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
 
