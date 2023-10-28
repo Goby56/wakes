@@ -98,7 +98,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             }
 
             waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
-            // TODO LAMB DYNAMIC LIGHTS COMPAT
             light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
 
             if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
