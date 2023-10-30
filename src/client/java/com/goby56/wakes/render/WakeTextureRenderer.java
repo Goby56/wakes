@@ -35,6 +35,7 @@ import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
+
     @Override
     public void afterTranslucent(WorldRenderContext context) {
         if (!WakesClient.CONFIG_INSTANCE.renderWakes) {

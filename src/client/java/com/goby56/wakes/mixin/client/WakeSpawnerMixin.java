@@ -4,7 +4,9 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
+import net.minecraft.client.particle.Particle;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -16,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Entity.class)
 public abstract class WakeSpawnerMixin implements ProducesWake {
+
+	private Particle wakeParticle;
 
 	@Shadow public abstract boolean isSubmergedInWater();
 
@@ -44,6 +48,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow public abstract boolean isPlayer();
 
 	@Shadow public float fallDistance;
+
+	@Shadow protected abstract boolean wouldPoseNotCollide(EntityPose pose);
+
 	public boolean onWaterSurface = false;
 
 	public boolean hasWake = false;
@@ -86,6 +93,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		return this.producingWaterLevel;
 	}
 
+	@Override
+	public void setWakeParticle(Particle particle) {
+		System.out.println(particle);
+		this.wakeParticle = particle;
+	}
+
 	@Inject(at = @At("HEAD"), method = "tick")
 	private void tick(CallbackInfo info) {
 		Vec3d vel = this.prevWakeProdPos == null ? Vec3d.ZERO : this.pos.subtract(this.prevWakeProdPos);
@@ -102,6 +115,10 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
 
 			if (WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this)).spawnsWake) {
+				if (this.wakeParticle == null && vel.horizontalLength() > 1e-2) {
+					WakesUtils.spawnWakeSplashParticle(this.world, ((Entity) (Object) this));
+				}
+
 				WakesUtils.placeWakeTrail(((Entity) (Object) this));
 			} else {
 				this.prevWakeProdPos = null;
@@ -122,12 +139,13 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		if (!WakesClient.CONFIG_INSTANCE.spawnWakes) {
 			return;
 		}
-		// TODO ADD WAKE WHEN GETTING OUT OF WATER
+
 		WakesConfig.WakeSpawningRule spawningRule = WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this));
 		if (spawningRule.spawnsSplashes) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
 			WakesUtils.placeSingleSplash(((Entity) (Object) this));
 		}
+		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 	}
 }

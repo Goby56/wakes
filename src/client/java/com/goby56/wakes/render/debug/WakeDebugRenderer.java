@@ -17,16 +17,6 @@ import java.util.LinkedList;
 
 public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
 
-    public static void drawWakeNodes(LinkedList<WakeParticle.Node> nodes, Camera camera) {
-        Vec3d[] vertices = new Vec3d[nodes.size()];
-        int i = 0;
-        for (WakeParticle.Node node : nodes) {
-            vertices[i] = node.position;
-            i++;
-        }
-        DebugUtils.drawLines(vertices, camera.getPos());
-    }
-
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
         if (!WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {

@@ -19,6 +19,6 @@ public abstract class EffectRendererMixin {
     @Inject(at = @At("HEAD"), method = "render")
     private <T extends Entity> void renderWaterFX(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
 //        FoamOutlineRenderer.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
-        SplashPlaneRenderer.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
+//        SplashPlaneRenderer.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
     }
 }

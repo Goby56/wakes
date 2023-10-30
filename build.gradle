@@ -86,8 +86,8 @@ dependencies {
 
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 //	modImplementation "maven.modrinth:sodium:${project.sodium_version}"
-	modImplementation "org.anarres:jcpp:1.4.14"
-	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
+//	modImplementation "org.anarres:jcpp:1.4.14"
+//	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
 
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 

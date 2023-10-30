@@ -3,6 +3,8 @@ package com.goby56.wakes.utils;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
+import com.goby56.wakes.particle.ModParticles;
+import com.goby56.wakes.particle.WakeParticleType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.entity.Entity;
@@ -31,11 +33,11 @@ public class WakesUtils {
         instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
     }
 
-//    public static void spawnWake(World world, Entity owner) {
-//        WakeParticleType wake = ModParticles.WAKE.withOwner(owner);
-//        Vec3d pos = owner.getPos();
-//        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
-//    }
+    public static void spawnWakeSplashParticle(World world, Entity owner) {
+        WakeParticleType wake = ModParticles.WAKE_SPLASH.withOwner(owner);
+        Vec3d pos = owner.getPos();
+        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+    }
 
     public static void placeWakeTrail(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance();

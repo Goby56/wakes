@@ -50,6 +50,20 @@ public class YACLIntegration {
                                 .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.use_water_blending")).build())
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .build())
+                        .group(group("splash_plane")
+                                .option(optionOf(Float.class, "splash_plane_width")
+                                        .binding(1.5f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
+                                        .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
+                                        .build())
+                                .option(optionOf(Float.class, "splash_plane_height")
+                                        .binding(1f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
+                                        .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
+                                        .build())
+                                .option(optionOf(Float.class, "splash_plane_depth")
+                                        .binding(1f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
+                                        .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
+                                        .build())
+                                .build())
                         .build())
                 .category(configCategory("wake_behaviour")
                         .group(group("wake_spawning")
@@ -131,6 +145,11 @@ public class YACLIntegration {
                 .save(config::saveConfig)
                 .build()
                 .generateScreen(parent);
+    }
+
+    private static OptionDescription.Builder description(String name) {
+        return OptionDescription.createBuilder()
+                .text(WakesUtils.translatable("description", name));
     }
 
     private static ConfigCategory.Builder configCategory(String name) {

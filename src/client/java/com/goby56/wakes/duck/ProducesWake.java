@@ -1,5 +1,6 @@
 package com.goby56.wakes.duck;
 
+import net.minecraft.client.particle.Particle;
 import net.minecraft.util.math.Vec3d;
 
 public interface ProducesWake {
@@ -9,5 +10,6 @@ public interface ProducesWake {
     void setPrevPos(Vec3d pos);
     double getHorizontalVelocity();
     double getVerticalVelocity();
+    void setWakeParticle(Particle particle);
 
 }
