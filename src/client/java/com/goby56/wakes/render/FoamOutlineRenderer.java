@@ -12,8 +12,9 @@ import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
-import org.joml.Matrix4f;
+import net.minecraft.util.math.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.joml.Vector4f;
 
 import java.util.stream.Stream;
@@ -35,13 +36,13 @@ public class FoamOutlineRenderer {
                 .map(modelLoader::getModelPart);
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
+        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidShader);
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         RenderSystem.setShaderTexture(0, new Identifier("wakes", "icon.png"));
 
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        Vector3f entityPos = entity.getPos().toVector3f();
+        Vector3f entityPos = new Vector3f((Vector3fc) entity.getPos());
         parts.forEach(modelPart -> {
 
             modelPart.forEachCuboid(matrices, (entry, path, index, cuboid) -> {
@@ -58,7 +59,7 @@ public class FoamOutlineRenderer {
                 if (minY > height || maxY < height) return;
 
                 for (ModelPart.Quad quad : cuboid.sides) {
-                    if (quad.direction.y == 0) continue;
+                    if (quad.direction.getY() == 0) continue;
                     for (int i = 0; i < 4; i++) {
                         Vector3f pos = getVertexAbsolutePos(quad.vertices[i], modelPart, cuboidMatrix, entityPos); // TODO CACHE RESULT
                         System.out.printf("writing vertex %d at %s from %s\n", i, pos, path);
@@ -79,8 +80,10 @@ public class FoamOutlineRenderer {
     }
 
     private static Vector3f getVertexAbsolutePos(ModelPart.Vertex vertex, ModelPart part, Matrix4f cuboidTransform, Vector3f origin) {
-        Vector4f pos = cuboidTransform.transform(
-                new Vector4f((part.pivotX + vertex.pos.x) / 16f, (part.pivotY + vertex.pos.y) / 16f, (part.pivotZ + vertex.pos.z) / 16f, 0));
+        // TODO: implement cuboidTransform.transform
+//        Vector4f pos = cuboidTransform.transform(
+//                new Vector4f((part.pivotX + vertex.pos.x) / 16f, (part.pivotY + vertex.pos.y) / 16f, (part.pivotZ + vertex.pos.z) / 16f, 0));
+        Vector4f pos = new Vector4f((part.pivotX + vertex.pos.getX()) / 16f, (part.pivotY + vertex.pos.getY()) / 16f, (part.pivotZ + vertex.pos.getZ()) / 16f, 0);
         return new Vector3f(pos.x + origin.x, pos.y + origin.y, pos.z + origin.z);
     }
 }

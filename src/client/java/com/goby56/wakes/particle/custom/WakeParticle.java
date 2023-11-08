@@ -4,32 +4,27 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.WakeParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
-import com.goby56.wakes.render.debug.DebugUtils;
-import com.goby56.wakes.render.debug.WakeDebugRenderer;
-import com.goby56.wakes.render.model.WakeModel;
-import com.goby56.wakes.utils.WakeNode;
-import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.particle.SpriteProvider;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.FluidState;
 import net.minecraft.particle.DefaultParticleType;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.LinkedList;
 
 public class WakeParticle extends Particle {
     RenderLayer wakeLayer;
@@ -85,7 +80,7 @@ public class WakeParticle extends Particle {
 
         float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
 
-        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180));
+        modelMatrix.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(yawLerp + 180));
         SplashPlaneRenderer.render(this.owner, yawLerp, tickDelta, modelMatrix, light);
     }
 

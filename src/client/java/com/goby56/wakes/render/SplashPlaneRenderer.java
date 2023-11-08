@@ -1,7 +1,6 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.debug.DebugUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
@@ -9,11 +8,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-
-import java.util.ArrayList;
+import net.minecraft.util.math.Matrix4f;
 
 public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted {
 
@@ -27,7 +22,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
-        RenderSystem.setShader(GameRenderer::getPositionColorTexProgram);
+        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
 //        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 //        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
