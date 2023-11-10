@@ -1,7 +1,6 @@
 package com.goby56.wakes.render.debug;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.particle.custom.WakeParticle;
 import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;

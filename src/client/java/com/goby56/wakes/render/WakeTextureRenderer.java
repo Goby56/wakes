@@ -32,7 +32,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         if (wakeHandler == null || wakeHandler.resetScheduled) return;
 
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
-        Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+        net.minecraft.util.math.Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
         context.lightmapTextureManager().enable();
 
