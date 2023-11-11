@@ -14,16 +14,10 @@
 	},
 	"license": "GPLv3",
 	"icon": "assets/wakes/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"com.goby56.wakes.Wakes"
-		],
 		"client": [
 			"com.goby56.wakes.WakesClient"
-		],
-		"fabric-datagen": [
-			"com.goby56.wakes.WakesDataGenerator"
 		],
 		"modmenu": [
 			"com.goby56.wakes.config.ModMenuIntegration"
@@ -31,11 +25,7 @@
 	},
 	"accessWidener": "wakes.accesswidener",
 	"mixins": [
-		"wakes.mixins.json",
-		{
-			"config": "wakes.client.mixins.json",
-			"environment": "client"
-		}
+		"wakes.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
