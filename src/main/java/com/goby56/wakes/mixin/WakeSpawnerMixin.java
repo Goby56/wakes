@@ -112,9 +112,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
 
 			if (WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this)).spawnsWake) {
-				if (this.wakeParticle == null && vel.horizontalLength() > 1e-2) {
-					WakesUtils.spawnWakeSplashParticle(this.world, ((Entity) (Object) this));
-				}
 
 				WakesUtils.placeWakeTrail(((Entity) (Object) this));
 			} else {
@@ -125,10 +122,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			this.producingWaterLevel = null;
 			this.prevWakeProdPos = null;
 		}
-//		if (this.shouldSpawnWake && !this.hasWake) {
-//			WakesUtils.spawnWake(this.world, ((Entity) (Object) this));
-//		}
-//		this.hasWake = this.shouldSpawnWake;
 	}
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")

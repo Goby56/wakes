@@ -1,32 +1,19 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakeColor;
 import com.goby56.wakes.utils.WakeHandler;
 import com.goby56.wakes.utils.WakeNode;
-import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.irisshaders.iris.api.v0.IrisApi;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
@@ -135,8 +122,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.enableDepthTest();
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-
-        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
+        RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();

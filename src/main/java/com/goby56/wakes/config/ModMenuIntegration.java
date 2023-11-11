@@ -21,7 +21,7 @@ public class ModMenuIntegration implements ModMenuApi {
         } else {
             return parent -> new ConfirmScreen(result -> {
                 if (result) {
-                    Util.getOperatingSystem().open(URI.create("https://modrinth.com/mod/yacl/versions"));
+                    Util.getOperatingSystem().open(URI.create("https://modrinth.com/mod/yacl/version/2.2.0-for-1.19.2"));
                 }
                 MinecraftClient.getInstance().setScreen(parent);
             }, WakesUtils.translatable("config", "yacl_missing"),

@@ -2,14 +2,10 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.WakeParticleType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.model.ModelPart;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.tag.FluidTags;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -29,12 +25,6 @@ public class WakesUtils {
         }
         // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
         instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
-    }
-
-    public static void spawnWakeSplashParticle(World world, Entity owner) {
-        WakeParticleType wake = ModParticles.WAKE_SPLASH.withOwner(owner);
-        Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
 
     public static void placeWakeTrail(Entity entity) {

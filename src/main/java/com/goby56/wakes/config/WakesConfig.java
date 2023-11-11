@@ -46,7 +46,6 @@ public class WakesConfig {
     public int floodFillDistance = 3;
     public boolean use9PointStencil = true;
     public int ticksBeforeFill = 2;
-    public boolean drawDebugBoxes = false;
     public boolean renderWakes = true;
     public boolean spawnWakes = true;
 

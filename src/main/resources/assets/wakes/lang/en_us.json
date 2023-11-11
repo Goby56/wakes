@@ -81,5 +81,5 @@
   "config.wakes.color.turquoise": "Turquoise",
 
   "config.wakes.yacl_missing": "Yet Another Config Lib is not in your mods folder",
-  "config.wakes.yacl_missing.message": "If you want to edit the configs you need YACL V3. Do you want to install it?"
+  "config.wakes.yacl_missing.message": "If you want to edit the configs you need YACL for 1.19.2. Do you want to install it?"
 }

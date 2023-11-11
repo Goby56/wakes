@@ -25,7 +25,7 @@ public class FoamOutlineRenderer {
             return;
         }
 
-        float height = WakesUtils.getWaterLevel(entity.method_48926(), entity);
+        float height = WakesUtils.getWaterLevel(entity.getWorld(), entity);
 
         String[] typeID = entity.getType().toString().split("\\.");
 
