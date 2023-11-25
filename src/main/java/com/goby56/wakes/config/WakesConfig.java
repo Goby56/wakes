@@ -163,10 +163,10 @@ public class WakesConfig {
         try {
             File configFile = new File(WakesClient.CONFIG_PATH);
             if (!configFile.exists()) {
-                WakesClient.LOGGER.info(String.format("No config file found for wakes-%s. Edit one or more configs to to create one.", WakesClient.METADATA.getVersion().getFriendlyString()));
-//                WakesConfig config = new WakesConfig();
-//                config.saveConfig();
-                return new WakesConfig();
+                WakesClient.LOGGER.info(String.format("No config file found for wakes-%s. Creating one...", WakesClient.METADATA.getVersion().getFriendlyString()));
+                WakesConfig config = new WakesConfig();
+                config.saveConfig();
+                return config;
             }
 
             JsonObject configJson = jankson.load(configFile);

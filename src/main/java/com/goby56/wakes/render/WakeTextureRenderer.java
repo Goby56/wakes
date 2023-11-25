@@ -35,6 +35,7 @@ import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
+    public static boolean hasPrintedToChat = false;
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
@@ -46,6 +47,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
         RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
@@ -102,6 +104,11 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
+
+            if (!hasPrintedToChat) {
+                MinecraftClient.getInstance().player.sendMessage(Text.of(String.valueOf(light)));
+                hasPrintedToChat = true;
+            }
 
             if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
                 r = (float) (waterCol >> 16 & 0xFF) / 255f;
