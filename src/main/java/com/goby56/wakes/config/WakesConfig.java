@@ -8,7 +8,9 @@ import com.goby56.wakes.render.BlendingFunction;
 import com.goby56.wakes.utils.WakeColor;
 import com.google.gson.Gson;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class WakesConfig {
     // Spawning
@@ -49,6 +52,7 @@ public class WakesConfig {
     public boolean drawDebugBoxes = false;
     public boolean renderWakes = true;
     public boolean spawnWakes = true;
+    public RenderType renderType = RenderType.ENTITY_SOLID;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
@@ -128,6 +132,25 @@ public class WakesConfig {
         @Override
         public String toString() {
             return String.valueOf(this.res);
+        }
+    }
+
+    public enum RenderType {
+        SOLID(GameRenderer::getRenderTypeSolidProgram),
+        TRANSLUCENT(GameRenderer::getRenderTypeTranslucentProgram),
+        CUTOUT(GameRenderer::getRenderTypeCutoutProgram),
+        ENTITY_SOLID(GameRenderer::getRenderTypeEntitySolidProgram),
+        ENTITY_TRANSLUCENT(GameRenderer::getRenderTypeEntityTranslucentProgram),
+        ENTITY_TRANSLUCENT_CULL(GameRenderer::getRenderTypeEntityTranslucentCullProgram),
+        ENTITY_CUTOUT(GameRenderer::getRenderTypeEntityCutoutProgram),
+        ENTITY_CUTOUT_NO_CULL(GameRenderer::getRenderTypeEntityCutoutNoNullProgram),
+        ENTITY_CUTOUT_NO_CULL_Z_OFFSET(GameRenderer::getRenderTypeEntityCutoutNoNullZOffsetProgram)
+        ;
+
+        public final Supplier<ShaderProgram> program;
+
+        RenderType(Supplier<ShaderProgram> program) {
+            this.program = program;
         }
     }
 

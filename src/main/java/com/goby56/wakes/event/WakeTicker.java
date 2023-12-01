@@ -8,7 +8,6 @@ import net.minecraft.client.world.ClientWorld;
 public class WakeTicker implements ClientTickEvents.EndWorldTick {
     @Override
     public void onEndTick(ClientWorld world) {
-        WakeTextureRenderer.hasPrintedToChat = false;
         WakeHandler.getInstance().tick();
     }
 }

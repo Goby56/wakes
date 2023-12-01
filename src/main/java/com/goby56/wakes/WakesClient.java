@@ -1,5 +1,6 @@
 package com.goby56.wakes;
 
+import com.goby56.wakes.command.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
@@ -8,6 +9,7 @@ import com.goby56.wakes.render.WakeTextureRenderer;
 import com.goby56.wakes.render.debug.WakeDebugRenderer;
 import com.goby56.wakes.render.model.WakeModel;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -50,7 +52,7 @@ public class WakesClient implements ClientModInitializer {
 		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());
 
 		// Commands
-//		ClientCommandRegistrationCallback.EVENT.register(SpawnWakesCommand::register);
+		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);
 	}
 
 	public static boolean isYACLLoaded() {

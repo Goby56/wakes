@@ -5,6 +5,7 @@ import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.Queue;
@@ -13,6 +14,7 @@ public class WakeHandler {
     public final int MAX_QUERY_RANGE = 10;
 
     private static WakeHandler INSTANCE;
+    public World world;
 
     private final ArrayList<QuadTree<WakeNode>> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
@@ -28,6 +30,7 @@ public class WakeHandler {
     public long foamImgPtr = -1;
 
     private WakeHandler(ClientWorld world) {
+        this.world = world;
         WakeNode.calculateAlpha();
         this.minY = world.getBottomY();
         this.maxY = world.getTopY();

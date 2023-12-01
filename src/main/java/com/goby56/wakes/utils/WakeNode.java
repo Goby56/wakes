@@ -2,6 +2,10 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.particle.ModParticles;
+import com.goby56.wakes.particle.WakeParticleType;
+import com.goby56.wakes.particle.custom.WakeParticle;
+import com.terraformersmc.modmenu.util.mod.Mod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
@@ -38,6 +42,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float t = 0;
     public int floodLevel;
 
+    //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
         this.res = wakeHandler.resolution.res;
         this.initValues();
@@ -93,6 +98,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public static void calculateAlpha() {
         float time = 20f; // ticks
         WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f / time, 2);
+    }
+
+    private void spawnRenderingParticle() {
+        this.wakeHandler.world.addParticle(ModParticles.WAKE_PARTICLE.withNode(this), this.x, this.height, this.z, 0f, 0f, 0f);
     }
 
     @Override

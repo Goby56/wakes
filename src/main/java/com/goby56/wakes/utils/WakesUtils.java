@@ -3,9 +3,9 @@ package com.goby56.wakes.utils;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.WakeParticleType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.model.ModelPart;
+import com.goby56.wakes.particle.SplashPlaneParticleType;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
@@ -32,7 +32,7 @@ public class WakesUtils {
     }
 
     public static void spawnWakeSplashParticle(World world, Entity owner) {
-        WakeParticleType wake = ModParticles.WAKE_SPLASH.withOwner(owner);
+        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
         Vec3d pos = owner.getPos();
         world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
@@ -202,5 +202,19 @@ public class WakesUtils {
         }
         return maxY + 1;
 
+    }
+
+
+    public static MatrixStack getMatrixStackFromCamera(Camera camera, float tickDelta, Vec3d prevPos, Vec3d currPos) {
+        // Think it moves the matrix context smoothly to the camera
+        // https://github.com/Ladysnake/Effective/blob/main/src/main/java/ladysnake/effective/particle/SplashParticle.java
+        Vec3d cameraPos = camera.getPos();
+        float x = (float) (MathHelper.lerp(tickDelta, prevPos.x, currPos.x) - cameraPos.getX());
+        float y = (float) (MathHelper.lerp(tickDelta, prevPos.y, currPos.y) - cameraPos.getY());
+        float z = (float) (MathHelper.lerp(tickDelta, prevPos.z, currPos.z) - cameraPos.getZ());
+
+        MatrixStack matrixStack = new MatrixStack();
+        matrixStack.translate(x, y, z);
+        return matrixStack;
     }
 }

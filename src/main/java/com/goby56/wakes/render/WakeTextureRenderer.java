@@ -18,6 +18,7 @@ import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.BlockModelRenderer;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
@@ -35,8 +36,6 @@ import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
-    public static boolean hasPrintedToChat = false;
-
     @Override
     public void afterTranslucent(WorldRenderContext context) {
         if (!WakesClient.CONFIG_INSTANCE.renderWakes) {
@@ -47,10 +46,12 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
-        RenderSystem.disableCull();
+        RenderSystem.disableCull(); // For rendering underneath the water
         context.lightmapTextureManager().enable();
+
+//        VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
+//        VertexConsumer buffer = immediate.getBuffer(RenderLayer.getEntityTranslucent(new Identifier(WakesClient.MOD_ID, "textures/entity/wake_texture.png")));
 
         BlendingFunction blendMode = WakesClient.CONFIG_INSTANCE.blendMode;
         if (blendMode == BlendingFunction.DEFAULT) {
@@ -105,11 +106,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
 
-            if (!hasPrintedToChat) {
-                MinecraftClient.getInstance().player.sendMessage(Text.of(String.valueOf(light)));
-                hasPrintedToChat = true;
-            }
-
             if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
                 r = (float) (waterCol >> 16 & 0xFF) / 255f;
                 g = (float) (waterCol >> 8 & 0xFF) / 255f;
@@ -123,7 +119,11 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 1f, 1f, 1f, a, light);
+//            renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, 0, 0 ,0 ,1, light);
+//            renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 0, 0 , 0, a, light);
         }
+
+
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableCull();
     }
@@ -141,9 +141,11 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.setShaderTexture(0, textureID);
         RenderSystem.enableDepthTest();
 
+//        VertexConsumer buffer = consumer.getBuffer(RenderLayer.getTranslucent());
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
-        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
+        RenderSystem.setShader(WakesClient.CONFIG_INSTANCE.renderType.program);
+//        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
 
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
@@ -151,6 +153,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
         buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
 
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         Tessellator.getInstance().draw();
     }
 
