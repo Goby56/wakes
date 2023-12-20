@@ -1,32 +1,17 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.utils.WakeColor;
-import com.goby56.wakes.utils.WakeHandler;
-import com.goby56.wakes.utils.WakeNode;
-import com.goby56.wakes.utils.WakesUtils;
+import com.goby56.wakes.utils.*;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
@@ -50,10 +35,10 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.disableCull(); // For rendering underneath the water
         context.lightmapTextureManager().enable();
 
-//        VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
-//        VertexConsumer buffer = immediate.getBuffer(RenderLayer.getEntityTranslucent(new Identifier(WakesClient.MOD_ID, "textures/entity/wake_texture.png")));
-
-        BlendingFunction blendMode = WakesClient.CONFIG_INSTANCE.blendMode;
+        if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+            WakesClient.CONFIG_INSTANCE.blendMode = BlendingFunction.SCREEN;
+        }
+        BlendingFunction blendMode = BlendingFunction.getBlendFunc();
         if (blendMode == BlendingFunction.DEFAULT) {
             RenderSystem.defaultBlendFunc();
         } else {
@@ -115,12 +100,10 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
                 g = 1f;
                 b = 1f;
             }
-            a = (float) (-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity;
+            a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendMode.canVaryOpacity ? 1 : 0));
 
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 1f, 1f, 1f, a, light);
-//            renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, 0, 0 ,0 ,1, light);
-//            renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 0, 0 , 0, a, light);
         }
 
 
@@ -141,12 +124,9 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.setShaderTexture(0, textureID);
         RenderSystem.enableDepthTest();
 
-//        VertexConsumer buffer = consumer.getBuffer(RenderLayer.getTranslucent());
+        RenderSystem.setShader(RenderType.getProgram());
+
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-
-        RenderSystem.setShader(WakesClient.CONFIG_INSTANCE.renderType.program);
-//        RenderSystem.setShader(GameRenderer::getRenderTypeEntitySolidProgram);
-
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
         buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();

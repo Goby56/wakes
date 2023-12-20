@@ -1,10 +1,13 @@
 package com.goby56.wakes.render;
 
+import com.goby56.wakes.WakesClient;
 import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.GraphicsMode;
 
 public enum BlendingFunction {
     DEFAULT(true),
-    SCREEN(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR, false);
+    SCREEN(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, false);
 
     public final GlStateManager.SrcFactor srcFactor;
     public final GlStateManager.DstFactor dstFactor;
@@ -20,5 +23,12 @@ public enum BlendingFunction {
        this.srcFactor = srcFactor;
        this.dstFactor = dstFactor;
        this.canVaryOpacity = variableOpacity;
+    }
+
+    public static BlendingFunction getBlendFunc() {
+        if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+            return SCREEN;
+        }
+        return WakesClient.CONFIG_INSTANCE.blendMode;
     }
 }

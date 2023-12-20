@@ -2,12 +2,11 @@ package com.goby56.wakes.config;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.BlendingFunction;
-import com.goby56.wakes.utils.WakeColor;
-import com.goby56.wakes.utils.WakeHandler;
-import com.goby56.wakes.utils.WakeNode;
-import com.goby56.wakes.utils.WakesUtils;
+import com.goby56.wakes.render.RenderType;
+import com.goby56.wakes.utils.*;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
@@ -45,6 +44,7 @@ public class YACLIntegration {
                                 .controller(opt -> EnumControllerBuilder.create(opt)
                                         .enumClass(BlendingFunction.class)
                                         .valueFormatter(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
+                                .available(!MinecraftClient.isFabulousGraphicsOrBetter())
                                 .build())
                         .option(booleanOption("use_water_blending")
                                 .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.use_water_blending")).build())
@@ -112,10 +112,10 @@ public class YACLIntegration {
                                 .build())
                         .build())
                 .category(configCategory("debug")
-                        .option(optionOf(WakesConfig.RenderType.class, "render_type")
-                                .binding(WakesConfig.RenderType.ENTITY_SOLID, () -> config.renderType, val -> config.renderType = val)
+                        .option(optionOf(RenderType.class, "render_type")
+                                .binding(RenderType.AUTO, () -> config.renderType, val -> config.renderType = val)
                                 .controller(opt -> EnumControllerBuilder.create(opt)
-                                        .enumClass(WakesConfig.RenderType.class))
+                                        .enumClass(RenderType.class))
                                 .build())
                         .option(optionOf(Integer.class, "flood_fill_distance")
                                 .binding(3, () -> config.floodFillDistance, val -> config.floodFillDistance = val)

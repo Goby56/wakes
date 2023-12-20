@@ -5,12 +5,12 @@
   "option.wakes.wake_resolution": "Wake resolution",
   "description.wakes.wake_resolution": "The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.",
   "option.wakes.wake_opacity": "Wake opacity",
-  "description.wakes.wake_opacity": "The opacity of the wakes.",
+  "description.wakes.wake_opacity": "The opacity of the wakes. \n\n*Cannot be changed when using fabulous graphic settings.",
   "option.wakes.blend_mode": "Wake style",
   "blending_function.wakes.default": "Subtle",
   "blending_function.wakes.screen": "Vibrant",
-  "description.wakes.blend_mode.default": "Subtle: Colors are closer to the water. Opacity can be changed. Great if you don't want too much.",
-  "description.wakes.blend_mode.screen": "Vibrant: Colors stand out more. Opacity can't be changed. Great if you really want to notice the wakes.",
+  "description.wakes.blend_mode.default": "Subtle: Colors are closer to the water. Opacity can be changed. Great if you don't want too much.\n\n",
+  "description.wakes.blend_mode.screen": "Vibrant: Colors stand out more. Opacity can't be changed. Great if you really want to notice the wakes. \n\n*Vibrant style is automatically applied when using fabulous graphic settings.",
   "option.wakes.use_water_blending": "Use water blending",
   "description.wakes.use_water_blending": "Should the wake's colors blend with the water's colors?",
 
@@ -47,6 +47,7 @@
   "description.wakes.wave_decay": "The speed a wake will despawn.",
 
   "config_category.wakes.debug": "Debug",
+  "option.wakes.render_type": "Render type",
   "option.wakes.flood_fill_distance": "Flood fill distance",
   "option.wakes.use_9_point_stencil": "Use 9 point stencil for laplace operator",
   "option.wakes.draw_debug_boxes": "Draw debug boxes",
