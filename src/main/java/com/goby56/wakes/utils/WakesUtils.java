@@ -31,11 +31,11 @@ public class WakesUtils {
         instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
     }
 
-    public static void spawnWakeSplashParticle(World world, Entity owner) {
-        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
-        Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
-    }
+//    public static void spawnWakeSplashParticle(World world, Entity owner) {
+//        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
+//        Vec3d pos = owner.getPos();
+//        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+//    }
 
     public static void placeWakeTrail(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
