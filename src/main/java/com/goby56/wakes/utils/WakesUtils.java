@@ -2,8 +2,6 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.SplashPlaneParticleType;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -22,13 +20,15 @@ import java.util.ArrayList;
 
 public class WakesUtils {
 
-    public static void placeSingleSplash(Entity entity) {
+    public static void placeFallSplash(Entity entity) {
         WakeHandler instance = WakeHandler.getInstance();
         if (instance == null) {
             return;
         }
-        // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
-        instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
+
+        for (WakeNode node : WakeNode.Factory.splashNodes(entity, ((ProducesWake) entity).producingHeight())) {
+            instance.insert(node);
+        }
     }
 
 //    public static void spawnWakeSplashParticle(World world, Entity owner) {

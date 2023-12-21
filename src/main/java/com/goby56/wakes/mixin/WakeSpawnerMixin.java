@@ -140,7 +140,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		if (spawningRule.spawnsSplashes) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
-			WakesUtils.placeSingleSplash(((Entity) (Object) this));
+			WakesUtils.placeFallSplash(((Entity) (Object) this));
 		}
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 	}

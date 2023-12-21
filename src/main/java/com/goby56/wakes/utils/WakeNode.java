@@ -7,6 +7,7 @@ import com.goby56.wakes.particle.WakeParticleType;
 import com.goby56.wakes.particle.custom.WakeParticle;
 import com.terraformersmc.modmenu.util.mod.Mod;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
@@ -276,6 +277,23 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     public static class Factory {
+        public static Set<WakeNode> splashNodes(Entity entity, float height) {
+            int res = WakeHandler.getInstance().resolution.res;
+            int w = (int) (0.8 * entity.getWidth() * res / 2);
+            int x = (int) (entity.getX() * res);
+            int z = (int) (entity.getZ() * res);
+
+            ArrayList<Long> pixelsAffected = new ArrayList<>();
+            for (int i = -w; i < w; i++) {
+                for (int j = -w; j < w; j++) {
+                    if (i*i + j*j < w*w) {
+                        pixelsAffected.add(WakesUtils.posAsLong(x + i, z + j));
+                    }
+                }
+            }
+            return pixelsToNodes(pixelsAffected, height, WakesClient.CONFIG_INSTANCE.splashStrength, Math.abs(entity.getVelocity().y));
+        }
+
         public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
             Set<WakeNode> nodesAffected = new HashSet<>();
             double velocity = Math.max(WakesClient.CONFIG_INSTANCE.minimumProducerVelocity, boat.getVelocity().horizontalLength());
