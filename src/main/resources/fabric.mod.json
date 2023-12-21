@@ -8,7 +8,7 @@
 		"Goby56"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mods/wakes",
+		"homepage": "https://modrinth.com/mod/wakes",
 		"sources": "https://github.com/Goby56/wakes",
 		"issues": "https://github.com/Goby56/wakes/issues"
 	},
@@ -37,6 +37,7 @@
 		"blazingly-fast-boats": "*"
 	},
 	"recommends": {
-		"modmenu": "*"
+		"modmenu": "*",
+		"yacl": "*"
 	}
 }

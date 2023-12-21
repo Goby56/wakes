@@ -107,7 +107,7 @@ public class YACLIntegration {
                                 .build())
                         .option(optionOf(Float.class, "wave_decay")
                                 .description(OptionDescription.createBuilder().text(Text.translatable("description.wakes.wave_decay")).build())
-                                .binding(0.9f, () -> config.waveDecay, val -> config.waveDecay = val)
+                                .binding(0.9f, () -> config.waveDecay, val -> config.waveDecay = (float ) (Math.log(10 * val + 10) / Math.log(20)))
                                 .controller(opt -> floatSlider(opt, 0f, 1f, 0.01f))
                                 .build())
                         .build())
