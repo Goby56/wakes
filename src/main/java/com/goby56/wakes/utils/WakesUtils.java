@@ -2,6 +2,8 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
+import com.goby56.wakes.particle.ModParticles;
+import com.goby56.wakes.particle.SplashPlaneParticleType;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -31,11 +33,11 @@ public class WakesUtils {
         }
     }
 
-//    public static void spawnWakeSplashParticle(World world, Entity owner) {
-//        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
-//        Vec3d pos = owner.getPos();
-//        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
-//    }
+    public static void spawnWakeSplashParticle(World world, Entity owner) {
+        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
+        Vec3d pos = owner.getPos();
+        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+    }
 
     public static void placeWakeTrail(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance();

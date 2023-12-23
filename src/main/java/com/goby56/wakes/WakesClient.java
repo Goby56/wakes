@@ -40,7 +40,7 @@ public class WakesClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(WakeModel.MODEL_LAYER, WakeModel::getTexturedModelData);
 
 		// Particles
-//		ModParticles.registerParticles();
+		ModParticles.registerParticles();
 
 		// Game events
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
@@ -49,7 +49,7 @@ public class WakesClient implements ClientModInitializer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeTextureRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
-//		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());
+		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());
 
 		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);

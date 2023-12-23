@@ -32,7 +32,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
-        RenderSystem.disableCull(); // For rendering underneath the water
         context.lightmapTextureManager().enable();
 
         if (MinecraftClient.isFabulousGraphicsOrBetter()) {
@@ -102,16 +101,15 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             }
             a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendMode.canVaryOpacity ? 1 : 0));
 
-            renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, x + 1, y, z + 1, r, g, b, a, light);
-            renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, x + 1, y, z + 1, 1f, 1f, 1f, a, light);
+            renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, r, g, b, a, light);
+            renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, 1f, 1f, 1f, a, light);
         }
-
 
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableCull();
     }
 
-    private static void renderTexture(int resolution, int textureID, long texture, Matrix4f matrix, float x0, float y0, float z0, float x1, float y1, float z1, float r, float g, float b, float a, int light) {
+    private static void renderTexture(int resolution, int textureID, long texture, Matrix4f matrix, float x, float y, float z, float r, float g, float b, float a, int light) {
 
         GlStateManager._bindTexture(textureID);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
@@ -128,12 +126,12 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-        buffer.vertex(matrix, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x0, (y0+y1)/2, z1).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x1, (y0+y1)/2, z0).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
 
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        buffer.vertex(matrix, x, y, z).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x, y, z + 1).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x + 1, y, z + 1).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x + 1, y, z).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+
         Tessellator.getInstance().draw();
     }
 

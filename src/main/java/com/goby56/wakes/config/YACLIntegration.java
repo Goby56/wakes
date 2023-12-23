@@ -3,6 +3,7 @@ package com.goby56.wakes.config;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.BlendingFunction;
 import com.goby56.wakes.render.RenderType;
+import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.utils.*;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
@@ -51,6 +52,27 @@ public class YACLIntegration {
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .build())
                         .group(group("splash_plane")
+                                .option(optionOf(Integer.class, "splash_plane_resolution")
+                                        .binding(8, () -> config.splashPlaneResolution, val -> {
+                                            config.splashPlaneResolution = val;
+                                            SplashPlaneRenderer.initSplashPlane();
+                                        })
+                                        .controller(opt -> integerSlider(opt, 3, 16))
+                                        .build())
+                                .option(optionOf(Float.class, "splash_plane_c")
+                                        .binding(0.5f, () -> config.c, val -> {
+                                            config.c = val;
+                                            SplashPlaneRenderer.initSplashPlane();
+                                        })
+                                        .controller(opt -> floatSlider(opt, 0f, 5f, 0.1f))
+                                        .build())
+                                .option(optionOf(Float.class, "splash_plane_k")
+                                        .binding(1f, () -> config.k, val -> {
+                                            config.k = val;
+                                            SplashPlaneRenderer.initSplashPlane();
+                                        })
+                                        .controller(opt -> floatSlider(opt, 0f, 5f, 0.1f))
+                                        .build())
                                 .option(optionOf(Float.class, "splash_plane_width")
                                         .binding(1.5f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
