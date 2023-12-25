@@ -59,30 +59,16 @@ public class YACLIntegration {
                                         })
                                         .controller(opt -> integerSlider(opt, 3, 16))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane_c")
-                                        .binding(0.5f, () -> config.c, val -> {
-                                            config.c = val;
-                                            SplashPlaneRenderer.initSplashPlane();
-                                        })
-                                        .controller(opt -> floatSlider(opt, 0f, 5f, 0.1f))
-                                        .build())
-                                .option(optionOf(Float.class, "splash_plane_k")
-                                        .binding(1f, () -> config.k, val -> {
-                                            config.k = val;
-                                            SplashPlaneRenderer.initSplashPlane();
-                                        })
-                                        .controller(opt -> floatSlider(opt, 0f, 5f, 0.1f))
-                                        .build())
                                 .option(optionOf(Float.class, "splash_plane_width")
-                                        .binding(1.5f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
+                                        .binding(4f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane_height")
-                                        .binding(1f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
+                                        .binding(2f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane_depth")
-                                        .binding(1f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
+                                        .binding(3f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .build())
