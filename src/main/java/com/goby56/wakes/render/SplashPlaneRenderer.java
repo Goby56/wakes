@@ -2,19 +2,31 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.github.jdiemke.triangulation.DelaunayTriangulator;
+import io.github.jdiemke.triangulation.NotEnoughPointsException;
+import io.github.jdiemke.triangulation.Triangle2D;
+import io.github.jdiemke.triangulation.Vector2D;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted {
 
-    public static float[] samples;
-    public static float[] normals;
+    private static ArrayList<Vector2D> points;
+    private static List<Triangle2D> triangles;
+    private static ArrayList<Vec3d> vertices;
+    private static ArrayList<Vec3d> normals;
+
+    private static final double SQRT_8 = Math.sqrt(8);
 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
@@ -23,36 +35,29 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 //        RenderSystem.setShaderTexture(0, new Identifier("minecraft", "textures/block/water_flow.png"));
         RenderSystem.setShaderTexture(0, new Identifier("wakes", "icon.png"));
-        buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
         matrices.push();
+        float width = entity.getWidth();
+        float velocity = (float) Math.floor(entity.getVelocity().horizontalLength() * 20) / 20f;
+        matrices.scale((width * velocity), (float) Math.sqrt(width * velocity), (float) Math.sqrt(velocity));
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        // https://streamable.com/tz0gp
-        int res = WakesClient.CONFIG_INSTANCE.splashPlaneResolution;
-        int normIndex = 0;
-        for (int r = 0; r < res - 1; r++) {
-            addVertex(buffer, matrix, light, 0, 0, 0, normIndex, 0, 0);
-            addVertex(buffer, matrix, light, r * res * 3, normIndex, 1f / (res + 1), (float) r / res);
-            addVertex(buffer, matrix, light, (r + 1) * res * 3, normIndex, 1f / (res + 1), (r + 1f) / res);
-            normIndex += 3;
-        }
-        for (int i = 0; i < res * (res - 1) * 3 - 3; i += 3) {
-            addVertex(buffer, matrix, light, i, normIndex);
-            addVertex(buffer, matrix, light, i+3, normIndex);
-            addVertex(buffer, matrix, light, i+res * 3, normIndex);
-            normIndex += 1;
+        buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
-            addVertex(buffer, matrix, light, i+res*3, normIndex);
-            addVertex(buffer, matrix, light, i+3, normIndex);
-            addVertex(buffer, matrix, light, i+res*3+3, normIndex);
-            normIndex += 1;
-        }
-        for (int r = 0; r < res - 1; r++) {
-            addVertex(buffer, matrix, light, r * res * 3 + res * 3 - 3, normIndex, res / (res + 1f), (float) r / res);
-            addVertex(buffer, matrix, light, 1f, 0, 1f, normIndex, 1f, 0f);
-            addVertex(buffer, matrix, light, (r + 1) * res * 3 + res * 3 - 3, normIndex, res / (res + 1f), (r + 1f) / res);
-            normIndex += 3;
+        // https://streamable.com/tz0gp
+        for (int i = 0; i < vertices.size(); i++) {
+            Vec3d vertex = vertices.get(i);
+            Vec3d normal = normals.get(i);
+            buffer.vertex(matrix,
+                    (float) (vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth),
+                    (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
+                    (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
+                    .color(1f, 1f, 1f, 1f)
+                    .texture((float) vertex.x, (float) vertex.y)
+                    .overlay(OverlayTexture.DEFAULT_UV)
+                    .light(light)
+                    .normal((float) normal.x, (float) normal.y, (float) normal.z)
+                    .next();
         }
 
         RenderSystem.disableCull();
@@ -61,120 +66,61 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         matrices.pop();
     }
 
-    private static void addVertex(BufferBuilder buffer, Matrix4f matrix, int light, int index, int normIndex) {
+    private static double upperBound(double x) {
+        return - 2 * x * x + SQRT_8 * x;
+    }
+
+    private static double lowerBound(double x) {
+        return (SQRT_8 - 2) * x * x;
+    }
+
+    private static double height(double x, double y) {
+        return 4 * (x * (SQRT_8 - x) -y - x * x) / SQRT_8;
+    }
+
+    private static Vec3d normal(double x, double y) {
+        double nx = SQRT_8 / (4 * (4 * x + y - SQRT_8));
+        double ny = SQRT_8 / (4 * (2 * x * x - SQRT_8 + 1));
+        return Vec3d.fromPolar((float) Math.tan(nx), (float) Math.tan(ny));
+    }
+
+    private static void distributePoints() {
         int res = WakesClient.CONFIG_INSTANCE.splashPlaneResolution;
-        addVertex(buffer, matrix, light, index, normIndex, (Math.floorMod(index / 3, res) + 1f) / (res + 1), (index / 3f) / (res * (res)));
-    }
+        points = new ArrayList<>();
 
-    private static void addVertex(BufferBuilder buffer, Matrix4f matrix, int light, int index, int normIndex, float u, float v) {
-        buffer.vertex(matrix,
-                samples[index] * WakesClient.CONFIG_INSTANCE.splashPlaneWidth,
-                samples[index + 1] * WakesClient.CONFIG_INSTANCE.splashPlaneHeight,
-                samples[index + 2] * WakesClient.CONFIG_INSTANCE.splashPlaneDepth)
-                .color(1f, 1f, 1f, 0.5f)
-                .texture(u, v)
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(normals[normIndex], normals[normIndex + 1], normals[normIndex + 2])
-                .next();
-    }
-
-    private static void addVertex(BufferBuilder buffer, Matrix4f matrix, int light, float x, float y, float z, int normIndex, float u, float v) {
-        buffer.vertex(matrix,
-                        x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth,
-                        y * WakesClient.CONFIG_INSTANCE.splashPlaneHeight,
-                        z * WakesClient.CONFIG_INSTANCE.splashPlaneDepth)
-                .color(1f, 1f, 1f, 0.5f)
-                .texture(u, v)
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(normals[normIndex], normals[normIndex + 1], normals[normIndex + 2])
-                .next();
-
-    }
-
-    private static double sampleHeight(float x, float t) {
-        float c = WakesClient.CONFIG_INSTANCE.c;
-        return t * ((c - 2 - 2 * Math.sqrt(1 - c)) * x * x + (2 - 2 * c + 2 * Math.sqrt(1 - c)) * x + c);
-    }
-
-    private static double sampleDepth(float x, float t) {
-        float k = WakesClient.CONFIG_INSTANCE.k;
-        return Math.pow(Math.sqrt(x), (3 * t + 1) * k);
-    }
-
-    private static Vector3f samplesAsVector(int index) {
-        return new Vector3f(samples[index], samples[index + 1], samples[index + 2]);
-    }
-
-    private static void calculateSamples() {
-        int res = WakesClient.CONFIG_INSTANCE.splashPlaneResolution;
-        samples = new float[(res * res) * 3];
-        for (float r = 0; r < res; r++) {
-            float y = (res - 1 - r) / res;
-            for (float c = 0; c < res; c++) {
-                float x = (c + 1) / (res + 2);
-                int index = (int) (r * res * 3 + c * 3);
-                samples[index] = x;
-                samples[index + 1] = (float) sampleHeight(x, y);
-                samples[index + 2] = (float) sampleDepth(x, y);
+        for (float i = 0; i < res; i++) {
+            double x = i / (res - 1);
+            double h = upperBound(x) - lowerBound(x);
+            int n_points = (int) Math.max(1, Math.floor(h * res));
+            for (float j = 0; j < n_points + 1; j++) {
+                float y = (float) ((j / n_points) * h + lowerBound(x));
+                points.add(new Vector2D(x, y));
             }
         }
     }
 
-    private static void calculateNormals() {
-        int res = WakesClient.CONFIG_INSTANCE.splashPlaneResolution;
-        normals = new float[6 * res * (res - 1)];
-        Vector3f normal;
-        int index = 0;
-        for (int r = 0; r < res - 1; r++) {
-            Vector3f a = new Vector3f(0f, 0f, 0f);
-            Vector3f b = samplesAsVector(r * res * 3);
-            Vector3f c = samplesAsVector((r + 1) * res * 3);
-
-            normal = (b.sub(a)).cross(c.sub(a)).normalize();
-            normals[index] = normal.x;
-            normals[index + 1] = normal.y;
-            normals[index + 2] = normal.z;
-            index += 3;
+    private static void generateMesh() {
+        vertices = new ArrayList<>();
+        normals = new ArrayList<>();
+        try {
+            DelaunayTriangulator delaunay = new DelaunayTriangulator(points);
+            delaunay.triangulate();
+            triangles = delaunay.getTriangles();
+        } catch (NotEnoughPointsException e) {
+            e.printStackTrace();
         }
-        for (int i = 0; i < res * (res - 1) * 3 - 3; i += 9) {
-            Vector3f a = samplesAsVector(i);
-            Vector3f b = samplesAsVector(i + 3);
-            Vector3f c = samplesAsVector(i + res * 3);
-
-            normal = (b.sub(a)).cross(c.sub(a)).normalize();
-            normals[index] = normal.x;
-            normals[index + 1] = normal.y;
-            normals[index + 2] = normal.z;
-            index += 3;
-
-            Vector3f d = samplesAsVector(i + res * 3);
-            Vector3f e = samplesAsVector(i + 3);
-            Vector3f f = samplesAsVector(i + res * 3 + 3);
-
-            normal = (e.sub(d)).cross(f.sub(d)).normalize();
-            normals[index] = normal.x;
-            normals[index + 1] = normal.y;
-            normals[index + 2] = normal.z;
-            index += 3;
-        }
-        for (int r = 0; r < res - 1; r++) {
-            Vector3f a = samplesAsVector(r * res * 3 + res * 3 - 3);
-            Vector3f b = new Vector3f(1f, 0f, 1f);
-            Vector3f c = samplesAsVector((r + 1) * res * 3 + res * 3 - 3);
-
-            normal = (b.sub(a)).cross(c.sub(a)).normalize();
-            normals[index] = normal.x;
-            normals[index + 1] = normal.y;
-            normals[index + 2] = normal.z;
-            index += 3;
+        for (Triangle2D tri : triangles) {
+            for (Vector2D vec : new Vector2D[] {tri.a, tri.b, tri.c}) {
+                double x = vec.x, y = vec.y;
+                vertices.add(new Vec3d(x, y, height(x, y)));
+                normals.add(normal(x, y));
+            }
         }
     }
 
     public static void initSplashPlane() {
-        calculateSamples();
-        calculateNormals();
+        distributePoints();
+        generateMesh();
     }
 
     @Override

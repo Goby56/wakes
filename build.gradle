@@ -17,6 +17,7 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.terraformersmc.com/releases/" }
 	maven {
@@ -65,6 +66,8 @@ dependencies {
 	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 
 	include(implementation("blue.endless:jankson:${project.jankson_version}"))
+
+	include(implementation("com.github.jdiemke.delaunay-triangulator:DelaunayTriangulator:1.0.0"))
 }
 
 processResources {

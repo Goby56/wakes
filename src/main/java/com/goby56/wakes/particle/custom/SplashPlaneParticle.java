@@ -57,6 +57,7 @@ public class SplashPlaneParticle extends Particle {
                 || this.owner.getVelocity().horizontalLength() < 1e-2) {
                 wakeOwner.setWakeParticle(null);
                 this.owner = null;
+                this.markDead();
             } else {
                 Vec3d vel = this.owner.getVelocity();
                 this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
@@ -71,10 +72,9 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
+        if (this.dead) return;
         MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
         int light = this.getBrightness(tickDelta);
-        VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
-        VertexConsumer modelConsumer = immediate.getBuffer(wakeLayer);
 
         float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
 
