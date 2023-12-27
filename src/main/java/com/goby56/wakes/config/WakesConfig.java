@@ -95,10 +95,12 @@ public class WakesConfig {
     }
 
     // Splash plane
-    public float splashPlaneWidth = 4f;
-    public float splashPlaneHeight = 2f;
-    public float splashPlaneDepth = 3f;
+    public float splashPlaneWidth = 3f;
+    public float splashPlaneHeight = 1.5f;
+    public float splashPlaneDepth = 2f;
     public int splashPlaneResolution = 5;
+    public float maxSplashPlaneVelocity = 1f;
+    public float splashPlaneScale = 1f;
 
     public enum WakeSpawningRule {
         WAKES_AND_SPLASHES(true, true),

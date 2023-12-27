@@ -52,28 +52,30 @@ public class YACLIntegration {
                                 .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                 .build())
                         .group(group("splash_plane")
-                                .option(optionOf(Integer.class, "splash_plane_resolution")
-                                        .binding(8, () -> config.splashPlaneResolution, val -> {
-                                            config.splashPlaneResolution = val;
-                                            SplashPlaneRenderer.initSplashPlane();
-                                        })
-                                        .controller(opt -> integerSlider(opt, 3, 16))
+                                .option(optionOf(Float.class, "splash_plane_scale")
+                                        .binding(1f, () -> config.splashPlaneScale, val -> config.splashPlaneScale = val)
+                                        .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane_width")
-                                        .binding(4f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
+                                        .binding(3f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane_height")
-                                        .binding(2f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
+                                        .binding(1.5f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane_depth")
-                                        .binding(3f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
+                                        .binding(2f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .build())
                         .build())
                 .category(configCategory("wake_behaviour")
+                        .option(optionOf(Float.class, "max_splash_plane_velocity")
+                                .description(description("max_splash_plane_velocity").build())
+                                .binding(1f, () -> config.maxSplashPlaneVelocity, val -> config.maxSplashPlaneVelocity = val)
+                                .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
+                                .build())
                         .group(group("wake_spawning")
                                 .option(wakeSpawningRulesOption("boat_wake_rules"))
                                 .option(wakeSpawningRulesOption("player_wake_rules"))
@@ -135,6 +137,7 @@ public class YACLIntegration {
                                 .build())
                         .option(booleanOption("use_9_point_stencil")
                                 .binding(true, () -> config.use9PointStencil, val -> config.use9PointStencil = val)
+                                .description(description("9_point_stencil").build())
                                 .build())
                         .option(booleanOption("draw_debug_boxes")
                                 .binding(false, () -> config.drawDebugBoxes, val -> config.drawDebugBoxes = val)
@@ -161,6 +164,7 @@ public class YACLIntegration {
     }
 
     private static OptionDescription.Builder description(String name) {
+        // TODO ADD IMAGES
         return OptionDescription.createBuilder()
                 .text(WakesUtils.translatable("description", name));
     }

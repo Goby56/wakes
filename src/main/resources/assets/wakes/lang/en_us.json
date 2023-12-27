@@ -13,6 +13,11 @@
   "description.wakes.blend_mode.screen": "Vibrant: Colors stand out more. Opacity can't be changed. Great if you really want to notice the wakes. \n\n*Vibrant style is automatically applied when using fabulous graphic settings.",
   "option.wakes.use_water_blending": "Use water blending",
   "description.wakes.use_water_blending": "Should the wake's colors blend with the water's colors?",
+  "option_group.wakes.splash_plane": "Splash plane",
+  "option.wakes.splash_plane_scale": "Scale",
+  "option.wakes.splash_plane_width": "Width",
+  "option.wakes.splash_plane_height": "Height",
+  "option.wakes.splash_plane_depth": "Depth",
 
   "resolution.wakes.8": "8",
   "resolution.wakes.16": "16",
@@ -32,6 +37,8 @@
   "description.wakes.spawning_rules": "Defines the wakes and splashes spawning rules.",
   "option.wakes.wakes_in_running_water": "Wakes in running water",
   "description.wakes.wakes_in_running_water": "Should wakes spawn in running water?",
+  "option.wakes.max_splash_plane_velocity": "Max splash plane velocity",
+  "description.wakes.max_splash_plane_velocity": "The velocity at which the maximum size of the splash plane is reached",
 
   "option.wakes.wave_speed": "Wave speed",
   "description.wakes.wave_speed": "The speed which the wakes travel and despawn at.",
@@ -50,6 +57,7 @@
   "option.wakes.render_type": "Render type",
   "option.wakes.flood_fill_distance": "Flood fill distance",
   "option.wakes.use_9_point_stencil": "Use 9 point stencil for laplace operator",
+  "description.wakes.9_point_stencil": "Old debug option. Can look good with 'subtle' wake style.",
   "option.wakes.draw_debug_boxes": "Draw debug boxes",
   "option.wakes.ticks_before_fill": "Ticks before flood fill",
   "option.wakes.render_wakes": "Render wakes",
