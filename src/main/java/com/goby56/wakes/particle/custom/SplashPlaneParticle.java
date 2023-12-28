@@ -2,11 +2,13 @@ package com.goby56.wakes.particle.custom;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.particle.SplashPlaneParticleType;
+import com.goby56.wakes.particle.ModParticles;
+import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
+import com.goby56.wakes.utils.WakesUtils;
+import com.terraformersmc.modmenu.util.mod.Mod;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
@@ -14,7 +16,6 @@ import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -25,22 +26,30 @@ import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 
 public class SplashPlaneParticle extends Particle {
-    RenderLayer wakeLayer;
-
     Entity owner;
     float yaw;
     float prevYaw;
+    int ticksSinceSplash = 0;
 
     protected SplashPlaneParticle(ClientWorld world, double x, double y, double z) {
         super(world, x, y, z);
-        this.setMaxAge(60);
-//        this.setBoundingBoxSpacing(3, 0);
-        Identifier wakeTexture = new Identifier(WakesClient.MOD_ID, "textures/entity/wake_texture.png");
-        this.wakeLayer = RenderLayer.getEntityTranslucent(wakeTexture);
+    }
+
+    @Override
+    public void markDead() {
+        if (this.owner instanceof ProducesWake wakeOwner) {
+            wakeOwner.setWakeParticle(null);
+        }
+        this.owner = null;
+        super.markDead();
     }
 
     @Override
     public void tick() {
+        if (!WakesClient.CONFIG_INSTANCE.renderSplashPlane) {
+            this.markDead();
+        }
+
         this.prevPosX = this.x;
         this.prevPosY = this.y;
         this.prevPosZ = this.z;
@@ -55,20 +64,35 @@ public class SplashPlaneParticle extends Particle {
         if (this.owner instanceof ProducesWake wakeOwner) {
             if (!wakeOwner.onWaterSurface() || (this.owner instanceof PlayerEntity player && player.isSpectator())
                 || this.owner.getVelocity().horizontalLength() < 1e-2) {
-                wakeOwner.setWakeParticle(null);
-                this.owner = null;
                 this.markDead();
             } else {
-                Vec3d vel = this.owner.getVelocity();
-                this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
-                Vec3d ownerPos = this.owner.getPos().add(vel.normalize().multiply(this.owner.getWidth()));
-                this.setPos(ownerPos.x, wakeOwner.producingHeight(), ownerPos.z);
+                this.aliveTick(wakeOwner);
             }
         } else {
             this.markDead();
         }
     }
 
+    private void aliveTick(ProducesWake wakeProducer) {
+        this.ticksSinceSplash++;
+
+        Vec3d vel = this.owner.getVelocity();
+        this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
+        Vec3d normVel = vel.normalize();
+        Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
+        this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
+
+        int t = (int) Math.floor(WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity / vel.horizontalLength());
+        if (this.ticksSinceSplash > t && WakesClient.CONFIG_INSTANCE.spawnParticles) {
+            this.ticksSinceSplash = 0;
+            Vec3d particlePos = planePos.subtract(new Vec3d(normVel.x, 0f, normVel.z).multiply(this.owner.getWidth() / 2f));
+            Vec3d particleOffset = new Vec3d(-normVel.z, 0f, normVel.x).multiply(this.owner.getWidth() / 2f);
+            Vec3d pos = particlePos.add(particleOffset);
+            world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, wakeProducer.producingHeight(), pos.z, vel.x, vel.y ,vel.z);
+            pos = particlePos.add(particleOffset.multiply(-1f));
+            world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, wakeProducer.producingHeight(), pos.z, vel.x, vel.y ,vel.z);
+        }
+    }
 
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
@@ -110,7 +134,7 @@ public class SplashPlaneParticle extends Particle {
         @Override
         public Particle createParticle(DefaultParticleType parameters, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
             SplashPlaneParticle wake = new SplashPlaneParticle(world, x, y, z);
-            if (parameters instanceof SplashPlaneParticleType type) {
+            if (parameters instanceof WithOwnerParticleType type) {
                 wake.owner = type.owner;
                 wake.yaw = wake.prevYaw = type.owner.getYaw();
                 ((ProducesWake) wake.owner).setWakeParticle(wake);

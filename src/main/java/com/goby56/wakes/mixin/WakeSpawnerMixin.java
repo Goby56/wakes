@@ -7,6 +7,7 @@ import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -105,17 +106,19 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		if (!WakesClient.CONFIG_INSTANCE.spawnWakes) {
 			return;
 		}
-
+		// TODO IMPLEMENT ALL CONFIG CONDITIONAL CHECKS (BETTER AND MORE EXHAUSTIVE APPROACH)
 		if (this.onWaterSurface) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, ((Entity) (Object) this));
 
 			if (WakesClient.CONFIG_INSTANCE.getSpawningRule(((Entity) (Object) this)).spawnsWake) {
-				if (this.wakeParticle == null && vel.horizontalLength() > 1e-2) {
-					WakesUtils.spawnWakeSplashParticle(this.world, ((Entity) (Object) this));
+				if (this.wakeParticle == null && vel.horizontalLength() > 1e-2 && WakesClient.CONFIG_INSTANCE.renderSplashPlane) {
+					WakesUtils.spawnSplashPlaneParticle(this.world, ((Entity) (Object) this));
 				}
-
 				WakesUtils.placeWakeTrail(((Entity) (Object) this));
+				if (((Entity) (Object) this) instanceof BoatEntity boat && WakesClient.CONFIG_INSTANCE.spawnParticles) {
+					WakesUtils.spawnPaddleSplashCloudParticle(world, boat);
+				}
 			} else {
 				this.prevWakeProdPos = null;
 			}

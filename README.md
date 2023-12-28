@@ -1,7 +1,7 @@
 [![Download on Modrinth](https://raw.githubusercontent.com/Prospector/badges/master/modrinth-badge-72h-padded.png)](https://modrinth.com/mod/wakes)
 
 ## DISCLAIMER
-My time developing the mod will be very limited for the coming 10 months. Updates will not be as regular. I will try migrating the mod to newer versions of Minecraft but don't expect new features.
+My time developing the mod will be quite limited up until June 2024. Updates will not be as regular. I will try migrating the mod to newer versions of Minecraft but don't expect new features.
 
 # Wakes
 This mod aimes to add simple wakes that fit the spirit of vanilla. 

@@ -42,6 +42,7 @@ public class WakesConfig {
     public int splashStrength = 100;
     public double minimumProducerVelocity = 0.1;
     public float waveDecay = 0.9f;
+    public boolean spawnParticles = true;
 
     // Debug
     public int floodFillDistance = 3;
@@ -95,14 +96,17 @@ public class WakesConfig {
     }
 
     // Splash plane
+    public boolean renderSplashPlane = true;
     public float splashPlaneWidth = 3f;
     public float splashPlaneHeight = 1.5f;
     public float splashPlaneDepth = 2f;
     public int splashPlaneResolution = 5;
     public float maxSplashPlaneVelocity = 1f;
     public float splashPlaneScale = 1f;
+    public float splashPlaneOffset = 0f;
 
     public enum WakeSpawningRule {
+        // TODO MORE EXHAUSTIVE CONFIG CONDITION CHECKS
         WAKES_AND_SPLASHES(true, true),
         ONLY_WAKES(true, false),
         ONLY_SPLASHES(false, true),

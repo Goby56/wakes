@@ -15,6 +15,7 @@
   "description.wakes.use_water_blending": "Should the wake's colors blend with the water's colors?",
   "option_group.wakes.splash_plane": "Splash plane",
   "option.wakes.splash_plane_scale": "Scale",
+  "option.wakes.splash_plane_offset": "Offset",
   "option.wakes.splash_plane_width": "Width",
   "option.wakes.splash_plane_height": "Height",
   "option.wakes.splash_plane_depth": "Depth",
@@ -39,6 +40,8 @@
   "description.wakes.wakes_in_running_water": "Should wakes spawn in running water?",
   "option.wakes.max_splash_plane_velocity": "Max splash plane velocity",
   "description.wakes.max_splash_plane_velocity": "The velocity at which the maximum size of the splash plane is reached",
+  "option.wakes.render_splash_plane": "Splash planes",
+  "option.wakes.spawn_particles": "Particles",
 
   "option.wakes.wave_speed": "Wave speed",
   "description.wakes.wave_speed": "The speed which the wakes travel and despawn at.",

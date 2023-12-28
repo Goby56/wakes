@@ -3,7 +3,8 @@ package com.goby56.wakes.utils;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.SplashPlaneParticleType;
+import com.goby56.wakes.particle.WithOwnerParticleType;
+import net.minecraft.block.Block;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -33,8 +34,24 @@ public class WakesUtils {
         }
     }
 
-    public static void spawnWakeSplashParticle(World world, Entity owner) {
-        SplashPlaneParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
+    public static void spawnPaddleSplashCloudParticle(World world, BoatEntity boat) {
+        // TODO MORE OBJECT ORIENTED APPROACH TO PARTICLE SPAWNING
+        for (int i = 0; i < 2; i++) {
+            if (boat.isPaddleMoving(i)) {
+                double phase = boat.paddlePhases[i] % (2*Math.PI);
+                if (BoatEntity.NEXT_PADDLE_PHASE / 2 <= phase && phase <= BoatEntity.EMIT_SOUND_EVENT_PADDLE_ROTATION + BoatEntity.NEXT_PADDLE_PHASE) {
+                    Vec3d rot = boat.getRotationVec(1.0f);
+                    double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
+                    double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
+                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingHeight(), z);
+                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, boat.getVelocity().x, 0f, boat.getVelocity().z);
+                }
+            }
+        }
+    }
+
+    public static void spawnSplashPlaneParticle(World world, Entity owner) {
+        WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
         Vec3d pos = owner.getPos();
         world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
@@ -204,6 +221,10 @@ public class WakesUtils {
         }
         return maxY + 1;
 
+    }
+
+    public static BlockPos vecToBlockPos(Vec3d pos) {
+        return new BlockPos((int) Math.floor(pos.x), (int) Math.floor(pos.y), (int) Math.floor(pos.z));
     }
 
 

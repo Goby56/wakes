@@ -1,5 +1,6 @@
 package com.goby56.wakes.command;
 
+import com.goby56.wakes.particle.ModParticles;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -24,7 +25,10 @@ public class DebugCommand {
                 .then(ClientCommandManager.literal("light")
                         .executes(DebugCommand::lightCoordinate))
                 .then(ClientCommandManager.literal("color")
-                        .executes(DebugCommand::waterColor)));
+                        .executes(DebugCommand::waterColor))
+                .then(ClientCommandManager.literal("spawn")
+                        .then(ClientCommandManager.literal("splash_cloud_particle")
+                                .executes(DebugCommand::spawnSplashCloudParticle))));
     }
 
     public static int lightCoordinate(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {
@@ -44,6 +48,12 @@ public class DebugCommand {
                 ColorHelper.Argb.getRed(col),
                 ColorHelper.Argb.getGreen(col),
                 ColorHelper.Argb.getBlue(col))));
+        return 1;
+    }
+
+    public static int spawnSplashCloudParticle(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {
+        Vec3d pos = cmdCtx.getSource().getPosition();
+        cmdCtx.getSource().getWorld().addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
         return 1;
     }
 }
