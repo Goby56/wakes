@@ -4,22 +4,22 @@
 My time developing the mod will be quite limited up until June 2024. Updates will not be as regular. I will try migrating the mod to newer versions of Minecraft but don't expect new features.
 
 # Wakes
-This mod aimes to add simple wakes that fit the spirit of vanilla. 
-![Preview](https://cdn.discordapp.com/attachments/725837054092771368/1126228593685565450/preview.gif)
+### This mod aimes to add simple wakes that fit the spirit of vanilla
+
+![Splashes and wakes](https://github.com/Goby56/wakes/assets/60710855/c4a153ca-ec98-449a-a73d-68ec80934c56)
+
+*Splashes when falling into water and simulated wakes*
 
 ### Features
-- Simulation of waves after entities that travel fast enough
+- Simulation of waves after all entities
 - Waves appear at the oars of the boat
 - Splashes when falling into water
+- Water shooting out on either sides
 - Optional debug and appearence configs with [YACL](https://modrinth.com/mod/yacl) (YetAnotherConfigLib). Access them from the [ModMenu](https://modrinth.com/mod/modmenu) menu.
-- Iris shader support* (known compatibilites [here](https://github.com/Goby56/wakes/blob/main/shader_compat.md))
+- Iris shader support (known compatibilites [here](https://github.com/Goby56/wakes/blob/main/shader_compat.md))
 
 ### Future
-- Splash particles at the front of the boat
-- Optine shader support
-
-The mod is in early development and can therefore be lacking in some areas. It should not however crash but if it does please let me know!
-
-![Colored wake](https://cdn.discordapp.com/attachments/308361398071590912/1125561979088670740/from_above.png)
-The image above is a demonstration of colored wakes and is currently the default appearance of wakes. If you want to achieve a similar effect as the project icon you can tinker around in the configs or download the first version of the mod.
-
+- Foam outlines around models and shore lines
+- Splash quads when falling into water
+- Major version ports (1.16 - 1.18)
+- Forge port (maybe)
