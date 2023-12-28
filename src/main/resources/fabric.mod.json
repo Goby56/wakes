@@ -3,7 +3,7 @@
 	"id": "wakes",
 	"version": "${version}",
 	"name": "Wakes",
-	"description": "Adds wakes after entities if they travel fast enough",
+	"description": "Adds splashes and wakes while traveling on water",
 	"authors": [
 		"Goby56"
 	],

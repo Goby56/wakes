@@ -137,7 +137,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 } else {
                     this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
                 }
-                this.u[0][z][x] *= WakesClient.CONFIG_INSTANCE.waveDecay;
+                this.u[0][z][x] *= Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecay + 10) / Math.log(20); // Logarithmic scale
             }
         }
 

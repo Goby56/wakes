@@ -41,7 +41,7 @@ public class WakesConfig {
     public int paddleStrength = 100;
     public int splashStrength = 100;
     public double minimumProducerVelocity = 0.1;
-    public float waveDecay = 0.9f;
+    public float waveDecay = 0.5f;
     public boolean spawnParticles = true;
 
     // Debug
@@ -101,7 +101,7 @@ public class WakesConfig {
     public float splashPlaneHeight = 1.5f;
     public float splashPlaneDepth = 2f;
     public int splashPlaneResolution = 5;
-    public float maxSplashPlaneVelocity = 1f;
+    public float maxSplashPlaneVelocity = 0.5f;
     public float splashPlaneScale = 1f;
     public float splashPlaneOffset = 0f;
 
