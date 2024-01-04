@@ -29,9 +29,11 @@ public class WakeHandler {
     public int glFoamTexId = -1;
     public long foamImgPtr = -1;
 
+
+
     private WakeHandler(ClientWorld world) {
         this.world = world;
-        WakeNode.calculateAlpha();
+        WakeNode.calculateWaveDevelopmentFactors();
         this.minY = world.getBottomY();
         this.maxY = world.getTopY();
         int worldHeight = this.maxY - this.minY;

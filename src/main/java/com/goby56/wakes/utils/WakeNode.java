@@ -2,7 +2,6 @@ package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.particle.ModParticles;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -20,6 +19,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public final int res;
 
     private static float alpha;
+    private static float beta;
     public float[][][] u;
     public float[][] initialValues;
 
@@ -93,9 +93,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
     }
 
-    public static void calculateAlpha() {
+    public static void calculateWaveDevelopmentFactors() {
         float time = 20f; // ticks
-        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.waveSpeed * 16f / time, 2);
+        // TODO CHANGE "16" TO ACTUAL RES
+        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.wavePropagationFactor * 16f / time, 2);
+        WakeNode.beta = (float) (Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
     }
 
     @Override
@@ -137,7 +139,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 } else {
                     this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
                 }
-                this.u[0][z][x] *= Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecay + 10) / Math.log(20); // Logarithmic scale
+                this.u[0][z][x] *= beta;
             }
         }
 
@@ -289,7 +291,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
         public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
             Set<WakeNode> nodesAffected = new HashSet<>();
-            double velocity = Math.max(WakesClient.CONFIG_INSTANCE.minimumProducerVelocity, boat.getVelocity().horizontalLength());
+            double velocity = boat.getVelocity().horizontalLength();
             for (int i = 0; i < 2; i++) {
                 if (boat.isPaddleMoving(i)) {
                     double phase = boat.paddlePhases[i] % (2*Math.PI);

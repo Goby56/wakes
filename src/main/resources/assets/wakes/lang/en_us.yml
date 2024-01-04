@@ -1,0 +1,92 @@
+wakes:
+    yacl_missing:
+        .: Yet Another Config Lib is not in your mods folder
+        message: >
+            If you want to edit the configs you need YACL V3. Do you want to install it?
+    blending_function:
+        default: Subtle
+        screen: Vibrant
+        custom: Custom
+    config:
+        title: Wakes config
+        category:
+            basic: Basic settings
+            advanced: Advanced settings
+            debug: Debug
+        group:
+            wake_appearance: Wake appearance
+            wake_behaviour: Wake behaviour
+            effect_spawning: Effect spawning
+            splash_plane: Splash plane
+            initial_wave_strengths: Initial wave strengths
+        option:
+            wake_resolution: Wake resolution
+            wake_opacity: Wake opacity
+            blending_function: Wake style
+            use_water_blending: Use water blending
+            splash_plane:
+                render: Render
+                scale: Scale
+                offset: Offset
+                width: Width
+                height: Height
+                depth: Depth
+                cap_velocity: Velocity cap
+            src_factor: Source factor
+            dst_factor: Destination factor
+            interval:
+                lower: Lower
+                upper: Upper
+                color: Color
+            spawning_rules:
+                source:
+                    boat: Boat
+                    player: Player
+                    other_players: Other players
+                    mobs: Mobs
+                    items: Items
+                effect:
+                    wakes_and_splashes: Wakes & Splashes
+                    only_wakes: Only wakes
+                    only_splashes: Only splashes
+                    disabled: Disabled
+            wakes_in_running_water: Wakes in running water
+            spawn_particles: Spawn particles
+            wave_propagation_factor: Wave propagation factor
+            wave_decay_factor: Wave decay factor
+            initial_wave_strength:
+                wake: Wake strength
+                paddle: Paddle strength
+                splash: Splash strength
+            render_type: Shader program
+            flood_fill_distance: Flood fill distance
+            ticks_before_fill: Ticks before flood fill
+            use_9_point_stencil: Use 9 point stencil for laplace operator
+            draw_debug_boxes: Draw debug boxes
+            render_wakes: Render wakes
+            spawn_wakes: Spawn wakes
+        description:
+            wave_propagation_factor: >
+                The impact a pixels has on its neighboring pixels inside the wakes
+            wave_decay_factor: >
+                Specifies how much of a pixels value is left after each tick. (Logarithmic scale)
+            initial_wave_strengths: >
+                The strength a source starts with to produce a wake.
+            splash_plane.cap_velocity: >
+                The velocity at which the maximum size of the splash plane is reached
+            spawning_rules: >
+                Specifies which effect(s) a source (player, mob, etc) can produce.
+            wake_resolution: >
+                The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
+            blending_function:
+                default: "Subtle: Muted, darker color. Opacity can be changed. Great if you don't want too much.\n"
+                screen: "Vibrant: Colors stand out more. Opacity can't be changed. \n\n*Vibrant style is automatically applied when using fabulous graphic settings\n"
+                custom: "Custom: Create your own style by specifying the source and destination factors in the debug tab. \n(Reopen config screen to see)"
+            use_water_blending: >
+                Should the wake's colors blend with the water's colors?
+            use_9_point_stencil: >
+                Old debug option. Can look good with 'subtle' wake style.
+
+
+
+
