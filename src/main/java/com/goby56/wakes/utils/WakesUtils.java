@@ -161,7 +161,7 @@ public class WakesUtils {
     }
 
     public static MutableText translatable(String category, String field) {
-        return Text.translatable(String.format("%s.%s.%s", category, WakesClient.MOD_ID, field));
+        return Text.translatable(String.format("%s.%s.%s", WakesClient.MOD_ID, category, field));
     }
 
     public static int[] abgrInt2rgbaArr(int n) {

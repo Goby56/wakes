@@ -3,6 +3,7 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.RunArgs;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.render.GameRenderer;
@@ -11,6 +12,8 @@ import java.util.function.Supplier;
 
 public enum RenderType {
     AUTO(null),
+    GENERAL(GameRenderer::getPositionColorTexLightmapProgram),
+    CUSTOM(WakesClient.TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM::getProgram),
     SOLID(GameRenderer::getRenderTypeSolidProgram),
     TRANSLUCENT(GameRenderer::getRenderTypeTranslucentProgram),
     CUTOUT(GameRenderer::getRenderTypeCutoutProgram),
@@ -30,10 +33,10 @@ public enum RenderType {
 
     public static Supplier<ShaderProgram> getProgram() {
         if (WakesClient.CONFIG_INSTANCE.renderType == RenderType.AUTO) {
-            if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-                return ENTITY_CUTOUT.program;
+            if (WakesClient.areShadersEnabled()) {
+                return ENTITY_TRANSLUCENT.program;
             } else {
-                return ENTITY_TRANSLUCENT_CULL.program;
+                return CUSTOM.program;
             }
         }
         return WakesClient.CONFIG_INSTANCE.renderType.program;

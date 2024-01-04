@@ -69,6 +69,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
+        BlendingFunction.applyBlendFunc();
 
         matrices.push();
         float velocity = (float) Math.floor(entity.getVelocity().horizontalLength() * 20) / 20f;

@@ -8,7 +8,6 @@ import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Vec3d;
@@ -32,17 +31,10 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
+        RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
-        if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-            WakesClient.CONFIG_INSTANCE.blendMode = BlendingFunction.SCREEN;
-        }
-        BlendingFunction blendMode = BlendingFunction.getBlendFunc();
-        if (blendMode == BlendingFunction.DEFAULT) {
-            RenderSystem.defaultBlendFunc();
-        } else {
-            RenderSystem.blendFunc(blendMode.srcFactor, blendMode.dstFactor);
-        }
+        BlendingFunction.applyBlendFunc();
 
         // TODO MOVE THIS TO RESOLUTION CHANGE EVENT
         int res = wakeHandler.resolution.res;
@@ -99,7 +91,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
                 g = 1f;
                 b = 1f;
             }
-            a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendMode.canVaryOpacity ? 1 : 0));
+            a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendFunc.canVaryOpacity ? 1 : 0));
 
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, 1f, 1f, 1f, a, light);
@@ -110,7 +102,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
     }
 
     private static void renderTexture(int resolution, int textureID, long texture, Matrix4f matrix, float x, float y, float z, float r, float g, float b, float a, int light) {
-
         GlStateManager._bindTexture(textureID);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -120,7 +111,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         // TODO SWITCH TO STANDARD RENDER LAYERS (DIRECT DRAW CALLS MAY BE SLOW)
         RenderSystem.setShaderTexture(0, textureID);
-        RenderSystem.enableDepthTest();
 
         RenderSystem.setShader(RenderType.getProgram());
 
