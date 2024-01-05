@@ -1,7 +1,9 @@
-package com.goby56.wakes.utils;
+package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -359,7 +361,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
-            WakesConfig.Resolution res = WakeHandler.getInstance().resolution;
+            Resolution res = WakeHandler.getInstance().resolution;
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);

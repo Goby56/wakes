@@ -1,13 +1,17 @@
 package com.goby56.wakes.config;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.BlendingFunction;
-import com.goby56.wakes.render.RenderType;
+import com.goby56.wakes.config.enums.EffectSpawningRule;
+import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.render.enums.BlendingFunction;
+import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.simulation.WakeHandler;
+import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.*;
 import com.mojang.blaze3d.platform.GlStateManager;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
-import dev.isxander.yacl3.gui.controllers.BooleanController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -35,10 +39,10 @@ public class YACLIntegration {
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("basic")
                         .group(group("wake_appearance")
-                                .option(optionOf(WakesConfig.Resolution.class, "wake_resolution", true)
-                                        .binding(WakesConfig.Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
+                                .option(optionOf(Resolution.class, "wake_resolution", true)
+                                        .binding(Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
                                         .controller(opt -> EnumControllerBuilder.create(opt)
-                                                .enumClass(WakesConfig.Resolution.class)
+                                                .enumClass(Resolution.class)
                                                 .formatValue(val -> Text.of(val.toString())))
                                         .build())
                                 .option(wakeOpacityOption)
@@ -59,11 +63,11 @@ public class YACLIntegration {
                                         .build())
                                 .build())
                         .group(group("effect_spawning")
-                                .option(wakeSpawningRulesOption("boat"))
-                                .option(wakeSpawningRulesOption("player"))
-                                .option(wakeSpawningRulesOption("other_players"))
-                                .option(wakeSpawningRulesOption("mobs"))
-                                .option(wakeSpawningRulesOption("items"))
+                                .option(effectSpawningRuleOption("boat"))
+                                .option(effectSpawningRuleOption("player"))
+                                .option(effectSpawningRuleOption("other_players"))
+                                .option(effectSpawningRuleOption("mobs"))
+                                .option(effectSpawningRuleOption("items"))
                                 .option(booleanOption("wakes_in_running_water", false)
                                         .binding(false, () -> config.wakesInRunningWater, val -> config.wakesInRunningWater = val)
                                         .build())
@@ -90,9 +94,6 @@ public class YACLIntegration {
                                 .option(optionOf(Float.class, "splash_plane.cap_velocity", true)
                                         .binding(0.5f, () -> config.maxSplashPlaneVelocity, val -> config.maxSplashPlaneVelocity = val)
                                         .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
-                                        .build())
-                                .option(booleanOption("splash_plane.render", false)
-                                        .binding(true, () -> config.renderSplashPlane, val -> config.renderSplashPlane = val)
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane.scale", false)
                                         .binding(1f, () -> config.splashPlaneScale, val -> config.splashPlaneScale = val)
@@ -152,11 +153,8 @@ public class YACLIntegration {
                         .option(booleanOption("draw_debug_boxes", false)
                                 .binding(false, () -> config.drawDebugBoxes, val -> config.drawDebugBoxes = val)
                                 .build())
-                        .option(booleanOption("render_wakes", false)
-                                .binding(true, () -> config.renderWakes, val -> config.renderWakes = val)
-                                .build())
-                        .option(booleanOption("spawn_wakes", false)
-                                .binding(true, () -> config.spawnWakes, val -> config.spawnWakes = val)
+                        .option(booleanOption("disable_mod", false)
+                                .binding(false, () -> config.disableMod, val -> config.disableMod = val)
                                 .build())
                         .optionIf(isUsingCustonBlendFunc, srcFactorOption)
                         .optionIf(isUsingCustonBlendFunc, dstFactorOption)
@@ -224,15 +222,15 @@ public class YACLIntegration {
         return opt.name(WakesUtils.translatable("config.option", name));
     }
 
-    private static Option<WakesConfig.WakeSpawningRule> wakeSpawningRulesOption(String name) {
+    private static Option<EffectSpawningRule> effectSpawningRuleOption(String name) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
-        return Option.<WakesConfig.WakeSpawningRule>createBuilder()
-                .name(WakesUtils.translatable("config.option.spawning_rules.source", name))
-                .description(description("spawning_rules").build())
-                .binding(WakesConfig.WakeSpawningRule.WAKES_AND_SPLASHES, () -> config.wakeSpawningRules.get(name), val -> config.wakeSpawningRules.put(name, val))
+        return Option.<EffectSpawningRule>createBuilder()
+                .name(WakesUtils.translatable("config.option.effect_spawning_rules.source", name))
+                .description(description("effect_spawning_rules").build())
+                .binding(EffectSpawningRule.SIMULATION_AND_PLANES, () -> config.effectSpawningRules.get(name), val -> config.effectSpawningRules.put(name, val))
                 .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(WakesConfig.WakeSpawningRule.class)
-                        .formatValue(val -> WakesUtils.translatable("config.option.spawning_rules.effect", val.toString().toLowerCase())))
+                        .enumClass(EffectSpawningRule.class)
+                        .formatValue(val -> WakesUtils.translatable("config.option.effect_spawning_rules.effect", val.toString().toLowerCase())))
                 .build();
     }
 

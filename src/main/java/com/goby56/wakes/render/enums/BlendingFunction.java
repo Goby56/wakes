@@ -1,4 +1,4 @@
-package com.goby56.wakes.render;
+package com.goby56.wakes.render.enums;
 
 import com.goby56.wakes.WakesClient;
 import com.mojang.blaze3d.platform.GlStateManager;

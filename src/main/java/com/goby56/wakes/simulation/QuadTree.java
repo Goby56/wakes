@@ -1,4 +1,4 @@
-package com.goby56.wakes.utils;
+package com.goby56.wakes.simulation;
 
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;

@@ -1,4 +1,4 @@
-package com.goby56.wakes.utils;
+package com.goby56.wakes.simulation;
 
 public interface Age<T> {
     boolean isDead();

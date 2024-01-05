@@ -1,11 +1,10 @@
 package com.goby56.wakes.render.debug;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.utils.WakeHandler;
-import com.goby56.wakes.utils.WakeNode;
+import com.goby56.wakes.simulation.WakeHandler;
+import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.debug.DebugRenderer;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;

@@ -1,7 +1,7 @@
 package com.goby56.wakes.tests;
 
-import com.goby56.wakes.utils.Age;
-import com.goby56.wakes.utils.Position;
+import com.goby56.wakes.simulation.Age;
+import com.goby56.wakes.simulation.Position;
 import net.minecraft.util.math.Box;
 
 import java.util.Objects;

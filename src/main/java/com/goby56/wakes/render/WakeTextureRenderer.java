@@ -1,7 +1,11 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.utils.*;
+import com.goby56.wakes.render.enums.BlendingFunction;
+import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.simulation.WakeHandler;
+import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
@@ -22,7 +26,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
-        if (!WakesClient.CONFIG_INSTANCE.renderWakes) {
+        if (WakesClient.CONFIG_INSTANCE.disableMod) {
             return;
         }
         WakeHandler wakeHandler = WakeHandler.getInstance();

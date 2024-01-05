@@ -1,6 +1,9 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.render.enums.BlendingFunction;
+import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
@@ -66,6 +69,9 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     }
 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
+        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
+            return;
+        }
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();

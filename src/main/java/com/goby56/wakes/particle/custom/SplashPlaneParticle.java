@@ -46,10 +46,10 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void tick() {
-        if (!WakesClient.CONFIG_INSTANCE.renderSplashPlane) {
+        System.out.println(owner);
+        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
-
         this.prevPosX = this.x;
         this.prevPosY = this.y;
         this.prevPosZ = this.z;

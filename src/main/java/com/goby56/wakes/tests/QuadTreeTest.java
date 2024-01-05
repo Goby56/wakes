@@ -1,6 +1,6 @@
 package com.goby56.wakes.tests;
 
-import com.goby56.wakes.utils.QuadTree;
+import com.goby56.wakes.simulation.QuadTree;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

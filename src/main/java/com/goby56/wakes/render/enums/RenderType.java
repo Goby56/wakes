@@ -1,11 +1,8 @@
-package com.goby56.wakes.render;
+package com.goby56.wakes.render.enums;
 
 
 import com.goby56.wakes.WakesClient;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.RunArgs;
 import net.minecraft.client.gl.ShaderProgram;
-import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.render.GameRenderer;
 
 import java.util.function.Supplier;

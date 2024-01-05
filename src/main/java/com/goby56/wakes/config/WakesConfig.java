@@ -4,19 +4,13 @@ import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.BlendingFunction;
-import com.goby56.wakes.render.RenderType;
-import com.goby56.wakes.utils.WakeColor;
+import com.goby56.wakes.config.enums.EffectSpawningRule;
+import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.render.enums.BlendingFunction;
+import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.render.enums.WakeColor;
 import com.google.gson.Gson;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.util.math.MathHelper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,12 +21,12 @@ import java.util.Map;
 
 public class WakesConfig {
     // Spawning
-    public Map<String, WakeSpawningRule> wakeSpawningRules = new HashMap<>(Map.of(
-            "boat", WakeSpawningRule.WAKES_AND_SPLASHES,
-            "player", WakeSpawningRule.WAKES_AND_SPLASHES,
-            "other_players", WakeSpawningRule.WAKES_AND_SPLASHES,
-            "mobs", WakeSpawningRule.WAKES_AND_SPLASHES,
-            "items", WakeSpawningRule.WAKES_AND_SPLASHES
+    public Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
+            "boat", EffectSpawningRule.SIMULATION_AND_PLANES,
+            "player", EffectSpawningRule.SIMULATION_AND_PLANES,
+            "other_players", EffectSpawningRule.SIMULATION_AND_PLANES,
+            "mobs", EffectSpawningRule.SIMULATION_AND_PLANES,
+            "items", EffectSpawningRule.SIMULATION_AND_PLANES
     ));
     public boolean wakesInRunningWater = false;
 
@@ -45,12 +39,11 @@ public class WakesConfig {
     public boolean spawnParticles = true;
 
     // Debug
+    public boolean disableMod = false;
     public int floodFillDistance = 3;
     public boolean use9PointStencil = true;
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
-    public boolean renderWakes = true;
-    public boolean spawnWakes = true;
     public RenderType renderType = RenderType.AUTO;
 
     // Appearance
@@ -98,7 +91,6 @@ public class WakesConfig {
     }
 
     // Splash plane
-    public boolean renderSplashPlane = true;
     public float splashPlaneWidth = 3f;
     public float splashPlaneHeight = 1.5f;
     public float splashPlaneDepth = 2f;
@@ -106,68 +98,6 @@ public class WakesConfig {
     public float maxSplashPlaneVelocity = 0.5f;
     public float splashPlaneScale = 1f;
     public float splashPlaneOffset = 0f;
-
-    public enum WakeSpawningRule {
-        // TODO MORE EXHAUSTIVE CONFIG CONDITION CHECKS
-        WAKES_AND_SPLASHES(true, true),
-        ONLY_WAKES(true, false),
-        ONLY_SPLASHES(false, true),
-        DISABLED(false, false);
-
-        public final boolean spawnsWake;
-        public final boolean spawnsSplashes;
-
-        WakeSpawningRule(boolean spawnsWake, boolean spawnsSplashes) {
-            this.spawnsWake = spawnsWake;
-            this.spawnsSplashes = spawnsSplashes;
-        }
-    }
-
-    public enum Resolution {
-        EIGHT(8),
-        SIXTEEN(16),
-        THIRTYTWO(32);
-
-        public final int res;
-        public final int power;
-
-        Resolution(int res) {
-            this.res = res;
-            this.power = MathHelper.floorLog2(res);
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(this.res);
-        }
-    }
-
-    public WakeSpawningRule getSpawningRule(Entity producer) {
-        if (producer instanceof BoatEntity boat) {
-            if (wakeSpawningRules.get("boat") == WakeSpawningRule.WAKES_AND_SPLASHES) {
-                if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
-                    return wakeSpawningRules.get("other_players");
-                }
-            }
-            return wakeSpawningRules.get("boat");
-        }
-        if (producer instanceof PlayerEntity player) {
-            if (player.isSpectator()) {
-                return WakeSpawningRule.DISABLED;
-            }
-            if (player instanceof ClientPlayerEntity) {
-                return wakeSpawningRules.get("player");
-            }
-            return wakeSpawningRules.get("other_players");
-        }
-        if (producer instanceof LivingEntity) {
-            return wakeSpawningRules.get("mobs");
-        }
-        if (producer instanceof ItemEntity) {
-            return wakeSpawningRules.get("items");
-        }
-        return WakeSpawningRule.DISABLED;
-    }
 
     public static WakesConfig loadConfig() {
         Jankson jankson = Jankson.builder().build();

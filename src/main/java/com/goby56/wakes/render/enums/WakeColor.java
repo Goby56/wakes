@@ -1,4 +1,4 @@
-package com.goby56.wakes.utils;
+package com.goby56.wakes.render.enums;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;

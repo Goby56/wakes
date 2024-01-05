@@ -1,13 +1,20 @@
 package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
-import net.minecraft.block.Block;
+import com.goby56.wakes.simulation.WakeHandler;
+import com.goby56.wakes.simulation.WakeNode;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
@@ -20,6 +27,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class WakesUtils {
 
@@ -50,7 +58,7 @@ public class WakesUtils {
         }
     }
 
-    public static void spawnSplashPlaneParticle(World world, Entity owner) {
+    public static void spawnSplashPlane(World world, Entity owner) {
         WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
         Vec3d pos = owner.getPos();
         world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
@@ -69,8 +77,12 @@ public class WakesUtils {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
                 wakeHandler.insert(node);
             }
+            if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
+                WakesUtils.spawnPaddleSplashCloudParticle(entity.getWorld(), boat);
+            }
         }
 
+        // TODO FIX ENTERING BOAT CREATES LONG WAKE
 //        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
 //            ((ProducesWake) entity).setPrevPos(null);
 //        }
@@ -84,6 +96,34 @@ public class WakesUtils {
         for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
             wakeHandler.insert(node);
         }
+    }
+
+    public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
+        Map<String, EffectSpawningRule> effectRule = WakesClient.CONFIG_INSTANCE.effectSpawningRules;
+        if (source instanceof BoatEntity boat) {
+            if (effectRule.get("boat") == EffectSpawningRule.SIMULATION_AND_PLANES) {
+                if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
+                    return effectRule.get("other_players");
+                }
+            }
+            return effectRule.get("boat");
+        }
+        if (source instanceof PlayerEntity player) {
+            if (player.isSpectator()) {
+                return EffectSpawningRule.DISABLED;
+            }
+            if (player instanceof ClientPlayerEntity) {
+                return effectRule.get("player");
+            }
+            return effectRule.get("other_players");
+        }
+        if (source instanceof LivingEntity) {
+            return effectRule.get("mobs");
+        }
+        if (source instanceof ItemEntity) {
+            return effectRule.get("items");
+        }
+        return EffectSpawningRule.DISABLED;
     }
 
     public static void bresenhamLine(int x1, int y1, int x2, int y2, ArrayList<Long> points) {

@@ -25,7 +25,6 @@ wakes:
             blending_function: Wake style
             use_water_blending: Use water blending
             splash_plane:
-                render: Render
                 scale: Scale
                 offset: Offset
                 width: Width
@@ -38,7 +37,7 @@ wakes:
                 lower: Lower
                 upper: Upper
                 color: Color
-            spawning_rules:
+            effect_spawning_rules:
                 source:
                     boat: Boat
                     player: Player
@@ -46,9 +45,9 @@ wakes:
                     mobs: Mobs
                     items: Items
                 effect:
-                    wakes_and_splashes: Wakes & Splashes
-                    only_wakes: Only wakes
-                    only_splashes: Only splashes
+                    simulation_and_planes: Simulation & planes
+                    only_simulation: Only simulation
+                    only_planes: Only planes
                     disabled: Disabled
             wakes_in_running_water: Wakes in running water
             spawn_particles: Spawn particles
@@ -63,8 +62,7 @@ wakes:
             ticks_before_fill: Ticks before flood fill
             use_9_point_stencil: Use 9 point stencil for laplace operator
             draw_debug_boxes: Draw debug boxes
-            render_wakes: Render wakes
-            spawn_wakes: Spawn wakes
+            disable_mod: Disable mod
         description:
             wave_propagation_factor: >
                 The impact a pixels has on its neighboring pixels inside the wakes
@@ -74,8 +72,7 @@ wakes:
                 The strength a source starts with to produce a wake.
             splash_plane.cap_velocity: >
                 The velocity at which the maximum size of the splash plane is reached
-            spawning_rules: >
-                Specifies which effect(s) a source (player, mob, etc) can produce.
+            effect_spawning_rules: "Specifies which effect(s) a source (player, mob, etc) can produce. \n\nSimulation refers to the simulated waves on the water that acts as wakes. \n\nPlanes refers to the splashes that shoot out on either side."
             wake_resolution: >
                 The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
             blending_function:

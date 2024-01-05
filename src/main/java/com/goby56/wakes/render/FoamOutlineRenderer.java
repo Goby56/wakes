@@ -1,6 +1,6 @@
 package com.goby56.wakes.render;
 
-import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 public class FoamOutlineRenderer {
 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
-        if (!WakesConfig.loadConfig().renderWakes || !((ProducesWake) entity).onWaterSurface()) {
+        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(entity).simulateWakes || !((ProducesWake) entity).onWaterSurface()) {
             return;
         }
 

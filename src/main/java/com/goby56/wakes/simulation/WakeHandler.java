@@ -1,7 +1,8 @@
-package com.goby56.wakes.utils;
+package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.config.enums.Resolution;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
@@ -19,8 +20,8 @@ public class WakeHandler {
     private final ArrayList<QuadTree<WakeNode>> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
     public boolean resetScheduled = false;
-    public WakesConfig.Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
-    private WakesConfig.Resolution newResolution = null;
+    public Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
+    private Resolution newResolution = null;
     private final int minY;
     private final int maxY;
 
@@ -118,7 +119,7 @@ public class WakeHandler {
         return height + Math.abs(this.minY);
     }
 
-    public static void scheduleResolutionChange(WakesConfig.Resolution newRes) {
+    public static void scheduleResolutionChange(Resolution newRes) {
         WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null) {
