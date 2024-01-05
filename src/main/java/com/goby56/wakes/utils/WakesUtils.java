@@ -9,6 +9,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -27,6 +28,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class WakesUtils {
@@ -88,12 +90,10 @@ public class WakesUtils {
 //        }
 
         Vec3d prevPos = producer.getPrevPos();
-        Vec3d currPos = new Vec3d(entity.getX(), height, entity.getZ());
-        producer.setPrevPos(currPos);
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, currPos.x, currPos.z, height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
             wakeHandler.insert(node);
         }
     }
@@ -101,10 +101,12 @@ public class WakesUtils {
     public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
         Map<String, EffectSpawningRule> effectRule = WakesClient.CONFIG_INSTANCE.effectSpawningRules;
         if (source instanceof BoatEntity boat) {
-            if (effectRule.get("boat") == EffectSpawningRule.SIMULATION_AND_PLANES) {
-                if (!boat.hasPassenger(MinecraftClient.getInstance().player)) {
-                    return effectRule.get("other_players");
-                }
+            List<Entity> passengers = boat.getPassengerList();
+            if (passengers.contains(MinecraftClient.getInstance().player)) {
+                return effectRule.get("boat");
+            }
+            if (passengers.stream().anyMatch(Entity::isPlayer)) {
+                return EffectSpawningRule.mix(effectRule.get("boat"), effectRule.get("other_players"));
             }
             return effectRule.get("boat");
         }
@@ -115,7 +117,10 @@ public class WakesUtils {
             if (player instanceof ClientPlayerEntity) {
                 return effectRule.get("player");
             }
-            return effectRule.get("other_players");
+            if (player instanceof OtherClientPlayerEntity) {
+                return effectRule.get("other_players");
+            }
+            return EffectSpawningRule.DISABLED;
         }
         if (source instanceof LivingEntity) {
             return effectRule.get("mobs");

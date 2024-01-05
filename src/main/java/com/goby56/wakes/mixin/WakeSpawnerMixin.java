@@ -2,15 +2,15 @@ package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
+import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
-import net.minecraft.client.particle.Particle;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -18,52 +18,30 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Entity.class)
 public abstract class WakeSpawnerMixin implements ProducesWake {
 
-	private Particle wakeParticle;
-
 	@Shadow public abstract boolean isSubmergedInWater();
-
 	@Shadow public abstract String toString();
-
 	@Shadow public abstract boolean isTouchingWater();
-
+	@Shadow public abstract Vec3d getPos();
+	@Shadow private Vec3d pos;
 	@Shadow private World world;
 
-	@Shadow public abstract Vec3d getPos();
-
-
-	@Shadow private Vec3d velocity;
-
-	@Shadow public abstract String getEntityName();
-
-	@Shadow public float horizontalSpeed;
-	@Shadow public float prevHorizontalSpeed;
-	@Shadow private Vec3d pos;
-	@Shadow public double prevX;
-	@Shadow public double prevY;
-	@Shadow public double prevZ;
-
-	@Shadow public abstract EntityType<?> getType();
-
-	@Shadow public abstract boolean isPlayer();
-
-	@Shadow public float fallDistance;
-
-	public boolean onWaterSurface = false;
-
-	public boolean hasWake = false;
-
-	public Vec3d prevWakeProdPos = null;
-
-	public double horizontalNumericalVelocity = 0;
-	public double verticalNumericalVelocity = 0;
-
-	public Float producingWaterLevel = null;
+	@Unique private boolean onWaterSurface = false;
+	@Unique private Vec3d prevPosOnSurface = null;
+	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
+	@Unique private double horizontalNumericalVelocity = 0;
+	@Unique private double verticalNumericalVelocity = 0;
+	@Unique private Float producingWaterLevel = null;
+	@Unique private SplashPlaneParticle splashPlane;
 
 	@Override
 	public boolean onWaterSurface() {
 		return this.onWaterSurface;
 	}
 
+	@Override
+	public Vec3d getNumericalVelocity() {
+		return this.numericalVelocity;
+	}
 	@Override
 	public double getHorizontalVelocity() {
 		return this.horizontalNumericalVelocity;
@@ -76,13 +54,13 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Override
 	public Vec3d getPrevPos() {
-		if (this.prevWakeProdPos == null) return null;
-		return new Vec3d(this.prevWakeProdPos.x, this.prevWakeProdPos.y, this.prevWakeProdPos.z);
+		if (this.prevPosOnSurface == null) return null;
+		return new Vec3d(this.prevPosOnSurface.x, this.prevPosOnSurface.y, this.prevPosOnSurface.z);
 	}
 
 	@Override
 	public void setPrevPos(Vec3d pos) {
-		this.prevWakeProdPos = pos;
+		this.prevPosOnSurface = pos;
 	}
 
 	@Override
@@ -91,13 +69,15 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
-	public void setWakeParticle(Particle particle) {
-		this.wakeParticle = particle;
+	public void setSplashPlane(SplashPlaneParticle particle) {
+		this.splashPlane = particle;
 	}
 
 	@Inject(at = @At("HEAD"), method = "tick")
 	private void tick(CallbackInfo info) {
-		Vec3d vel = this.prevWakeProdPos == null ? Vec3d.ZERO : this.pos.subtract(this.prevWakeProdPos);
+
+		Vec3d vel = this.prevPosOnSurface == null ? Vec3d.ZERO : this.pos.subtract(this.prevPosOnSurface);
+		this.numericalVelocity = vel;
 		this.horizontalNumericalVelocity = vel.horizontalLength();
 		this.verticalNumericalVelocity = vel.y;
 		this.onWaterSurface = this.isTouchingWater() && !this.isSubmergedInWater();
@@ -113,24 +93,15 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 
-			EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
-			if (rule.simulateWakes) {
-				WakesUtils.placeWakeTrail(thisEntity);
-			} else if (rule.renderPlanes) {
-				if (this.wakeParticle == null && vel.horizontalLength() > 1e-2) {
-					WakesUtils.spawnSplashPlane(this.world, thisEntity);
-				}
-			} else {
-				this.prevWakeProdPos = null;
-			}
+			Vec3d currPos = new Vec3d(thisEntity.getX(), this.producingWaterLevel, thisEntity.getZ());
+
+			this.spawnEffects(thisEntity);
+
+			this.setPrevPos(currPos);
 		} else {
 			this.producingWaterLevel = null;
-			this.prevWakeProdPos = null;
+			this.prevPosOnSurface = null;
 		}
-//		if (this.shouldSpawnWake && !this.hasWake) {
-//			WakesUtils.spawnWake(this.world, ((Entity) (Object) this));
-//		}
-//		this.hasWake = this.shouldSpawnWake;
 	}
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
@@ -149,4 +120,17 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		}
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER
 	}
+
+	private void spawnEffects(Entity thisEntity) {
+		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
+		if (rule.simulateWakes) {
+			WakesUtils.placeWakeTrail(thisEntity);
+		}
+		if (rule.renderPlanes) {
+			if (this.splashPlane == null && this.horizontalNumericalVelocity > 1e-2) {
+				WakesUtils.spawnSplashPlane(this.world, thisEntity);
+			}
+		}
+	}
+
 }
