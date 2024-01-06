@@ -23,7 +23,7 @@ public enum EffectSpawningRule {
         return DISABLED;
     }
 
-    public static EffectSpawningRule mix(EffectSpawningRule r1, EffectSpawningRule r2) {
-        return query(r1.simulateWakes && r2.simulateWakes, r1.renderPlanes && r2.renderPlanes);
+    public EffectSpawningRule mask(EffectSpawningRule rule) {
+        return query(simulateWakes && rule.simulateWakes, this.renderPlanes && rule.simulateWakes);
     }
 }

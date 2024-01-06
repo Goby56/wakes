@@ -106,7 +106,7 @@ public class WakesUtils {
                 return effectRule.get("boat");
             }
             if (passengers.stream().anyMatch(Entity::isPlayer)) {
-                return EffectSpawningRule.mix(effectRule.get("boat"), effectRule.get("other_players"));
+                return effectRule.get("boat").mask(effectRule.get("other_players"));
             }
             return effectRule.get("boat");
         }

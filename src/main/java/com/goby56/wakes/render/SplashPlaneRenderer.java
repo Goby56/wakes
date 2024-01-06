@@ -1,6 +1,7 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.utils.WakesUtils;
@@ -78,7 +79,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         BlendingFunction.applyBlendFunc();
 
         matrices.push();
-        float velocity = (float) Math.floor(entity.getVelocity().horizontalLength() * 20) / 20f;
+        float velocity = (float) Math.floor(((ProducesWake) entity).getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity);
         float scalar = (float) (WakesClient.CONFIG_INSTANCE.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);
         matrices.scale(scalar, scalar, scalar);

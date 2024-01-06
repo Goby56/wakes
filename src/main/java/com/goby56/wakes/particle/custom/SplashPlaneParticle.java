@@ -43,7 +43,6 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void tick() {
-        System.out.println("TICKING SPLASH PLANE");
         if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
@@ -67,6 +66,7 @@ public class SplashPlaneParticle extends Particle {
         this.ticksSinceSplash++;
 
         Vec3d vel = wakeProducer.getNumericalVelocity();
+        // TODO FIX GLITCHY PLANES AT YAW = 90
         this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
         Vec3d normVel = vel.normalize();
         Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
