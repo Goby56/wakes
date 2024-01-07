@@ -19,7 +19,7 @@ import net.minecraft.text.Text;
 public class YACLIntegration {
     public static Screen createScreen(Screen parent) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
-        boolean isUsingCustonBlendFunc = config.blendFunc == BlendingFunction.CUSTOM;
+        boolean isUsingCustomBlendFunc = config.blendFunc == BlendingFunction.CUSTOM;
         Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity", false)
                 .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
                 .controller(opt -> integerSlider(opt, 0, 100))
@@ -156,8 +156,9 @@ public class YACLIntegration {
                         .option(booleanOption("disable_mod", false)
                                 .binding(false, () -> config.disableMod, val -> config.disableMod = val)
                                 .build())
-                        .optionIf(isUsingCustonBlendFunc, srcFactorOption)
-                        .optionIf(isUsingCustonBlendFunc, dstFactorOption)
+                        // TODO SWITCH TO OPTIONIF
+                        .option(srcFactorOption)
+                        .option(dstFactorOption)
                         .group(intervalGroup(0, WakeColor.TRANSPARENT, -50, -45))
                         .group(intervalGroup(1, WakeColor.DARK_GRAY, -45, -35))
                         .group(intervalGroup(2, WakeColor.GRAY, -35, -30))
