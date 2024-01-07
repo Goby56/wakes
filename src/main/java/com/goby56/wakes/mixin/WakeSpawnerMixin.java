@@ -22,7 +22,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow public abstract boolean isSubmergedInWater();
 	@Shadow public abstract String toString();
 	@Shadow public abstract boolean isTouchingWater();
-	@Shadow public abstract Vec3d getPos();
 	@Shadow private Vec3d pos;
 	@Shadow private World world;
 
