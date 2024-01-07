@@ -58,7 +58,7 @@ wakes:
                 paddle: Årstryka
                 splash: Stänkstyrka
             render_type: Shaderprogram
-            flood_fill_distance: "Flood fill" distans
+            flood_fill_distance: \"Flood" fill distans
             ticks_before_fill: Tick innan "flood fill"
             use_9_point_stencil: Använd 9-punkts stencil för laplace operator
             
