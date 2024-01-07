@@ -12,7 +12,6 @@ import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;

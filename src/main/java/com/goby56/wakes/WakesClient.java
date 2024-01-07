@@ -61,7 +61,7 @@ public class WakesClient implements ClientModInitializer {
 	}
 
 	public static boolean isYACLLoaded() {
-		return FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
+		return FabricLoader.getInstance().isModLoaded("yet-another-config-lib");
 	}
 
 	public static boolean areShadersEnabled() {

@@ -17,7 +17,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +92,7 @@ public class SplashPlaneParticle extends Particle {
 
         float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
 
-        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180));
+        modelMatrix.multiply(new Quaternion(Vec3f.POSITIVE_Y, yawLerp + 180, true));
         SplashPlaneRenderer.render(this.owner, yawLerp, tickDelta, modelMatrix, light);
     }
 

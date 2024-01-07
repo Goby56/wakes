@@ -10,8 +10,12 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.*;
 import com.mojang.blaze3d.platform.GlStateManager;
-import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.*;
+import dev.isxander.yacl.api.*;
+import dev.isxander.yacl.gui.controllers.*;
+import dev.isxander.yacl.gui.controllers.cycling.EnumController;
+import dev.isxander.yacl.gui.controllers.slider.FloatSliderController;
+import dev.isxander.yacl.gui.controllers.slider.IntegerSliderController;
+import dev.isxander.yacl.gui.controllers.string.number.DoubleFieldController;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -20,45 +24,36 @@ public class YACLIntegration {
     public static Screen createScreen(Screen parent) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
         boolean isUsingCustomBlendFunc = config.blendFunc == BlendingFunction.CUSTOM;
-        Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity", false)
+        Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity")
                 .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
                 .controller(opt -> integerSlider(opt, 0, 100))
                 .available(config.blendFunc.canVaryOpacity)
                 .build();
-        Option<GlStateManager.SrcFactor> srcFactorOption = optionOf(GlStateManager.SrcFactor.class, "src_factor", false)
+        Option<GlStateManager.SrcFactor> srcFactorOption = optionOf(GlStateManager.SrcFactor.class, "src_factor")
                 .binding(GlStateManager.SrcFactor.SRC_ALPHA, () -> config.srcFactor, val -> config.srcFactor = val)
-                .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(GlStateManager.SrcFactor.class))
+                .controller(EnumController::new)
                 .build();
-        Option<GlStateManager.DstFactor> dstFactorOption = optionOf(GlStateManager.DstFactor.class, "dst_factor", false)
+        Option<GlStateManager.DstFactor> dstFactorOption = optionOf(GlStateManager.DstFactor.class, "dst_factor")
                 .binding(GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, () -> config.dstFactor, val -> config.dstFactor = val)
-                .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(GlStateManager.DstFactor.class))
+                .controller(EnumController::new)
                 .build();
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("basic")
                         .group(group("wake_appearance")
-                                .option(optionOf(Resolution.class, "wake_resolution", true)
+                                .option(optionOf(Resolution.class, "wake_resolution")
                                         .binding(Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
-                                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                                .enumClass(Resolution.class)
-                                                .formatValue(val -> Text.of(val.toString())))
+                                        .controller(opt -> new EnumController<>(opt, val -> Text.of(val.toString())))
                                         .build())
                                 .option(wakeOpacityOption)
-                                .option(optionOf(BlendingFunction.class, "blending_function", false)
-                                        .description(description("blending_function", new String[]{"default", "screen", "custom"})
-                                                .build())
+                                .option(optionOf(BlendingFunction.class, "blending_function")
                                         .binding(BlendingFunction.DEFAULT, () -> config.blendFunc, val -> {
                                             config.blendFunc = val;
                                             wakeOpacityOption.setAvailable(val.canVaryOpacity);
                                         })
-                                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                                .enumClass(BlendingFunction.class)
-                                                .formatValue(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
-                                        .available(!MinecraftClient.isFabulousGraphicsOrBetter())
+                                        .controller(opt -> new EnumController<>(opt, val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
                                         .build())
-                                .option(booleanOption("use_water_blending", true)
+                                .option(booleanOption("use_water_blending")
                                         .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
                                         .build())
                                 .build())
@@ -68,92 +63,89 @@ public class YACLIntegration {
                                 .option(effectSpawningRuleOption("other_players"))
                                 .option(effectSpawningRuleOption("mobs"))
                                 .option(effectSpawningRuleOption("items"))
-                                .option(booleanOption("wakes_in_running_water", false)
+                                .option(booleanOption("wakes_in_running_water")
                                         .binding(false, () -> config.wakesInRunningWater, val -> config.wakesInRunningWater = val)
                                         .build())
-                                .option(booleanOption("spawn_particles", false)
+                                .option(booleanOption("spawn_particles")
                                         .binding(true, () -> config.spawnParticles, val -> config.spawnParticles = val)
                                         .build())
                                 .build())
                         .build())
                 .category(configCategory("advanced")
                         .group(group("wake_behaviour")
-                                .option(optionOf(Float.class, "wave_propagation_factor", true)
+                                .option(optionOf(Float.class, "wave_propagation_factor")
                                         .binding(0.95f, () -> config.wavePropagationFactor, val -> {
                                             config.wavePropagationFactor = val;
                                             WakeNode.calculateWaveDevelopmentFactors();
                                         })
                                         .controller(opt -> floatSlider(opt, 0f, 2f, 0.01f))
                                         .build())
-                                .option(optionOf(Float.class, "wave_decay_factor", true)
+                                .option(optionOf(Float.class, "wave_decay_factor")
                                         .binding(0.5f, () -> config.waveDecayFactor, val -> config.waveDecayFactor = val)
                                         .controller(opt -> floatSlider(opt, 0f, 1f, 0.01f))
                                         .build())
                                 .build())
                         .group(group("splash_plane")
-                                .option(optionOf(Float.class, "splash_plane.cap_velocity", true)
+                                .option(optionOf(Float.class, "splash_plane.cap_velocity")
                                         .binding(0.5f, () -> config.maxSplashPlaneVelocity, val -> config.maxSplashPlaneVelocity = val)
                                         .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane.scale", false)
+                                .option(optionOf(Float.class, "splash_plane.scale")
                                         .binding(1f, () -> config.splashPlaneScale, val -> config.splashPlaneScale = val)
                                         .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane.offset", false)
+                                .option(optionOf(Float.class, "splash_plane.offset")
                                         .binding(0f, () -> config.splashPlaneOffset, val -> config.splashPlaneOffset = val)
                                         .controller(opt -> floatSlider(opt, -1f, 1f, 0.1f))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane.width", false)
+                                .option(optionOf(Float.class, "splash_plane.width")
                                         .binding(3f, () -> config.splashPlaneWidth, val -> config.splashPlaneWidth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane.height", false)
+                                .option(optionOf(Float.class, "splash_plane.height")
                                         .binding(1.5f, () -> config.splashPlaneHeight, val -> config.splashPlaneHeight = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
-                                .option(optionOf(Float.class, "splash_plane.depth", false)
+                                .option(optionOf(Float.class, "splash_plane.depth")
                                         .binding(2f, () -> config.splashPlaneDepth, val -> config.splashPlaneDepth = val)
                                         .controller(opt -> floatSlider(opt, 0f, 10f, 0.1f))
                                         .build())
                                 .build())
                         .group(group("initial_wave_strengths")
-                                .description(description("initial_wave_strengths")
-                                        .build())
-                                .option(optionOf(Integer.class, "initial_wave_strength.wake", false)
+                                .option(optionOf(Integer.class, "initial_wave_strength.wake")
                                         .binding(20, () -> config.initialStrength, val -> config.initialStrength = val)
                                         .controller(opt -> integerSlider(opt, 0, 150))
                                         .build())
-                                .option(optionOf(Integer.class, "initial_wave_strength.paddle", false)
+                                .option(optionOf(Integer.class, "initial_wave_strength.paddle")
                                         .binding(100, () -> config.paddleStrength, val -> config.paddleStrength = val)
                                         .controller(opt -> integerSlider(opt, 0, 150))
                                         .build())
-                                .option(optionOf(Integer.class, "initial_wave_strength.splash", false)
+                                .option(optionOf(Integer.class, "initial_wave_strength.splash")
                                         .binding(100, () -> config.splashStrength, val -> config.splashStrength = val)
                                         .controller(opt -> integerSlider(opt, 0, 150))
                                         .build())
                                 .build())
                         .build())
                 .category(configCategory("debug")
-                        .option(optionOf(RenderType.class, "render_type", false)
+                        .option(optionOf(RenderType.class, "render_type")
                                 .binding(RenderType.AUTO, () -> config.renderType, val -> config.renderType = val)
-                                .controller(opt -> EnumControllerBuilder.create(opt)
-                                        .enumClass(RenderType.class))
+                                .controller(EnumController::new)
                                 .build())
-                        .option(optionOf(Integer.class, "flood_fill_distance", false)
+                        .option(optionOf(Integer.class, "flood_fill_distance")
                                 .binding(3, () -> config.floodFillDistance, val -> config.floodFillDistance = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
                                 .build())
-                        .option(optionOf(Integer.class, "ticks_before_fill", false)
+                        .option(optionOf(Integer.class, "ticks_before_fill")
                                 .binding(2, () -> config.ticksBeforeFill, val -> config.ticksBeforeFill = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
                                 .build())
-                        .option(booleanOption("use_9_point_stencil", true)
+                        .option(booleanOption("use_9_point_stencil")
                                 .binding(true, () -> config.use9PointStencil, val -> config.use9PointStencil = val)
                                 .build())
-                        .option(booleanOption("draw_debug_boxes", false)
+                        .option(booleanOption("draw_debug_boxes")
                                 .binding(false, () -> config.drawDebugBoxes, val -> config.drawDebugBoxes = val)
                                 .build())
-                        .option(booleanOption("disable_mod", false)
+                        .option(booleanOption("disable_mod")
                                 .binding(false, () -> config.disableMod, val -> config.disableMod = val)
                                 .build())
                         // TODO SWITCH TO OPTIONIF
@@ -174,20 +166,6 @@ public class YACLIntegration {
                 .generateScreen(parent);
     }
 
-    private static OptionDescription.Builder description(String name) {
-        return OptionDescription.createBuilder()
-                .text(WakesUtils.translatable("config.description", name));
-    }
-
-    private static OptionDescription.Builder description(String parent, String[] names) {
-        // TODO ADD IMAGES
-        OptionDescription.Builder desc = OptionDescription.createBuilder();
-        for (String name : names) {
-            desc.text(WakesUtils.translatable("config.description", String.format("%s.%s", parent, name)));
-        }
-        return desc;
-    }
-
     private static ConfigCategory.Builder configCategory(String name) {
         return ConfigCategory.createBuilder()
                 .name(WakesUtils.translatable("config.category", name));
@@ -198,40 +176,31 @@ public class YACLIntegration {
                 .name(WakesUtils.translatable("config.group", name));
     }
 
-    private static <T> Option.Builder<T> optionOf(Class<T> optionType, String name, boolean desc) {
-        Option.Builder<T> opt = Option.<T>createBuilder();
-        if (desc) opt.description(description(name).build());
-        return opt.name(WakesUtils.translatable("config.option", name));
+    private static <T> Option.Builder<T> optionOf(Class<T> optionType, String name) {
+        return Option.createBuilder(optionType)
+                .name(WakesUtils.translatable("config.option", name));
     }
 
-    private static IntegerSliderControllerBuilder integerSlider(Option<Integer> option, int min, int max) {
-        return IntegerSliderControllerBuilder.create(option)
-                .range(min, max)
-                .step(1);
+    private static IntegerSliderController integerSlider(Option<Integer> option, int min, int max) {
+        return new IntegerSliderController(option, min, max, 1);
     }
 
-    private static FloatSliderControllerBuilder floatSlider(Option<Float> option, float min, float max, float step) {
-        return FloatSliderControllerBuilder.create(option)
-                .range(min, max)
-                .step(step);
+    private static FloatSliderController floatSlider(Option<Float> option, float min, float max, float step) {
+        return new FloatSliderController(option, min, max, step);
     }
 
-    private static Option.Builder<Boolean> booleanOption(String name, boolean desc) {
-        Option.Builder<Boolean> opt = Option.<Boolean>createBuilder()
-                .controller(BooleanControllerBuilder::create);
-        if (desc) opt.description(description(name).build());
-        return opt.name(WakesUtils.translatable("config.option", name));
+    private static Option.Builder<Boolean> booleanOption(String name) {
+        return Option.createBuilder(Boolean.class)
+                .name(WakesUtils.translatable("config.option", name))
+                .controller(TickBoxController::new);
     }
 
     private static Option<EffectSpawningRule> effectSpawningRuleOption(String name) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
-        return Option.<EffectSpawningRule>createBuilder()
+        return Option.createBuilder(EffectSpawningRule.class)
                 .name(WakesUtils.translatable("config.option.effect_spawning_rules.source", name))
-                .description(description("effect_spawning_rules").build())
                 .binding(EffectSpawningRule.SIMULATION_AND_PLANES, () -> config.effectSpawningRules.get(name), val -> config.effectSpawningRules.put(name, val))
-                .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(EffectSpawningRule.class)
-                        .formatValue(val -> WakesUtils.translatable("config.option.effect_spawning_rules.effect", val.toString().toLowerCase())))
+                .controller(opt -> new EnumController(opt, val -> WakesUtils.translatable("config.option.effect_spawning_rules.effect", val.toString().toLowerCase())))
                 .build();
     }
 
@@ -239,18 +208,17 @@ public class YACLIntegration {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
         return OptionGroup.createBuilder()
                 .name(Text.of(String.valueOf(n+1)))
-                .option(optionOf(Integer.class, "interval.lower", false)
+                .option(optionOf(Integer.class, "interval.lower")
                         .binding(defaultLower, () -> config.colorIntervals.get(n).lower, config.colorIntervals.get(n)::setLower)
                         .controller(opt -> integerSlider(opt, -50, 50))
                         .build())
-                .option(optionOf(Integer.class, "interval.upper", false)
+                .option(optionOf(Integer.class, "interval.upper")
                         .binding(defaultUpper, () -> config.colorIntervals.get(n).upper, config.colorIntervals.get(n)::setUpper)
                         .controller(opt -> integerSlider(opt, -50, 50))
                         .build())
-                .option(optionOf(WakeColor.class, "interval.color", false)
+                .option(optionOf(WakeColor.class, "interval.color")
                         .binding(defaultColor, () -> config.colorIntervals.get(n).color, config.colorIntervals.get(n)::setColor)
-                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                .enumClass(WakeColor.class))
+                        .controller(EnumController::new)
                         .build())
                 .build();
     }

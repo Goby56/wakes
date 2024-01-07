@@ -1,8 +1,9 @@
 wakes:
-    yacl_missing:
-        .: Yet Another Config Lib is not in your mods folder
-        message: >
-            If you want to edit the configs you need YACL V3. Do you want to install it?
+    error:
+        yacl_missing:
+            .: Yet Another Config Lib is not in your mods folder
+            message: >
+                If you want to edit the configs you need YACL. Do you want to install it?
     blending_function:
         default: Subtle
         screen: Vibrant

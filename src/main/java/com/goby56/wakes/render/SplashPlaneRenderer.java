@@ -17,10 +17,10 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import net.minecraft.util.math.Vec3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,12 +85,13 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        Vector3f color = new Vector3f();
+        Vec3f color = new Vec3f();
         if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
             int waterCol = BiomeColors.getWaterColor(entity.getWorld(), entity.getBlockPos());
-            color.x = (float) (waterCol >> 16 & 0xFF) / 255f;
-            color.y = (float) (waterCol >> 8 & 0xFF) / 255f;
-            color.z = (float) (waterCol & 0xFF) / 255f;
+            color.set(
+                    (float) (waterCol >> 16 & 0xFF) / 255f,
+                    (float) (waterCol >> 8 & 0xFF) / 255f,
+                    (float) (waterCol & 0xFF) / 255f);
         } else {
             color.set(1f, 1f, 1f);
         }
@@ -106,7 +107,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         matrices.pop();
     }
 
-    private static void renderSurface(Matrix4f matrix, Vector3f color, int light) {
+    private static void renderSurface(Matrix4f matrix, Vec3f color, int light) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
@@ -120,7 +121,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
                                 (float) (s * vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth),
                                 (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
                                 (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
-                        .color(color.x, color.y, color.z, 1f)
+                        .color(color.getX(), color.getY(), color.getZ(), 1f)
                         .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)

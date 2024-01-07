@@ -1,7 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;

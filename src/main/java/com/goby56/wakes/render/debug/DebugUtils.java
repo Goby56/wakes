@@ -1,13 +1,9 @@
 package com.goby56.wakes.render.debug;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.coderbot.iris.vendored.joml.Vector4i;
 import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Vector4i;
-
-import java.util.Arrays;
 
 public class DebugUtils {
     public static Vector4i rgba = new Vector4i(255, 0, 255, 255);
@@ -18,7 +14,7 @@ public class DebugUtils {
 
     private static void drawLines(Vec3d[] vertices, Vec3d renderContext, boolean connect) {
         RenderSystem.enableDepthTest();
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
 
