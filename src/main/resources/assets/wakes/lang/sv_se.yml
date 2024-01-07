@@ -2,7 +2,7 @@ wakes:
     yacl_missing:
         .: Yet Another Config är inte i din "mods" mapp
         message: >
-            Om du vill redigera inställningarna måste du ha YACL V3. Vill du installera det?
+            Om du vill redigera inställningarna måste du ha YACL. Vill du installera det?
     blending_function:
         default: Subtil
         screen: Livfull
