@@ -37,7 +37,7 @@
 		"blazingly-fast-boats": "*"
 	},
 	"recommends": {
-		"modmenu": "*",
-		"yacl": "*"
+		"modmenu": ">=7.0.0",
+		"yacl": ">=3.2.0"
 	}
 }

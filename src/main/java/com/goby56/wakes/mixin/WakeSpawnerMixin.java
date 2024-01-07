@@ -3,16 +3,10 @@ package com.goby56.wakes.mixin;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
-import com.goby56.wakes.render.debug.WakesDebugRenderer;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -93,14 +87,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			return;
 		}
 
-		// TODO IMPLEMENT ALL CONFIG CONDITIONAL CHECKS (BETTER AND MORE EXHAUSTIVE APPROACH)
 		if (this.onWaterSurface) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 
 			Vec3d currPos = new Vec3d(thisEntity.getX(), this.producingWaterLevel, thisEntity.getZ());
 
-			// TODO FIX WHEN OTHER PLAYER SITS IN BOAT IT GETS OTHER PLAYER INSTEAD OF BOAT
 			this.spawnEffects(thisEntity);
 
 			this.setPrevPos(currPos);

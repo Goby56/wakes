@@ -72,6 +72,7 @@ public class SplashPlaneParticle extends Particle {
         Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
         this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
 
+        // TODO ADD DISTANCING OFFSET BETWEEN PLANES
         int t = (int) Math.floor(WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity / vel.horizontalLength());
         if (this.ticksSinceSplash > t && WakesClient.CONFIG_INSTANCE.spawnParticles) {
             this.ticksSinceSplash = 0;

@@ -27,7 +27,6 @@ public class WakesUtils {
         if (instance == null) {
             return;
         }
-        // TODO MAKE SPLASH LARGER (DEPENDENT ON ENTITY WIDTH)
         instance.insert(new WakeNode(new Vec3d(entity.getX(), ((ProducesWake) entity).producingHeight(), entity.getZ()), (int) (WakesClient.CONFIG_INSTANCE.splashStrength * entity.fallDistance)));
     }
 
