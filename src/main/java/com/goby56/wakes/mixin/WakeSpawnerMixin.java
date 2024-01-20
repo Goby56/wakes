@@ -7,14 +7,20 @@ import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Set;
 
 @Mixin(Entity.class)
 public abstract class WakeSpawnerMixin implements ProducesWake {
@@ -32,6 +38,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Unique private double verticalNumericalVelocity = 0;
 	@Unique private Float producingWaterLevel = null;
 	@Unique private SplashPlaneParticle splashPlane;
+	@Unique private boolean hasRecentlyTeleported = false;
 
 	@Override
 	public boolean onWaterSurface() {
@@ -54,8 +61,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Override
 	public Vec3d getPrevPos() {
-		if (this.prevPosOnSurface == null) return null;
-		return new Vec3d(this.prevPosOnSurface.x, this.prevPosOnSurface.y, this.prevPosOnSurface.z);
+		return this.prevPosOnSurface;
 	}
 
 	@Override
@@ -73,7 +79,19 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.splashPlane = particle;
 	}
 
-	@Inject(at = @At("HEAD"), method = "tick")
+	@Override
+	public void setRecentlyTeleported(boolean b) {
+		this.hasRecentlyTeleported = b;
+	}
+
+	// TODO FIX PLAYER TELEPORTATION CAUSING LONG WAKES
+//	@Inject(at = @At("TAIL"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FF)Z")
+//	private void onTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, CallbackInfoReturnable<Boolean> cir) {
+//		this.setRecentlyTeleported(true);
+//		System.out.printf("%s wants to teleport\n", this);
+//	}
+
+	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
 		this.onWaterSurface = this.isTouchingWater() && !this.isSubmergedInWater();
 		Entity thisEntity = ((Entity) (Object) this);
@@ -86,7 +104,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			return;
 		}
 
-		if (this.onWaterSurface) {
+		if (this.onWaterSurface && this.horizontalNumericalVelocity > 1e-3 && !this.hasRecentlyTeleported) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 
@@ -99,6 +117,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			this.producingWaterLevel = null;
 			this.prevPosOnSurface = null;
 		}
+		this.setRecentlyTeleported(false);
 	}
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")

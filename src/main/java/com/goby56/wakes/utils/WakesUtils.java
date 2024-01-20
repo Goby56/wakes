@@ -84,11 +84,6 @@ public class WakesUtils {
             }
         }
 
-        // TODO FIX ENTERING BOAT CREATES LONG WAKE
-//        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
-//            ((ProducesWake) entity).setPrevPos(null);
-//        }
-
         Vec3d prevPos = producer.getPrevPos();
         if (prevPos == null) {
             return;
