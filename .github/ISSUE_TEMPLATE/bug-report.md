@@ -1,7 +1,6 @@
 ---
 name: Bug report
-about: Ensure that enough information is provided so that the cause of the issue can
-  be found
+about: Have you found a bug with the mod? Please use this template and report it.
 title: A very informative and concise title
 labels: bug
 assignees: ''
