@@ -12,6 +12,7 @@ import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Vec3d;
@@ -61,6 +62,15 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         float r, g, b, a;
         float x, y, z;
         int light;
+        long fullTime = 0;
+        long t1 = 0;
+        long memoryTime = 0;
+        long t2 = 0;
+        long renderingTime = 0;
+        long t3 = 0;
+
+        t1 = System.nanoTime();
+
         for (WakeNode node : nodes) {
             if (node.isDead()) continue;
             if (res != node.res) continue;
@@ -68,6 +78,8 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             x = (float) screenSpace.x;
             y = (float) screenSpace.y;
             z = (float) screenSpace.z;
+
+            t2 = System.nanoTime();
 
             for (int i = 0; i < res; i++) {
                 for (int j = 0; j < res; j++) {
@@ -83,6 +95,8 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
                 }
             }
 
+            memoryTime += System.nanoTime() - t2;
+
             waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
 
@@ -97,12 +111,22 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             }
             a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendFunc.canVaryOpacity ? 1 : 0));
 
+
+            t3 = System.nanoTime();
+
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, 1f, 1f, 1f, a, light);
+
+            renderingTime += System.nanoTime() - t3;
         }
 
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableCull();
+
+        fullTime = System.nanoTime() - t1;
+        if (!nodes.isEmpty() && !MinecraftClient.getInstance().isPaused()) {
+            System.out.printf("Full time: %d, Memory time: %.2f, Rendering time: %.2f\n", fullTime, memoryTime / (float) fullTime, renderingTime / (float) fullTime);
+        }
     }
 
     private static void renderTexture(int resolution, int textureID, long texture, Matrix4f matrix, float x, float y, float z, float r, float g, float b, float a, int light) {
