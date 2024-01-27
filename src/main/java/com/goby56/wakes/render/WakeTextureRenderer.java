@@ -114,6 +114,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             t3 = System.nanoTime();
 
+            // TODO IMPLEMENT NODE TEXTURE RENDER CLUMPING (RENDER MULTIPLE NODES IN ONE QUAD/PASS)
             renderTexture(res, wakeHandler.glWakeTexId, wakeHandler.wakeImgPtr, matrix, x, y, z, r, g, b, a, light);
             renderTexture(res, wakeHandler.glFoamTexId, wakeHandler.foamImgPtr, matrix, x, y, z, 1f, 1f, 1f, a, light);
 
