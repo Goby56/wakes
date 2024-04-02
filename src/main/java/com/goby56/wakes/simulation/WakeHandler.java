@@ -1,7 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
@@ -19,18 +18,9 @@ public class WakeHandler {
 
     private final ArrayList<QuadTree<WakeNode>> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
-    public boolean resetScheduled = false;
-    public Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
-    private Resolution newResolution = null;
+    public boolean resolutionResetScheduled = false;
     private final int minY;
     private final int maxY;
-
-    public int glWakeTexId = -1;
-    public long wakeImgPtr = -1;
-    public int glFoamTexId = -1;
-    public long foamImgPtr = -1;
-
-
 
     private WakeHandler(ClientWorld world) {
         this.world = world;
@@ -58,7 +48,7 @@ public class WakeHandler {
 
     public void tick() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
-            if (this.resetScheduled) {
+            if (this.resolutionResetScheduled) {
                 this.toBeInserted.get(i).clear();
                 continue;
             }
@@ -73,13 +63,13 @@ public class WakeHandler {
                 }
             }
         }
-        if (this.resetScheduled) {
+        if (this.resolutionResetScheduled) {
             this.changeResolution();
         }
     }
 
     public void insert(WakeNode node) {
-        if (this.resetScheduled) return;
+        if (this.resolutionResetScheduled) return;
         int i = this.getArrayIndex((int) node.height);
         if (i < 0) return;
 
@@ -125,19 +115,13 @@ public class WakeHandler {
         if (wakeHandler == null) {
             return;
         }
-        wakeHandler.resetScheduled = true;
-        wakeHandler.newResolution = newRes;
+        wakeHandler.resolutionResetScheduled = true;
     }
 
     private void changeResolution() {
         this.reset();
-        this.glWakeTexId = -1;
-        this.wakeImgPtr = -1;
-        this.glFoamTexId = -1;
-        this.foamImgPtr = -1;
-        this.resolution = this.newResolution;
-        this.resetScheduled = false;
-        this.newResolution = null;
+        WakeNode.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        this.resolutionResetScheduled = false;
     }
 
     private void reset() {

@@ -7,7 +7,6 @@ import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Vec3d;
@@ -22,7 +21,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             return;
         }
         WakeHandler wakeHandler = WakeHandler.getInstance();
-        if (wakeHandler == null || wakeHandler.resetScheduled) return;
+        if (wakeHandler == null || wakeHandler.resolutionResetScheduled) return;
 
         ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
@@ -34,10 +33,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         DynamicWakeTexture wakeTexture = DynamicWakeTexture.getInstance();
 
-        int waterCol;
-        float r, g, b, a;
         float x, y, z;
-        int light;
         long fullTime;
         long t1;
         long memoryTime = 0;
@@ -49,7 +45,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         for (WakeNode node : nodes) {
             if (node.isDead()) continue;
-            if (wakeHandler.resolution.res != node.res) continue;
+            if (WakesClient.CONFIG_INSTANCE.wakeResolution.res != WakeNode.res) continue;
             Vec3d screenSpace = node.getPos().add(context.camera().getPos().negate());
             x = (float) screenSpace.x;
             y = (float) screenSpace.y;
@@ -58,9 +54,9 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             t2 = System.nanoTime();
 
-            waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
-            light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
-            a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendFunc.canVaryOpacity ? 1 : 0));
+            int waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
+            int light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
+            float a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendFunc.canVaryOpacity ? 1 : 0));
 
             wakeTexture.populatePixels(node, distance, waterCol, a);
 
@@ -69,7 +65,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             t3 = System.nanoTime();
 
             // TODO IMPLEMENT NODE TEXTURE RENDER CLUMPING (RENDER MULTIPLE NODES IN ONE QUAD/PASS)
-            wakeTexture.render(matrix, x, y, z, 1f, 1f, 1f, 1f, light);
+            wakeTexture.render(matrix, x, y, z, light);
 
             renderingTime += System.nanoTime() - t3;
         }

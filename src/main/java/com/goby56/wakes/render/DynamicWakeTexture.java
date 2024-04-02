@@ -60,7 +60,7 @@ public class DynamicWakeTexture {
         this.currentTexture = texture;
     }
 
-    public void render(Matrix4f matrix, float x, float y, float z, float r, float g, float b, float a, int light) {
+    public void render(Matrix4f matrix, float x, float y, float z, int light) {
         GlStateManager._bindTexture(currentTexture.glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -75,10 +75,10 @@ public class DynamicWakeTexture {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
-        buffer.vertex(matrix, x, y, z).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x, y, z + 1).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x + 1, y, z + 1).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x + 1, y, z).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x, y, z).color(1f, 1f, 1f, 1f).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x, y, z + 1).color(1f, 1f, 1f, 1f).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x + 1, y, z + 1).color(1f, 1f, 1f, 1f).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        buffer.vertex(matrix, x + 1, y, z).color(1f, 1f, 1f, 1f).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();
     }
