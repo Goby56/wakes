@@ -88,7 +88,6 @@ public class WakesUtils {
 //        if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
 //            ((ProducesWake) entity).setPrevPos(null);
 //        }
-
         Vec3d prevPos = producer.getPrevPos();
         if (prevPos == null) {
             return;

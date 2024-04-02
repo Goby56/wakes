@@ -1,8 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -18,7 +16,7 @@ import java.util.*;
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
-    public static int res;
+    public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
 
     private static float alpha;
     private static float beta;

@@ -41,7 +41,6 @@ public class DynamicWakeTexture {
     }
 
     public void populatePixels(WakeNode node, float distance, int waterColor, float opacity) {
-
         int lod = distToLOD(distance);
         Texture texture = lods.get(lod);
         int samples = Math.max(1, node.res / texture.res);
