@@ -67,8 +67,7 @@ public class SplashPlaneParticle extends Particle {
         this.ticksSinceSplash++;
 
         Vec3d vel = wakeProducer.getNumericalVelocity();
-        // TODO FIX GLITCHY PLANES AT YAW = 90
-        this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
+        this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         Vec3d normVel = vel.normalize();
         Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
         this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
@@ -92,9 +91,16 @@ public class SplashPlaneParticle extends Particle {
         MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
         int light = this.getBrightness(tickDelta);
 
-        float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
+        float diff = this.yaw - this.prevYaw;
+        if (diff > 180f) {
+            diff -= 360;
+        } else if (diff < -180f) {
+            diff += 360;
+        }
 
-        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180));
+        float yawLerp = (this.prevYaw + diff * tickDelta) % 360f;
+
+        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180f));
         SplashPlaneRenderer.render(this.owner, yawLerp, tickDelta, modelMatrix, light);
     }
 
