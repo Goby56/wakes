@@ -8,6 +8,7 @@ import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
@@ -17,8 +18,8 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +53,7 @@ public class SplashPlaneParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
-            if (!wakeOwner.onWaterSurface() || wakeOwner.getHorizontalVelocity() < 1e-2) {
+            if (this.owner.isRemoved() || !wakeOwner.onWaterSurface() || wakeOwner.getHorizontalVelocity() < 1e-2) {
                 this.markDead();
             } else {
                 this.aliveTick(wakeOwner);
