@@ -27,9 +27,9 @@ public enum BlendingFunction {
     }
 
     public static BlendingFunction getBlendFunc() {
-        if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-            return SCREEN;
-        }
+        // if (MinecraftClient.isFabulousGraphicsOrBetter()) {
+        //     return SCREEN;
+        // }
         return WakesClient.CONFIG_INSTANCE.blendFunc;
     }
 

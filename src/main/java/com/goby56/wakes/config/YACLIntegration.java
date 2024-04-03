@@ -51,12 +51,12 @@ public class YACLIntegration {
                                                 .build())
                                         .binding(BlendingFunction.DEFAULT, () -> config.blendFunc, val -> {
                                             config.blendFunc = val;
-                                            wakeOpacityOption.setAvailable(val.canVaryOpacity);
+                                            // wakeOpacityOption.setAvailable(val.canVaryOpacity);
                                         })
                                         .controller(opt -> EnumControllerBuilder.create(opt)
                                                 .enumClass(BlendingFunction.class)
                                                 .formatValue(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
-                                        .available(!MinecraftClient.isFabulousGraphicsOrBetter())
+                                        //.available(!MinecraftClient.isFabulousGraphicsOrBetter())
                                         .build())
                                 .option(booleanOption("use_water_blending", true)
                                         .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
