@@ -6,7 +6,6 @@ import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.config.enums.Resolution;
-import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.google.gson.Gson;
@@ -49,10 +48,6 @@ public class WakesConfig {
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
-    public boolean useWaterBlending = true;
-    public BlendingFunction blendFunc = BlendingFunction.DEFAULT;
-    public GlStateManager.SrcFactor srcFactor = GlStateManager.SrcFactor.SRC_ALPHA;
-    public GlStateManager.DstFactor dstFactor = GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),

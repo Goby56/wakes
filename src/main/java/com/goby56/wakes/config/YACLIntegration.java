@@ -3,7 +3,6 @@ package com.goby56.wakes.config;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.config.enums.Resolution;
-import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
@@ -12,29 +11,12 @@ import com.goby56.wakes.utils.*;
 import com.mojang.blaze3d.platform.GlStateManager;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
 public class YACLIntegration {
     public static Screen createScreen(Screen parent) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
-        boolean isUsingCustonBlendFunc = config.blendFunc == BlendingFunction.CUSTOM;
-        Option<Integer> wakeOpacityOption = optionOf(Integer.class, "wake_opacity", false)
-                .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
-                .controller(opt -> integerSlider(opt, 0, 100))
-                .available(config.blendFunc.canVaryOpacity)
-                .build();
-        Option<GlStateManager.SrcFactor> srcFactorOption = optionOf(GlStateManager.SrcFactor.class, "src_factor", false)
-                .binding(GlStateManager.SrcFactor.SRC_ALPHA, () -> config.srcFactor, val -> config.srcFactor = val)
-                .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(GlStateManager.SrcFactor.class))
-                .build();
-        Option<GlStateManager.DstFactor> dstFactorOption = optionOf(GlStateManager.DstFactor.class, "dst_factor", false)
-                .binding(GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, () -> config.dstFactor, val -> config.dstFactor = val)
-                .controller(opt -> EnumControllerBuilder.create(opt)
-                        .enumClass(GlStateManager.DstFactor.class))
-                .build();
         return YetAnotherConfigLib.createBuilder()
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("basic")
@@ -45,21 +27,9 @@ public class YACLIntegration {
                                                 .enumClass(Resolution.class)
                                                 .formatValue(val -> Text.of(val.toString())))
                                         .build())
-                                .option(wakeOpacityOption)
-                                .option(optionOf(BlendingFunction.class, "blending_function", false)
-                                        .description(description("blending_function", new String[]{"default", "screen", "custom"})
-                                                .build())
-                                        .binding(BlendingFunction.DEFAULT, () -> config.blendFunc, val -> {
-                                            config.blendFunc = val;
-                                            // wakeOpacityOption.setAvailable(val.canVaryOpacity);
-                                        })
-                                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                                .enumClass(BlendingFunction.class)
-                                                .formatValue(val -> WakesUtils.translatable("blending_function", val.name().toLowerCase())))
-                                        //.available(!MinecraftClient.isFabulousGraphicsOrBetter())
-                                        .build())
-                                .option(booleanOption("use_water_blending", true)
-                                        .binding(true, () -> config.useWaterBlending, val -> config.useWaterBlending = val)
+                                .option(optionOf(Integer.class, "wake_opacity", false)
+                                        .binding(100, () -> (int) (config.wakeOpacity * 100), val -> config.wakeOpacity = val / 100f)
+                                        .controller(opt -> integerSlider(opt, 0, 100))
                                         .build())
                                 .build())
                         .group(group("effect_spawning")
@@ -156,8 +126,6 @@ public class YACLIntegration {
                         .option(booleanOption("disable_mod", false)
                                 .binding(false, () -> config.disableMod, val -> config.disableMod = val)
                                 .build())
-                        .optionIf(isUsingCustonBlendFunc, srcFactorOption)
-                        .optionIf(isUsingCustonBlendFunc, dstFactorOption)
                         .group(intervalGroup(0, WakeColor.TRANSPARENT, -50, -45))
                         .group(intervalGroup(1, WakeColor.DARK_GRAY, -45, -35))
                         .group(intervalGroup(2, WakeColor.GRAY, -35, -30))

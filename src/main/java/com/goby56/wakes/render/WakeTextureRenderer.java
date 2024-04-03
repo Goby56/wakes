@@ -1,7 +1,6 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -29,8 +28,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
-        BlendingFunction.applyBlendFunc();
-
         DynamicWakeTexture wakeTexture = DynamicWakeTexture.getInstance();
 
         float x, y, z;
@@ -56,7 +53,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
             int waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             int light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
-            float a = (float) ((-Math.pow(node.t, 2) + 1) * Math.pow(WakesClient.CONFIG_INSTANCE.wakeOpacity, WakesClient.CONFIG_INSTANCE.blendFunc.canVaryOpacity ? 1 : 0));
+            float a = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
 
             wakeTexture.populatePixels(node, distance, waterCol, a);
 
@@ -70,7 +67,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             renderingTime += System.nanoTime() - t3;
         }
 
-        RenderSystem.defaultBlendFunc();
         RenderSystem.enableCull();
 
         fullTime = System.nanoTime() - t1;
