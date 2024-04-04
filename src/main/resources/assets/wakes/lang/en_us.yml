@@ -22,6 +22,7 @@ wakes:
         option:
             wake_resolution: Wake resolution
             wake_opacity: Wake opacity
+            first_person_splash_plane: First person splash plane
             blending_function: Wake style
             use_water_blending: Use water blending
             splash_plane:
@@ -64,6 +65,8 @@ wakes:
             draw_debug_boxes: Draw debug boxes
             disable_mod: Disable mod
         description:
+            first_person_splash_plane: >
+                Should the player's splash plane be seen while in first person?
             wave_propagation_factor: >
                 The impact a pixels has on its neighboring pixels inside the wakes
             wave_decay_factor: >

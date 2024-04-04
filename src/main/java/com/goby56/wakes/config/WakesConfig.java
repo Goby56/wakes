@@ -9,7 +9,6 @@ import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.google.gson.Gson;
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +47,7 @@ public class WakesConfig {
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
+    public boolean firstPersonSplashPlane = false;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),

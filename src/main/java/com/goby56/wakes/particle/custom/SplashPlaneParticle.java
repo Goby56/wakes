@@ -9,6 +9,7 @@ import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
@@ -19,7 +20,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.particle.DefaultParticleType;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +88,12 @@ public class SplashPlaneParticle extends Particle {
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         if (this.dead) return;
+        if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
+                !WakesClient.CONFIG_INSTANCE.firstPersonSplashPlane &&
+                this.owner instanceof ClientPlayerEntity) {
+            return;
+        }
+        
         MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
         int light = this.getBrightness(tickDelta);
 

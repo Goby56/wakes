@@ -8,7 +8,6 @@ import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.*;
-import com.mojang.blaze3d.platform.GlStateManager;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
 import net.minecraft.client.gui.screen.Screen;
@@ -21,6 +20,9 @@ public class YACLIntegration {
                 .title(WakesUtils.translatable("config", "title"))
                 .category(configCategory("basic")
                         .group(group("wake_appearance")
+                                .option(booleanOption("first_person_splash_plane", true)
+                                        .binding(false, () -> config.firstPersonSplashPlane, val -> config.firstPersonSplashPlane = val)
+                                        .build())
                                 .option(optionOf(Resolution.class, "wake_resolution", true)
                                         .binding(Resolution.SIXTEEN, () -> config.wakeResolution, WakeHandler::scheduleResolutionChange)
                                         .controller(opt -> EnumControllerBuilder.create(opt)
