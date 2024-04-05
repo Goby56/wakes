@@ -7,6 +7,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.screen.ScreenTexts;
+import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 
 import java.net.URI;
@@ -24,8 +25,8 @@ public class ModMenuIntegration implements ModMenuApi {
                     Util.getOperatingSystem().open(URI.create("https://modrinth.com/mod/yacl/versions"));
                 }
                 MinecraftClient.getInstance().setScreen(parent);
-            }, WakesUtils.translatable("config", "yacl_missing"),
-                    WakesUtils.translatable("config", "yacl_missing.message"),
+            }, Text.translatable(String.format("%s.%s", WakesClient.MOD_ID, "yacl_missing")),
+                    Text.translatable(String.format("%s.%s", WakesClient.MOD_ID, "yacl_missing.message")),
                     ScreenTexts.YES,
                     ScreenTexts.NO);
         }
