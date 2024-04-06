@@ -90,6 +90,17 @@ public class WakeHandler {
         return foundNodes;
     }
 
+    public int getTotal() {
+        // TODO SEEMS LIKE THERE ARE DUPLICATE NODES
+        int n = 0;
+        for (int y = 0; y < this.maxY - this.minY; y++) {
+            if (this.trees.get(y) != null) {
+                n += this.trees.get(y).count();
+            }
+        }
+        return n;
+    }
+
     public ArrayList<WakeNode> getNearby(int x, int y, int z) {
         ArrayList<WakeNode> foundNodes = new ArrayList<>();
         int i = this.getArrayIndex(y);

@@ -13,6 +13,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayList;
 
 public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
+    public static int nodesRendered = 0;
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
@@ -40,6 +41,7 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
 
         t1 = System.nanoTime();
 
+        int n = 0;
         for (WakeNode node : nodes) {
             if (node.isDead()) continue;
             if (WakesClient.CONFIG_INSTANCE.wakeResolution.res != WakeNode.res) continue;
@@ -64,10 +66,14 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             // TODO IMPLEMENT NODE TEXTURE RENDER CLUMPING (RENDER MULTIPLE NODES IN ONE QUAD/PASS)
             wakeTexture.render(matrix, x, y, z, light);
 
+            n++;
+
             renderingTime += System.nanoTime() - t3;
         }
 
         RenderSystem.enableCull();
+
+        WakeTextureRenderer.nodesRendered = n;
 
         fullTime = System.nanoTime() - t1;
         // if (!nodes.isEmpty() && !MinecraftClient.getInstance().isPaused()) {
