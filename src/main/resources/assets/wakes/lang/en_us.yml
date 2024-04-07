@@ -63,6 +63,7 @@ wakes:
             ticks_before_fill: Ticks before flood fill
             use_9_point_stencil: Use 9 point stencil for laplace operator
             draw_debug_boxes: Draw debug boxes
+            enable_depth_test: Enable depth test
             disable_mod: Disable mod
         description:
             first_person_splash_plane: >

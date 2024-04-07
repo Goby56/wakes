@@ -73,7 +73,9 @@ public class DynamicWakeTexture {
         RenderSystem.setShaderTexture(0, currentTexture.glTexId);
 
         RenderSystem.setShader(RenderType.getProgram());
-
+        if (WakesClient.CONFIG_INSTANCE.enableDepthTest) {
+            RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
+        }
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 

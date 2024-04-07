@@ -103,7 +103,9 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     private static void renderSurface(Matrix4f matrix, Vector3f color, int light) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-
+        // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
+        // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
+        // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;

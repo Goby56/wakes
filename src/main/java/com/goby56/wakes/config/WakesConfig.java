@@ -42,6 +42,7 @@ public class WakesConfig {
     public boolean use9PointStencil = true;
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
+    public boolean enableDepthTest = false;
     public RenderType renderType = RenderType.AUTO;
 
     // Appearance
