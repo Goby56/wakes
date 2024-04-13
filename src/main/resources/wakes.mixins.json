@@ -3,10 +3,11 @@
     "package": "com.goby56.wakes.mixin",
     "compatibilityLevel": "JAVA_17",
     "client": [
-        "DebugHudMixin",
-        "WakeSpawnerMixin"
+        "WakeSpawnerMixin",
+        "TameableTeleportMixin",
+        "DebugHudMixin"
     ],
     "injectors": {
         "defaultRequire": 1
-	}
+    }
 }

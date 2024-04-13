@@ -1,7 +1,6 @@
 package com.goby56.wakes.duck;
 
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
-import net.minecraft.client.particle.Particle;
 import net.minecraft.util.math.Vec3d;
 
 public interface ProducesWake {
@@ -13,5 +12,7 @@ public interface ProducesWake {
     double getHorizontalVelocity();
     double getVerticalVelocity();
     void setSplashPlane(SplashPlaneParticle particle);
+
+    void setRecentlyTeleported(boolean b);
 
 }
