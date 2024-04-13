@@ -128,7 +128,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
         for (int z = 1; z < res+1; z++) {
             for (int x = 1; x < res+1; x++) {
-                this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
+                this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
+                        + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
+                        + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1] - 3*u[1][z][x])
+                        + 2*u[1][z][x] - u[2][z][x]);
                 this.u[0][z][x] *= beta;
             }
         }

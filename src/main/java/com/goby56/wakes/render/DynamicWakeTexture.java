@@ -44,7 +44,10 @@ public class DynamicWakeTexture {
     public void populatePixels(WakeNode node, float distance, int waterColor, float opacity) {
         // TODO SAVE EACH NODE'S TEXTURE EACH TICK (HAVE THE TEXTURE READY FOR EACH FRAME)
         // May decrease rendering time but will use up more memory
-        int lod = distToLOD(distance);
+
+        // DISABLE LOD (DOESN'T LOOK GOOD YET)
+        // int lod = distToLOD(distance);
+        int lod = distToLOD(0);
         Texture texture = lods.get(lod);
         int samples = Math.max(1, WakeNode.res / texture.res);
         for (int i = 0; i < texture.res; i++) {
