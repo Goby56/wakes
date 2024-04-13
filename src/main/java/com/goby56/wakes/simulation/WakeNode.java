@@ -1,8 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -18,7 +16,7 @@ import java.util.*;
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private final WakeHandler wakeHandler = WakeHandler.getInstance();
 
-    public final int res;
+    public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
 
     private static float alpha;
     private static float beta;
@@ -44,7 +42,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
-        this.res = wakeHandler.resolution.res;
         this.initValues();
         this.x = (int) Math.floor(position.x);
         this.z = (int) Math.floor(position.z);
@@ -60,7 +57,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     private WakeNode(int x, int z, float height, int floodLevel) {
-        this.res = wakeHandler.resolution.res;
         this.initValues();
         this.x = x;
         this.z = z;
@@ -69,7 +65,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     private WakeNode(long pos, float height) {
-        this.res = wakeHandler.resolution.res;
         this.initValues();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
@@ -84,7 +79,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     public void setInitialValue(long pos, int val) {
-        float resFactor = this.res / 16f;
+        float resFactor = res / 16f;
         int[] xz = WakesUtils.longAsPos(pos);
         if (xz[0] < 0) xz[0] += res;
         if (xz[1] < 0) xz[1] += res;
@@ -105,7 +100,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     @Override
     public void tick() {
         if (this.isDead()) return;
-        if (this.age++ >= this.maxAge || this.res != wakeHandler.resolution.res) {
+        if (this.age++ >= this.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
             return;
         }
@@ -133,14 +128,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
         for (int z = 1; z < res+1; z++) {
             for (int x = 1; x < res+1; x++) {
-                if (WakesClient.CONFIG_INSTANCE.use9PointStencil) {
-                    this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
-                            + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
-                            + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1] - 3*u[1][z][x])
-                            + 2*u[1][z][x] - u[2][z][x]);
-                } else {
-                    this.u[0][z][x] = alpha * (u[1][z-1][x] + u[1][z+1][x] + u[1][z][x-1] + u[1][z][x+1] - 4*u[1][z][x]) + 2*u[1][z][x] - u[2][z][x];
-                }
+                this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
+                        + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
+                        + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1] - 3*u[1][z][x])
+                        + 2*u[1][z][x] - u[2][z][x]);
                 this.u[0][z][x] *= beta;
             }
         }
@@ -275,7 +266,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     public static class Factory {
         public static Set<WakeNode> splashNodes(Entity entity, float height) {
-            int res = WakeHandler.getInstance().resolution.res;
+            int res = WakeNode.res;
             int w = (int) (0.8 * entity.getWidth() * res / 2);
             int x = (int) (entity.getX() * res);
             int z = (int) (entity.getZ() * res);
@@ -313,7 +304,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity) {
-            int res = WakeHandler.getInstance().resolution.res;
+            int res = WakeNode.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -325,7 +316,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity, float width) {
-            int res = WakeHandler.getInstance().resolution.res;
+            int res = WakeNode.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -344,7 +335,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         public static Set<WakeNode> nodeLine(double x, double z, float height, float waveStrength, Vec3d velocity, float width) {
-            int res = WakeHandler.getInstance().resolution.res;
+            int res = WakeNode.res;
             Vec3d dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
@@ -361,13 +352,14 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
-            Resolution res = WakeHandler.getInstance().resolution;
+            int res = WakeNode.res;
+            int power = (int) (Math.log(res) / Math.log(2));
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);
-                long k = WakesUtils.posAsLong(pos[0] >> res.power, pos[1] >> res.power);
-                pos[0] %= res.res;
-                pos[1] %= res.res;
+                long k = WakesUtils.posAsLong(pos[0] >> power, pos[1] >> power);
+                pos[0] %= res;
+                pos[1] %= res;
                 long v = WakesUtils.posAsLong(pos[0], pos[1]);
                 if (pixelsInNodes.containsKey(k)) {
                     pixelsInNodes.get(k).add(v);

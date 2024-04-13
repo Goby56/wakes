@@ -6,11 +6,9 @@ import blue.endless.jankson.api.SyntaxError;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.config.enums.Resolution;
-import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.google.gson.Gson;
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,7 +39,6 @@ public class WakesConfig {
     // Debug
     public boolean disableMod = false;
     public int floodFillDistance = 3;
-    public boolean use9PointStencil = true;
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
     public RenderType renderType = RenderType.AUTO;
@@ -49,10 +46,7 @@ public class WakesConfig {
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
-    public boolean useWaterBlending = true;
-    public BlendingFunction blendFunc = BlendingFunction.DEFAULT;
-    public GlStateManager.SrcFactor srcFactor = GlStateManager.SrcFactor.SRC_ALPHA;
-    public GlStateManager.DstFactor dstFactor = GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA;
+    public boolean firstPersonSplashPlane = false;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),

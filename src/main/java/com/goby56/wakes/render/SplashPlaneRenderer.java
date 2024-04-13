@@ -2,7 +2,6 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.render.enums.BlendingFunction;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -76,7 +75,6 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
-        BlendingFunction.applyBlendFunc();
 
         matrices.push();
         float velocity = (float) Math.floor(((ProducesWake) entity).getHorizontalVelocity() * 20) / 20f;
@@ -86,14 +84,10 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
         Vector3f color = new Vector3f();
-        if (WakesClient.CONFIG_INSTANCE.useWaterBlending) {
-            int waterCol = BiomeColors.getWaterColor(entity.getWorld(), entity.getBlockPos());
-            color.x = (float) (waterCol >> 16 & 0xFF) / 255f;
-            color.y = (float) (waterCol >> 8 & 0xFF) / 255f;
-            color.z = (float) (waterCol & 0xFF) / 255f;
-        } else {
-            color.set(1f, 1f, 1f);
-        }
+        int waterCol = BiomeColors.getWaterColor(entity.getWorld(), entity.getBlockPos());
+        color.x = (float) (waterCol >> 16 & 0xFF) / 255f;
+        color.y = (float) (waterCol >> 8 & 0xFF) / 255f;
+        color.z = (float) (waterCol & 0xFF) / 255f;
 
         RenderSystem.setShaderTexture(0, tex.id);
         tex.offsetPixels(animationFrame * tex.res, (int) (progress * (tex.outlineOffset - 1)) * tex.res);
@@ -109,7 +103,9 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     private static void renderSurface(Matrix4f matrix, Vector3f color, int light) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-
+        // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
+        // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
+        // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
@@ -120,7 +116,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
                                 (float) (s * vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth),
                                 (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
                                 (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
-                        .color(color.x, color.y, color.z, 1f)
+                        .color(color.x, color.y, color.z, WakesClient.CONFIG_INSTANCE.wakeOpacity)
                         .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)

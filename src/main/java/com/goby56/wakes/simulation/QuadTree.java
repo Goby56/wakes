@@ -165,6 +165,14 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         this.SE = new QuadTree<>(x + w, z + w, w, depth + 1, this.ROOT);
     }
 
+    public int count() {
+        int n = this.nodes.size();
+        if (this.NE == null) {
+            return n;
+        }
+        return n + this.NE.count() + this.NW.count() + this.SW.count() + this.SE.count();
+    }
+
     public void prune() {
         this.nodes.forEach(T::markDead);
         this.nodes.clear();

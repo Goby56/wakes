@@ -8,6 +8,8 @@ import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
@@ -17,7 +19,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ public class SplashPlaneParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
-            if (!wakeOwner.onWaterSurface() || wakeOwner.getHorizontalVelocity() < 1e-2) {
+            if (this.owner.isRemoved() || !wakeOwner.onWaterSurface() || wakeOwner.getHorizontalVelocity() < 1e-2) {
                 this.markDead();
             } else {
                 this.aliveTick(wakeOwner);
@@ -66,8 +67,7 @@ public class SplashPlaneParticle extends Particle {
         this.ticksSinceSplash++;
 
         Vec3d vel = wakeProducer.getNumericalVelocity();
-        // TODO FIX GLITCHY PLANES AT YAW = 90
-        this.yaw = 90 - (float) (180 / Math.PI * Math.atan2(vel.z, vel.x));
+        this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         Vec3d normVel = vel.normalize();
         Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
         this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
@@ -88,12 +88,25 @@ public class SplashPlaneParticle extends Particle {
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         if (this.dead) return;
+        if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
+                !WakesClient.CONFIG_INSTANCE.firstPersonSplashPlane &&
+                this.owner instanceof ClientPlayerEntity) {
+            return;
+        }
+        
         MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
         int light = this.getBrightness(tickDelta);
 
-        float yawLerp = MathHelper.lerp(tickDelta, this.prevYaw, this.yaw);
+        float diff = this.yaw - this.prevYaw;
+        if (diff > 180f) {
+            diff -= 360;
+        } else if (diff < -180f) {
+            diff += 360;
+        }
 
-        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180));
+        float yawLerp = (this.prevYaw + diff * tickDelta) % 360f;
+
+        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180f));
         SplashPlaneRenderer.render(this.owner, yawLerp, tickDelta, modelMatrix, light);
     }
 
