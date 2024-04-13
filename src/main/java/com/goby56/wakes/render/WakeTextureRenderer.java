@@ -32,14 +32,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         DynamicWakeTexture wakeTexture = DynamicWakeTexture.getInstance();
 
         float x, y, z;
-        long fullTime;
-        long t1;
-        long memoryTime = 0;
-        long t2;
-        long renderingTime = 0;
-        long t3;
-
-        t1 = System.nanoTime();
 
         int n = 0;
         for (WakeNode node : nodes) {
@@ -51,33 +43,21 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             z = (float) screenSpace.z;
             float distance = (float) Math.sqrt(screenSpace.lengthSquared());
 
-            t2 = System.nanoTime();
-
             int waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
             int light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
             float a = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
 
             wakeTexture.populatePixels(node, distance, waterCol, a);
 
-            memoryTime += System.nanoTime() - t2;
-
-            t3 = System.nanoTime();
-
             // TODO IMPLEMENT NODE TEXTURE RENDER CLUMPING (RENDER MULTIPLE NODES IN ONE QUAD/PASS)
             wakeTexture.render(matrix, x, y, z, light);
 
             n++;
-
-            renderingTime += System.nanoTime() - t3;
         }
 
         RenderSystem.enableCull();
 
         WakeTextureRenderer.nodesRendered = n;
 
-        fullTime = System.nanoTime() - t1;
-        // if (!nodes.isEmpty() && !MinecraftClient.getInstance().isPaused()) {
-        //     System.out.printf("Full time: %d, Memory time: %.2f, Rendering time: %.2f\n", fullTime, memoryTime / (float) fullTime, renderingTime / (float) fullTime);
-        // }
     }
 }
