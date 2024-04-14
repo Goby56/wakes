@@ -3,10 +3,6 @@ wakes:
         .: Yet Another Config Lib is not in your mods folder
         message: >
             If you want to edit the configs you need YACL V3. Do you want to install it?
-    blending_function:
-        default: Subtle
-        screen: Vibrant
-        custom: Custom
     config:
         title: Wakes config
         category:
@@ -23,8 +19,6 @@ wakes:
             wake_resolution: Wake resolution
             wake_opacity: Wake opacity
             first_person_splash_plane: First person splash plane
-            blending_function: Wake style
-            use_water_blending: Use water blending
             splash_plane:
                 scale: Scale
                 offset: Offset
@@ -32,8 +26,6 @@ wakes:
                 height: Height
                 depth: Depth
                 cap_velocity: Velocity cap
-            src_factor: Source factor
-            dst_factor: Destination factor
             interval:
                 lower: Lower
                 upper: Upper
@@ -61,7 +53,6 @@ wakes:
             render_type: Shader program
             flood_fill_distance: Flood fill distance
             ticks_before_fill: Ticks before flood fill
-            use_9_point_stencil: Use 9 point stencil for laplace operator
             draw_debug_boxes: Draw debug boxes
             enable_depth_test: Enable depth test
             disable_mod: Disable mod
@@ -79,15 +70,3 @@ wakes:
             effect_spawning_rules: "Specifies which effect(s) a source (player, mob, etc) can produce. \n\nSimulation refers to the simulated waves on the water that acts as wakes. \n\nPlanes refers to the splashes that shoot out on either side."
             wake_resolution: >
                 The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
-            blending_function:
-                default: "Subtle: Muted, darker color. Opacity can be changed. Great if you don't want too much.\n"
-                screen: "Vibrant: Colors stand out more. Opacity can't be changed. \n\n*Vibrant style is automatically applied when using fabulous graphic settings\n"
-                custom: "Custom: Create your own style by specifying the source and destination factors in the debug tab. \n(Reopen config screen to see)"
-            use_water_blending: >
-                Should the wake's colors blend with the water's colors?
-            use_9_point_stencil: >
-                Old debug option. Can look good with 'subtle' wake style.
-
-
-
-
