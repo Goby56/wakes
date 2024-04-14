@@ -104,7 +104,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			return;
 		}
 
-		if (this.onWaterSurface && this.horizontalNumericalVelocity > 1e-3 && !this.hasRecentlyTeleported) {
+		if (this.onWaterSurface && !this.hasRecentlyTeleported) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 
