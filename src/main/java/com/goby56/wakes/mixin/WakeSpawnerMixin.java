@@ -75,6 +75,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
+	public void setProducingHeight(float h) {
+		this.producingWaterLevel = h;
+	}
+
+	@Override
 	public void setSplashPlane(SplashPlaneParticle particle) {
 		this.splashPlane = particle;
 	}
