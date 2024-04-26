@@ -1,0 +1,72 @@
+wakes:
+    yacl_missing:
+        .: Yet Another Config Lib no se encuentra en tu carpeta de mods
+        message: >
+            Si deseas editar las configuraciones, necesitas YACL V3. ¿Deseas instalarlo?
+    config:
+        title: Configuración de Wakes
+        category:
+            basic: Configuraciones básicas
+            advanced: Configuraciones avanzadas
+            debug: Depuración
+        group:
+            wake_appearance: Apariencia de olas
+            wake_behaviour: Comportamiento de olas
+            effect_spawning: Generación de efectos
+            splash_plane: Plano de salpicaduras
+            initial_wave_strengths: Fuerzas iniciales de las ondas
+        option:
+            wake_resolution: Resolución de las olas
+            wake_opacity: Opacidad de las olas
+            first_person_splash_plane: Plano de salpicaduras en primera persona
+            splash_plane:
+                scale: Escala
+                offset: Desplazamiento
+                width: Ancho
+                height: Altura
+                depth: Profundidad
+                cap_velocity: Límite de velocidad
+            interval:
+                lower: Inferior
+                upper: Superior
+                color: Color
+            effect_spawning_rules:
+                source:
+                    boat: Barco
+                    player: Jugador
+                    other_players: Otros jugadores
+                    mobs: Mobs
+                    items: Objetos
+                effect:
+                    simulation_and_planes: Simulación y planos
+                    only_simulation: Solo simulación
+                    only_planes: Solo planos
+                    disabled: Desactivado
+            wakes_in_running_water: Wakes en agua en movimiento
+            spawn_particles: Generar partículas
+            wave_propagation_factor: Factor de propagación de ondas
+            wave_decay_factor: Factor de decaimiento de ondas
+            initial_wave_strength:
+                wake: Fuerza de olas
+                paddle: Fuerza de remo
+                splash: Fuerza de salpicadura
+            render_type: Programa de sombreado
+            flood_fill_distance: Distancia de relleno de inundación
+            ticks_before_fill: Ticks antes del relleno de inundación
+            draw_debug_boxes: Dibujar cajas de depuración
+            enable_depth_test: Habilitar prueba de profundidad
+            disable_mod: Desactivar mod
+        description:
+            first_person_splash_plane: >
+                ¿Debería verse el plano de salpicaduras del jugador mientras está en primera persona?
+            wave_propagation_factor: >
+                El impacto que tiene un píxel en sus píxeles vecinos dentro de las olas
+            wave_decay_factor: >
+                Especifica cuánto valor de un píxel queda después de cada tick. (Escala logarítmica)
+            initial_wave_strengths: >
+                La fuerza con la que una fuente comienza a producir un ola.
+            splash_plane.cap_velocity: >
+                La velocidad en la que se alcanza el tamaño máximo del plano de salpicaduras
+            effect_spawning_rules: "Especifica qué efecto(s) puede producir una fuente (jugador, mob, etc). \n\nLa simulación se refiere a las ondas simuladas en el agua que actúan como olas. \n\nLos planos se refieren a las salpicaduras que se disparan a ambos lados."
+            wake_resolution: >
+                La resolución de píxeles de las olas. Útil para ajustar las olas para que se ajusten mejor a algunos paquetes de recursos visualmente.
