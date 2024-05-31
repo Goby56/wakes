@@ -38,6 +38,6 @@
 	},
 	"recommends": {
 		"modmenu": ">=7.0.0",
-		"yacl": ">=3.2.2"
+		"yet_another_config_lib_v3": ">=3.2.2"
 	}
 }
