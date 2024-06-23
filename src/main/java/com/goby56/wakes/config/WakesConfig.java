@@ -42,6 +42,7 @@ public class WakesConfig {
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
     public RenderType renderType = RenderType.AUTO;
+    public boolean useLODs = true;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;

@@ -56,6 +56,7 @@ wakes:
             draw_debug_boxes: Draw debug boxes
             enable_depth_test: Enable depth test
             disable_mod: Disable mod
+            use_lods: Utilize level of detail
         description:
             first_person_splash_plane: >
                 Should the player's splash plane be seen while in first person?
