@@ -102,6 +102,18 @@ public class WakeHandler {
         return n;
     }
 
+    public int getMaxDepth() {
+        int maxDepth = 0;
+        for (int y = 0; y < this.maxY - this.minY; y++) {
+            QuadTree<WakeNode> t = this.trees.get(y);
+            if (t != null) {
+                int depth = t.getDepth();
+                if (depth > maxDepth) maxDepth = depth;
+            }
+        }
+        return maxDepth;
+    }
+
     public ArrayList<QuadTree.DebugBB> getBBs() {
         ArrayList<QuadTree.DebugBB> boxes = new ArrayList<>();
         for (int y = 0; y < this.maxY - this.minY; y++) {
