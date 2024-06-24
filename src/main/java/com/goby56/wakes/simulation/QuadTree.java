@@ -191,6 +191,20 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         throw new NotImplementedException();
     }
 
+    public void getBBs(ArrayList<DebugBB> bbs, int height) {
+        bbs.add(new DebugBB(this.bounds.toBox(height), this.depth));
+        if (this.NE == null) {
+            return;
+        }
+        this.NE.getBBs(bbs, height);
+        this.NW.getBBs(bbs, height);
+        this.SW.getBBs(bbs, height);
+        this.SE.getBBs(bbs, height);
+    }
+
+    public record DebugBB(Box bb, int depth) {
+    }
+
     public record AABB(int x, int z, int width) {
         public boolean contains(int x, int z) {
             return this.x - this.width <= x && x <= this.x + this.width &&
