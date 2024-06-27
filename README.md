@@ -1,8 +1,5 @@
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/wakes?logo=modrinth&color=00AF5C)](https://modrinth.com/mod/wakes) [![CurseForge Downloads](https://img.shields.io/curseforge/dt/884267?logo=curseforge&color=ff784d)](https://www.curseforge.com/minecraft/mc-mods/wakes)
 
-## DISCLAIMER
-My time developing the mod will be quite limited up until June 2024. Updates will not be as regular. I will try migrating the mod to newer versions of Minecraft but don't expect new features.
-
 [![Download on Modrinth](https://raw.githubusercontent.com/Prospector/badges/master/modrinth-badge-72h-padded.png)](https://modrinth.com/mod/wakes)
 
 # Wakes ![Modrinth Followers](https://img.shields.io/modrinth/followers/wakes)
