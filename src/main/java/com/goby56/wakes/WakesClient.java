@@ -2,6 +2,7 @@ package com.goby56.wakes;
 
 import com.goby56.wakes.command.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
@@ -14,6 +15,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -49,6 +51,7 @@ public class WakesClient implements ClientModInitializer {
 
 		// Game events
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
+		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeTextureRenderer());

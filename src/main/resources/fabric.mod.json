@@ -29,7 +29,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": ">=1.20.0",
+		"minecraft": ">=1.20",
 		"java": ">=17",
 		"fabric-api": "*"
 	},
@@ -38,6 +38,6 @@
 	},
 	"recommends": {
 		"modmenu": ">=7.0.0",
-		"yacl": ">=3.2.0"
+		"yet_another_config_lib_v3": ">=3.2.2"
 	}
 }

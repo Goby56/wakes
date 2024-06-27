@@ -5,6 +5,7 @@ import com.goby56.wakes.config.enums.Resolution;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -101,16 +102,26 @@ public class WakeHandler {
         return n;
     }
 
-    public ArrayList<WakeNode> getNearby(int x, int y, int z) {
-        ArrayList<WakeNode> foundNodes = new ArrayList<>();
-        int i = this.getArrayIndex(y);
-        if (i < 0) return foundNodes;
-        if (this.trees.get(i) == null) {
-            return foundNodes;
+    public int getMaxDepth() {
+        int maxDepth = 0;
+        for (int y = 0; y < this.maxY - this.minY; y++) {
+            QuadTree<WakeNode> t = this.trees.get(y);
+            if (t != null) {
+                int depth = t.getDepth();
+                if (depth > maxDepth) maxDepth = depth;
+            }
         }
-        QuadTree.Circle range = new QuadTree.Circle(x, z, this.MAX_QUERY_RANGE);
-        this.trees.get(i).query(range, foundNodes);
-        return foundNodes;
+        return maxDepth;
+    }
+
+    public ArrayList<QuadTree.DebugBB> getBBs() {
+        ArrayList<QuadTree.DebugBB> boxes = new ArrayList<>();
+        for (int y = 0; y < this.maxY - this.minY; y++) {
+            if (this.trees.get(y) != null) {
+                this.trees.get(y).getBBs(boxes, y - Math.abs(this.minY));
+            }
+        }
+        return boxes;
     }
 
     private int getArrayIndex(int height) {

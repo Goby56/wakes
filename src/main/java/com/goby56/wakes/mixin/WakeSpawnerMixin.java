@@ -75,6 +75,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
+	public void setProducingHeight(float h) {
+		this.producingWaterLevel = h;
+	}
+
+	@Override
 	public void setSplashPlane(SplashPlaneParticle particle) {
 		this.splashPlane = particle;
 	}
@@ -104,7 +109,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 			return;
 		}
 
-		if (this.onWaterSurface && this.horizontalNumericalVelocity > 1e-3 && !this.hasRecentlyTeleported) {
+		if (this.onWaterSurface && !this.hasRecentlyTeleported) {
 			if (this.producingWaterLevel == null)
 				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 

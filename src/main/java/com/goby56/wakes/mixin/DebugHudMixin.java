@@ -19,6 +19,7 @@ public class DebugHudMixin {
     protected void getLeftText(CallbackInfoReturnable<List<String>> info) {
         if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
             info.getReturnValue().add(String.format("[Wakes] Rendering %d/%d wake nodes", WakeTextureRenderer.nodesRendered, WakeHandler.getInstance().getTotal()));
+            info.getReturnValue().add(String.format("[Wakes] Max tree depth: %d", WakeHandler.getInstance().getMaxDepth()));
         }
     }
 }

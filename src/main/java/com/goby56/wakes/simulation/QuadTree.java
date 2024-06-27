@@ -6,9 +6,10 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.stream.Stream;
 
 public class QuadTree<T extends Position<T> & Age<T>> {
-    private static final int CAPACITY = 16;
+    private static final int CAPACITY = 4;
 
     private final QuadTree<T> ROOT;
     private QuadTree<T> NE;
@@ -30,6 +31,10 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         this.ROOT = root == null ? this : root;
     }
 
+    public Stream<QuadTree<T>> iterateChildren() {
+        return Stream.of(this.NE, this.NW, this.SW, this.SE);
+    }
+
     public void tick() {
         Stack<Integer> indicesToDelete = new Stack<>();
         int i = 0;
@@ -49,10 +54,10 @@ public class QuadTree<T extends Position<T> & Age<T>> {
             return;
         }
 
-        this.NE.tick();
-        this.NW.tick();
-        this.SW.tick();
-        this.SE.tick();
+        this.iterateChildren().forEach(QuadTree::tick);
+        if (this.iterateChildren().allMatch(t -> t.nodes.isEmpty()) && this.nodes.isEmpty()) {
+            this.prune();
+        }
     }
 
     private void tryAdd(T node) {
@@ -90,7 +95,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         }
 
         if (this.NE == null) {
-            this.subdivide();
+            if (!this.subdivide()) return false;
         }
 
         if (this.NE.insert(node)) return true;
@@ -111,10 +116,8 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         if (this.NE == null) {
             return;
         }
-        this.NE.query(range, output);
-        this.NW.query(range, output);
-        this.SW.query(range, output);
-        this.SE.query(range, output);
+
+        this.iterateChildren().forEach(t -> t.query(range, output));
     }
 
     public void query(Circle range, ArrayList<T> output) {
@@ -130,10 +133,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         if (this.NE == null) {
             return;
         }
-        this.NE.query(range, output);
-        this.NW.query(range, output);
-        this.SW.query(range, output);
-        this.SE.query(range, output);
+        this.iterateChildren().forEach(t -> t.query(range, output));
     }
 
     public void query(Frustum frustum, int y, ArrayList<T> output) {
@@ -148,21 +148,20 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         if (this.NE == null) {
             return;
         }
-        this.NE.query(frustum, y, output);
-        this.NW.query(frustum, y, output);
-        this.SW.query(frustum, y, output);
-        this.SE.query(frustum, y, output);
+
+        this.iterateChildren().forEach(t -> t.query(frustum, y, output));
     }
 
-    private void subdivide() {
+    private boolean subdivide() {
+        if (this.bounds.width <= Math.sqrt(CAPACITY)) return false;
         int x = this.bounds.x;
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
-        // TODO FIX IF WIDTH BECOMES SMALLER THAN 1 (POTENTIALLY)
         this.NE = new QuadTree<>(x + w, z - w, w, depth + 1, this.ROOT);
         this.NW = new QuadTree<>(x - w, z - w, w, depth + 1, this.ROOT);
         this.SW = new QuadTree<>(x - w, z + w, w, depth + 1, this.ROOT);
         this.SE = new QuadTree<>(x + w, z + w, w, depth + 1, this.ROOT);
+        return true;
     }
 
     public int count() {
@@ -173,6 +172,13 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         return n + this.NE.count() + this.NW.count() + this.SW.count() + this.SE.count();
     }
 
+    public int getDepth() {
+        if (this.NE == null) {
+            return this.depth;
+        }
+        return this.iterateChildren().mapToInt(QuadTree::getDepth).max().getAsInt();
+    }
+
     public void prune() {
         this.nodes.forEach(T::markDead);
         this.nodes.clear();
@@ -180,15 +186,24 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         if (this.NE == null) {
             return;
         }
-        this.NE.prune();
-        this.NW.prune();
-        this.SW.prune();
-        this.SE.prune();
+        this.iterateChildren().forEach(QuadTree::prune);
+        this.NE = this.NW = this.SW = this.SE = null;
     }
 
     private void distribute() {
         // TODO METHOD THAT DISTRIBUTES METHOD CALLS TO ALL BRANCHES
         throw new NotImplementedException();
+    }
+
+    public void getBBs(ArrayList<DebugBB> bbs, int height) {
+        bbs.add(new DebugBB(this.bounds.toDebugBox(height), this.depth));
+        if (this.NE == null) {
+            return;
+        }
+        this.iterateChildren().forEach(t -> t.getBBs(bbs, height));
+    }
+
+    public record DebugBB(Box bb, int depth) {
     }
 
     public record AABB(int x, int z, int width) {
@@ -213,8 +228,13 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         }
 
         public Box toBox(int y) {
-            return new Box(this.x - this.width, y, this.z - this.width,
-                           this.x + this.width, y + 1, this.z + this.width);
+            return new Box(this.x - this.width, y - 0.5, this.z - this.width,
+                           this.x + this.width, y + 0.5, this.z + this.width);
+        }
+
+        public Box toDebugBox(int y) {
+            return new Box(this.x - this.width + 0.1, y - 1.2, this.z - this.width + 0.1,
+                           this.x + this.width - 0.1, y - 1.23, this.z + this.width - 0.1);
         }
     }
 

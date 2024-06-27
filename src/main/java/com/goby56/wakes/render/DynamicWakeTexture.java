@@ -19,61 +19,41 @@ import java.util.ArrayList;
 
 public class DynamicWakeTexture {
 
-    private static DynamicWakeTexture INSTANCE = null;
-    private final ArrayList<Texture> lods = new ArrayList<>();
-    private Texture currentTexture = null;
+    public int res;
+    public int glTexId;
+    public long imgPtr;
 
-    private DynamicWakeTexture() {
-        for (int i = 5; i >= 0; i--) {
-            lods.add(new Texture((int) Math.pow(2, i)));
-        }
+    public DynamicWakeTexture(int resolution) {
+        this.res = resolution;
+        this.glTexId = TextureUtil.generateTextureId();
+        this.imgPtr = MemoryUtil.nmemAlloc((long) resolution * resolution * 4);
+
+        GlStateManager._bindTexture(this.glTexId);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LOD, 0);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
+
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
+        GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
+
+        GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, resolution, resolution, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
     }
 
-    public static DynamicWakeTexture getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new DynamicWakeTexture();
-        }
-        return INSTANCE;
-    }
-
-    private static int distToLOD(float distance) {
-        int pow = WakesClient.CONFIG_INSTANCE.wakeResolution.power;
-        return (int) Math.min(5, Math.floor(pow * (Math.exp(distance / (16 * pow)) - 2) + 5));
-    }
-
-    public void populatePixels(WakeNode node, float distance, int waterColor, float opacity) {
-        // TODO SAVE EACH NODE'S TEXTURE EACH TICK (HAVE THE TEXTURE READY FOR EACH FRAME)
-        // May decrease rendering time but will use up more memory
-
-        // DISABLE LOD (DOESN'T LOOK GOOD YET)
-        // int lod = distToLOD(distance);
-        int lod = distToLOD(0);
-        Texture texture = lods.get(lod);
-        int samples = Math.max(1, WakeNode.res / texture.res);
-        for (int i = 0; i < texture.res; i++) {
-            for (int j = 0; j < texture.res; j++) {
-                float avg = 0;
-                for (int dy = 0; dy < samples; dy++) {
-                    for (int dx = 0; dx < samples; dx++) {
-                        avg = (node.u[0][i + dy + 1][j + dx + 1] + node.u[1][i + dy + 1][j + dx + 1] + node.u[2][i + dy + 1][j + dx + 1]) / 3;
-                    }
-                }
-                int color = WakeColor.getColor(avg / (samples * samples), waterColor, opacity);
-                MemoryUtil.memPutInt(texture.imgPtr + (((i*(long) texture.res)+j)*4), color);
-            }
-        }
-        this.currentTexture = texture;
+    public static DynamicWakeTexture fromDist(float distance) {
+        int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        return new DynamicWakeTexture((int) Math.ceil(res * Math.exp(-distance / res)));
     }
 
     public void render(Matrix4f matrix, float x, float y, float z, int light) {
-        GlStateManager._bindTexture(currentTexture.glTexId);
+        GlStateManager._bindTexture(this.glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
-        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, 0, 0, currentTexture.res, currentTexture.res, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, currentTexture.imgPtr);
+        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, 0, 0, this.res, this.res, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, this.imgPtr);
 
-        RenderSystem.setShaderTexture(0, currentTexture.glTexId);
+        RenderSystem.setShaderTexture(0, this.glTexId);
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
 
@@ -91,29 +71,5 @@ public class DynamicWakeTexture {
         buffer.vertex(matrix, x + 1, y, z).color(1f, 1f, 1f, 1f).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();
-    }
-
-    private static class Texture {
-        public int res;
-        public int glTexId;
-        public long imgPtr;
-
-        public Texture(int resolution) {
-            this.res = resolution;
-            this.glTexId = TextureUtil.generateTextureId();
-            this.imgPtr = MemoryUtil.nmemAlloc((long) resolution * resolution * 4);
-
-            GlStateManager._bindTexture(this.glTexId);
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_LOD, 0);
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LOD, 0);
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, 0f);
-
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
-            GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
-
-            GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, resolution, resolution, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
-        }
-
     }
 }

@@ -91,22 +91,24 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
 
         RenderSystem.setShaderTexture(0, tex.id);
         tex.offsetPixels(animationFrame * tex.res, (int) (progress * (tex.outlineOffset - 1)) * tex.res);
-        renderSurface(matrix, color, light);
+        renderSurface(matrix, color, light, true);
 
         color.set(1f, 1f, 1f);
         tex.offsetPixels(animationFrame * tex.res, ((int) (progress * (tex.outlineOffset - 1)) + tex.outlineOffset) * tex.res);
-        renderSurface(matrix, color, light);
+        renderSurface(matrix, color, light, false);
 
         matrices.pop();
     }
 
-    private static void renderSurface(Matrix4f matrix, Vector3f color, int light) {
+    private static void renderSurface(Matrix4f matrix, Vector3f color, int light, boolean slightlyTransparent) {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
+        float opacity = WakesClient.CONFIG_INSTANCE.wakeOpacity;
+        opacity *= slightlyTransparent ? 0.9f : 1f;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
             for (int i = 0; i < vertices.size(); i++) {
@@ -116,7 +118,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
                                 (float) (s * vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth),
                                 (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
                                 (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
-                        .color(color.x, color.y, color.z, WakesClient.CONFIG_INSTANCE.wakeOpacity)
+                        .color(color.x, color.y, color.z, opacity)
                         .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)
@@ -126,6 +128,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         }
 
         RenderSystem.disableCull();
+        RenderSystem.enableDepthTest();
         Tessellator.getInstance().draw();
         RenderSystem.enableCull();
     }

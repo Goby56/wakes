@@ -3,10 +3,6 @@ wakes:
         .: Yet Another Config är inte i din "mods" mapp
         message: >
             Om du vill redigera inställningarna måste du ha YACL V3. Vill du installera det?
-    blending_function:
-        default: Subtil
-        screen: Livfull
-        custom: Anpassad
     config:
         title: Wakes inställningar
         category:
@@ -20,10 +16,9 @@ wakes:
             splash_plane: Försvall
             initial_wave_strengths: Initial vågstyrka
         option:
-            wake_resolution: Svallkvalitet
+            wake_resolution: Svallupplösning
             wake_opacity: Svallgenomskinlighet
-            blending_function: Svallstil
-            use_water_blending: Anta vattnets färg
+            first_person_splash_plane: Försvall i förstaperson
             splash_plane:
                 scale: Skala
                 offset: Offset
@@ -31,8 +26,6 @@ wakes:
                 height: Höjd
                 depth: Djup
                 cap_velocity: Hastighetsgräns
-            src_factor: Källfaktor
-            dst_factor: Slutfaktor
             interval:
                 lower: Lägre
                 upper: Övre
@@ -58,13 +51,13 @@ wakes:
                 paddle: Årstryka
                 splash: Stänkstyrka
             render_type: Shaderprogram
-            flood_fill_distance: \"Flood fill" distans
-            ticks_before_fill: Tick innan "flood fill"
-            use_9_point_stencil: Använd 9-punkts stencil för laplace operator
-            
+            flood_fill_distance: "'Flood fill' distans"
+            ticks_before_fill: Ticks innan 'flood fill'
             draw_debug_boxes: Rita debug lådor
-            disable_mod: Inaktivera modd
+            disable_mod: Inaktivera mod
         description:
+            first_person_splash_plane: >
+                Ska spelaren försvall synas i förstaperson perspektivet?
             wave_propagation_factor: >
                 Påverkan en pixel har på dess angränsande pixlar inuti vågen.
             wave_decay_factor: >
@@ -75,16 +68,4 @@ wakes:
                 Hastigheten då den maximala storleken av försvallet nås.
             effect_spawning_rules: "Avgör vilka effekter en källa (dvs. spelare, varelser, osv.) kan producera. \n\nSimulation syftar de simulerade vågorna som ska efterlikna svall. \n\nFörsvall syftar på de svall som visas längst fram i båtens färdriktning."                  
             wake_resolution: >
-                Upplösningen av svallet som ritas på vattenytan. Kan ändras för att bättre passa in med olika resurspaket. 
-            blending_function:
-                default: "Subtil: Nertonade, mörkare färger. Svallgenomskinlighet kan ändras.\n"
-                screen: "Livfull: Colors stand out more. Svallgenomskinlighet inte kan ändras. \n\n*Livfull stil är automatisk påsatt när den fabulösa grafikinställningen används\n"
-                custom: "Anpassad: Skapa din egna stil genom att specificera käll- och slutfaktor i Debug fliken. \n(Återöppna denna flik för att se)"
-            use_water_blending: >
-                Bör svallets färg blandas med vattnets färg?
-            use_9_point_stencil: >
-                Gammal debuginställning.
-
-
-
-
+                Upplösningen av svallet som ritas på vattenytan. Kan ändras för att bättre passa in med olika resurspaket.

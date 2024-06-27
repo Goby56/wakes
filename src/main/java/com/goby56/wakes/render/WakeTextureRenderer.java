@@ -29,8 +29,6 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
-        DynamicWakeTexture wakeTexture = DynamicWakeTexture.getInstance();
-
         float x, y, z;
 
         int n = 0;
@@ -42,15 +40,26 @@ public class WakeTextureRenderer implements WorldRenderEvents.AfterTranslucent {
             y = (float) screenSpace.y;
             z = (float) screenSpace.z;
             float distance = (float) Math.sqrt(screenSpace.lengthSquared());
+            node.distanceFromCamera = distance;
+            if (node.tex == null) {
+                continue;
+            }
 
-            int waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
+            // DynamicWakeTexture tex = null;
+            //
+            // if (WakesClient.CONFIG_INSTANCE.storeTexturesPerNode && node.tex != null) {
+            //     tex = node.tex;
+            // }
+            // else {
+            //     int waterCol = BiomeColors.getWaterColor(context.world(), node.blockPos());
+            //     float a = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+            //     tex
+            //     wakeTexture.populatePixels(node, distance, waterCol, a);
+            // }
+
             int light = WorldRenderer.getLightmapCoordinates(context.world(), node.blockPos());
-            float a = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
-
-            wakeTexture.populatePixels(node, distance, waterCol, a);
-
+            node.tex.render(matrix, x, y, z, light);
             // TODO IMPLEMENT NODE TEXTURE RENDER CLUMPING (RENDER MULTIPLE NODES IN ONE QUAD/PASS)
-            wakeTexture.render(matrix, x, y, z, light);
 
             n++;
         }
