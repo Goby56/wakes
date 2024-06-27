@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 public class QuadTree<T extends Position<T> & Age<T>> {
-    private static final int CAPACITY = 64;
+    private static final int CAPACITY = 16;
 
     private final QuadTree<T> ROOT;
     private QuadTree<T> NE;
