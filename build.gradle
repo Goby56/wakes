@@ -67,7 +67,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-	modImplementation("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}") {
+	modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}") {
 		exclude(group: "com.twelvemonkeys.common")
 		exclude(group: "com.twelvemonkeys.imageio")
 	}

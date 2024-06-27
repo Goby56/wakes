@@ -57,19 +57,18 @@ public class DynamicWakeTexture {
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
 
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder bufBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
         y = MinecraftClient.isFabulousGraphicsOrBetter() ? y - 1e-2f : y;
         // Render below water because changing opacity when using fabulous settings makes it completely transparent
         // Temporary fix as it only moves the problem to when looking from underneath
         // Will not give completely white foam parts on wakes
         // TODO FIX ^
-        buffer.vertex(matrix, x, y, z).color(1f, 1f, 1f, 1f).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x, y, z + 1).color(1f, 1f, 1f, 1f).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x + 1, y, z + 1).color(1f, 1f, 1f, 1f).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, x + 1, y, z).color(1f, 1f, 1f, 1f).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f).next();
+        bufBuilder.vertex(matrix, x, y, z).color(1f, 1f, 1f, 1f).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f);
+        bufBuilder.vertex(matrix, x, y, z + 1).color(1f, 1f, 1f, 1f).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f);
+        bufBuilder.vertex(matrix, x + 1, y, z + 1).color(1f, 1f, 1f, 1f).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f);
+        bufBuilder.vertex(matrix, x + 1, y, z).color(1f, 1f, 1f, 1f).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(0f, 1f, 0f);
 
-        Tessellator.getInstance().draw();
+        BufferRenderer.drawWithGlobalProgram(bufBuilder.end());
     }
 }

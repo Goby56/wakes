@@ -2,18 +2,13 @@ package com.goby56.wakes.event;
 
 import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BoatItem;
-import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
-
 import java.util.Random;
 
 public class PickBoat implements ClientPickBlockGatherCallback {
@@ -39,6 +34,6 @@ public class PickBoat implements ClientPickBlockGatherCallback {
 
     private ItemStack getBoatFromType(BoatEntity.Type type) {
         String waterCraft = type == BoatEntity.Type.BAMBOO ? "raft" : "boat";
-        return new ItemStack(Registries.ITEM.get(new Identifier(type.toString() + "_" + waterCraft)));
+        return new ItemStack(Registries.ITEM.get(Identifier.of(type.toString() + "_" + waterCraft)));
     }
 }
