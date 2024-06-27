@@ -4,26 +4,20 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.simulation.QuadTree;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.debug.ChunkBorderDebugRenderer;
 import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
-        if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
+        if (WakesClient.CONFIG_INSTANCE.debugMode) {
             WakeHandler wakeHandler = WakeHandler.getInstance();
             int maxTreeDepth = wakeHandler.getMaxDepth();
             for (QuadTree.DebugBB debugBox : wakeHandler.getBBs()) {

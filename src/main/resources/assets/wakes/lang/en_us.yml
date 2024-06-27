@@ -53,7 +53,7 @@ wakes:
             render_type: Shader program
             flood_fill_distance: Flood fill distance
             ticks_before_fill: Ticks before flood fill
-            draw_debug_boxes: Draw debug boxes
+            debug_mode: Use debug mode
             enable_depth_test: Enable depth test
             disable_mod: Disable mod
             use_lods: Utilize level of detail

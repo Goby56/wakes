@@ -21,10 +21,10 @@ public class WakesConfig {
     // Spawning
     public Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
             "boat", EffectSpawningRule.SIMULATION_AND_PLANES,
-            "player", EffectSpawningRule.SIMULATION_AND_PLANES,
-            "other_players", EffectSpawningRule.SIMULATION_AND_PLANES,
-            "mobs", EffectSpawningRule.SIMULATION_AND_PLANES,
-            "items", EffectSpawningRule.SIMULATION_AND_PLANES
+            "player", EffectSpawningRule.ONLY_SIMULATION,
+            "other_players", EffectSpawningRule.ONLY_SIMULATION,
+            "mobs", EffectSpawningRule.ONLY_SIMULATION,
+            "items", EffectSpawningRule.ONLY_SIMULATION
     ));
     public boolean wakesInRunningWater = false;
 
@@ -40,9 +40,9 @@ public class WakesConfig {
     public boolean disableMod = false;
     public int floodFillDistance = 3;
     public int ticksBeforeFill = 2;
-    public boolean drawDebugBoxes = false;
+    public boolean debugMode = false;
     public RenderType renderType = RenderType.AUTO;
-    public boolean useLODs = true;
+    public boolean useLODs = false;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
