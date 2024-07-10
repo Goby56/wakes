@@ -35,11 +35,11 @@ public class YACLIntegration {
                                         .build())
                                 .build())
                         .group(group("effect_spawning")
-                                .option(effectSpawningRuleOption("boat"))
-                                .option(effectSpawningRuleOption("player"))
-                                .option(effectSpawningRuleOption("other_players"))
-                                .option(effectSpawningRuleOption("mobs"))
-                                .option(effectSpawningRuleOption("items"))
+                                .option(effectSpawningRuleOption("boat", EffectSpawningRule.SIMULATION_AND_PLANES))
+                                .option(effectSpawningRuleOption("player", EffectSpawningRule.ONLY_SIMULATION))
+                                .option(effectSpawningRuleOption("other_players", EffectSpawningRule.ONLY_SIMULATION))
+                                .option(effectSpawningRuleOption("mobs", EffectSpawningRule.ONLY_SIMULATION))
+                                .option(effectSpawningRuleOption("items", EffectSpawningRule.ONLY_SIMULATION))
                                 .option(booleanOption("wakes_in_running_water", false)
                                         .binding(false, () -> config.wakesInRunningWater, val -> config.wakesInRunningWater = val)
                                         .build())
@@ -192,12 +192,12 @@ public class YACLIntegration {
         return opt.name(WakesUtils.translatable("config.option", name));
     }
 
-    private static Option<EffectSpawningRule> effectSpawningRuleOption(String name) {
+    private static Option<EffectSpawningRule> effectSpawningRuleOption(String name, EffectSpawningRule defaultOpt) {
         WakesConfig config = WakesClient.CONFIG_INSTANCE;
         return Option.<EffectSpawningRule>createBuilder()
                 .name(WakesUtils.translatable("config.option.effect_spawning_rules.source", name))
                 .description(description("effect_spawning_rules").build())
-                .binding(EffectSpawningRule.SIMULATION_AND_PLANES, () -> config.effectSpawningRules.get(name), val -> config.effectSpawningRules.put(name, val))
+                .binding(defaultOpt, () -> config.effectSpawningRules.get(name), val -> config.effectSpawningRules.put(name, val))
                 .controller(opt -> EnumControllerBuilder.create(opt)
                         .enumClass(EffectSpawningRule.class)
                         .formatValue(val -> WakesUtils.translatable("config.option.effect_spawning_rules.effect", val.toString().toLowerCase())))
