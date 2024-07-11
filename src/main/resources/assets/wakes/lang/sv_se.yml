@@ -54,6 +54,7 @@ wakes:
             flood_fill_distance: "'Flood fill' distans"
             ticks_before_fill: Ticks innan 'flood fill'
             draw_debug_boxes: Rita debug lådor
+            pick_boat: Gör det möjligt att plocka båtar från vatten
             disable_mod: Inaktivera mod
         description:
             first_person_splash_plane: >

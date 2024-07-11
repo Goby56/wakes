@@ -54,6 +54,7 @@ wakes:
             flood_fill_distance: Distancia de relleno de inundación
             ticks_before_fill: Ticks antes del relleno de inundación
             draw_debug_boxes: Dibujar cajas de depuración
+            pick_boat: Permitir recoger barcos del agua
             enable_depth_test: Habilitar prueba de profundidad
             disable_mod: Desactivar mod
         description:

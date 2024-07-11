@@ -54,6 +54,7 @@ wakes:
             flood_fill_distance: Flood fill distance
             ticks_before_fill: Ticks before flood fill
             debug_mode: Use debug mode
+            pick_boat: Enable picking boats from water
             enable_depth_test: Enable depth test
             disable_mod: Disable mod
             use_lods: Utilize level of detail
