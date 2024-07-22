@@ -5,15 +5,12 @@ import com.goby56.wakes.config.enums.Resolution;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.Queue;
 
 public class WakeHandler {
-    public final int MAX_QUERY_RANGE = 10;
-
     private static WakeHandler INSTANCE;
     public World world;
 
@@ -75,20 +72,20 @@ public class WakeHandler {
         if (i < 0) return;
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree<>(0, 0, 30000000));
+            this.trees.add(i, new QuadTree<>());
         }
 
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<WakeNode> getVisible(Frustum frustum) {
-        ArrayList<WakeNode> foundNodes = new ArrayList<>();
+    public ArrayList<Brick<WakeNode>> getVisible(Frustum frustum) {
+        ArrayList<Brick<WakeNode>> foundBricks = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
-                this.trees.get(i).query(frustum, i + this.minY, foundNodes);
+                this.trees.get(i).query(frustum, i + this.minY, foundBricks);
             }
         }
-        return foundNodes;
+        return foundBricks;
     }
 
     public int getTotal() {
@@ -102,23 +99,11 @@ public class WakeHandler {
         return n;
     }
 
-    public int getMaxDepth() {
-        int maxDepth = 0;
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            QuadTree<WakeNode> t = this.trees.get(y);
-            if (t != null) {
-                int depth = t.getDepth();
-                if (depth > maxDepth) maxDepth = depth;
-            }
-        }
-        return maxDepth;
-    }
-
     public ArrayList<QuadTree.DebugBB> getBBs() {
         ArrayList<QuadTree.DebugBB> boxes = new ArrayList<>();
         for (int y = 0; y < this.maxY - this.minY; y++) {
             if (this.trees.get(y) != null) {
-                this.trees.get(y).getBBs(boxes, y - Math.abs(this.minY));
+                this.trees.get(y).getBrickBBs(boxes, y - Math.abs(this.minY));
             }
         }
         return boxes;

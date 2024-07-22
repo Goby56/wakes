@@ -1,5 +1,7 @@
 package com.goby56.wakes.simulation;
 
+import net.minecraft.util.math.Vec2f;
+
 import java.util.*;
 
 public class Brick<T extends Position<T> & Age<T>> implements Iterable<T> {
@@ -9,11 +11,18 @@ public class Brick<T extends Position<T> & Age<T>> implements Iterable<T> {
 
     public int occupied = 0;
 
-    public Brick(int capacity) {
-        assert (int) (Math.log(capacity) / Math.log(2)) % 2 == 0;
-        this.dim = (int) Math.sqrt(capacity);
+    public Brick(int width) {
+        this.dim = width;
         this.capacity = dim * dim;
         this.nodes = new ArrayList<>(capacity);
+    }
+
+    public boolean tick() {
+        return true;
+    }
+
+    public T get_global(int x, int z) {
+        return this.get(x % this.dim, z % this.dim);
     }
 
     public T get(int x, int z) {
