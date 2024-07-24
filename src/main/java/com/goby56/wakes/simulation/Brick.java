@@ -1,101 +1,62 @@
 package com.goby56.wakes.simulation;
 
-import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 
-import java.util.*;
-
-public class Brick<T extends Position<T> & Age<T>> implements Iterable<T> {
-    private final ArrayList<T> nodes;
+public class Brick {
+    public int[] bitMask = new int[32];
+    private final WakeNode[][] nodes;
     public final int capacity;
-    private final int dim;
+    public final int dim;
 
     public int occupied = 0;
 
-    public Brick(int width) {
-        this.dim = width;
+    private final int x;
+    private final int z;
+
+    public Brick(int x, int z) {
+        this.dim = 32;
         this.capacity = dim * dim;
-        this.nodes = new ArrayList<>(capacity);
+        this.nodes = new WakeNode[dim][dim];
+        this.x = x;
+        this.z = z;
     }
 
     public boolean tick() {
-        return true;
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                if (nodes[i][j] == null) continue;
+                nodes[i][j].tick();
+            }
+        }
+        return occupied != 0;
     }
 
-    public T get_global(int x, int z) {
-        return this.get(x % this.dim, z % this.dim);
+    public Vec3d getPos() {
+        return new Vec3d(this.x, 0, this.z);
     }
 
-    public T get(int x, int z) {
-        return this.get(dim * z + x);
+    public WakeNode get(int x, int z) {
+        return nodes[x][z];
     }
 
-    protected T get(int i) {
-        return this.nodes.get(i);
+    public void insert(WakeNode node) {
+       this.set(Math.floorMod(node.x(), dim), Math.floorMod(node.z(), dim), node);
     }
 
-    public void insert(T node) {
-       this.set(node.x() % this.dim, node.z() % this.dim, node);
-    }
-    protected void set(int x, int z, T node) {
-        this.set(dim * z + x, node);
-    }
-
-    protected void set(int i, T node) {
-        this.nodes.set(i, node);
-        if (node != null) this.occupied++;
+    protected void set(int x, int z, WakeNode node) {
+        boolean wasNull = nodes[x][z] == null;
+        nodes[x][z] = node;
+        if (node == null) {
+            bitMask[x] &= ~(1 << z);
+            if (!wasNull) this.occupied--;
+        } else {
+            bitMask[x] |= (1 << z);
+            if (wasNull) this.occupied++;
+        }
     }
 
     public void clear(int x, int z) {
-        this.clear(dim * z + x);
+        this.set(x, z, null);
     }
 
-    public void clear(int i) {
-        this.nodes.set(i, null);
-        this.occupied--;
-    }
-
-    public void clear() {
-        for (int i = 0; i < this.nodes.size(); i++) {
-            this.clear(i);
-        }
-        this.occupied = 0;
-    }
-
-    public boolean isEmpty() {
-        return nodes.stream().allMatch(Objects::isNull);
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-        return new BrickIterator<>(this);
-    }
-}
-
-class BrickIterator<T extends Position<T> & Age<T>> implements Iterator<T> {
-    Brick<T> brick;
-    int index;
-    int found;
-
-    public BrickIterator(Brick<T> brick) {
-        this.brick = brick;
-        this.index = 0;
-        this.found = 0;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return found < brick.occupied;
-    }
-
-    @Override
-    public T next() {
-        if (!this.hasNext()) throw new NoSuchElementException("Brick has no more nodes");
-        T next = brick.get(index++);
-        if (next == null) {
-            return this.next();
-        } else {
-            found++;
-            return next;
-        }
-    }
 }

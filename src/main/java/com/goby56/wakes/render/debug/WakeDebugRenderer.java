@@ -23,22 +23,22 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
-        if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
-            WakeHandler wakeHandler = WakeHandler.getInstance();
-            int maxTreeDepth = wakeHandler.getMaxDepth();
-            for (QuadTree.DebugBB debugBox : wakeHandler.getBBs()) {
-                float depthFactor = (float) debugBox.depth() / maxTreeDepth;
-                var col = Color.getHSBColor(depthFactor, 1f, 1f).getRGBColorComponents(null);
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
-                        debugBox.bb().offset(context.camera().getPos().negate().add(0, depthFactor * 0.04, 0)),
-                        col[0], col[1], col[2], 0.5f * depthFactor * depthFactor);
-            }
-            ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
-            for (WakeNode node : nodes) {
-                Vec3d pos = node.getPos().add(context.camera().getPos().negate());
-                Box box = new Box(pos.x, pos.y - 0.1, pos.z, pos.x + 1, pos.y - 0.2, pos.z + 1);
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(), box, 1f, 1f, 1f, 0.6f);
-            }
-        }
+        //if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
+        //    WakeHandler wakeHandler = WakeHandler.getInstance();
+        //    int maxTreeDepth = wakeHandler.getMaxDepth();
+        //    for (QuadTree.DebugBB debugBox : wakeHandler.getBBs()) {
+        //        float depthFactor = (float) debugBox.depth() / maxTreeDepth;
+        //        var col = Color.getHSBColor(depthFactor, 1f, 1f).getRGBColorComponents(null);
+        //        DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
+        //                debugBox.bb().offset(context.camera().getPos().negate().add(0, depthFactor * 0.04, 0)),
+        //                col[0], col[1], col[2], 0.5f * depthFactor * depthFactor);
+        //    }
+        //    ArrayList<WakeNode> nodes = wakeHandler.getVisible(context.frustum());
+        //    for (WakeNode node : nodes) {
+        //        Vec3d pos = node.getPos().add(context.camera().getPos().negate());
+        //        Box box = new Box(pos.x, pos.y - 0.1, pos.z, pos.x + 1, pos.y - 0.2, pos.z + 1);
+        //        DebugRenderer.drawBox(context.matrixStack(), context.consumers(), box, 1f, 1f, 1f, 0.6f);
+        //    }
+        //}
     }
 }

@@ -14,7 +14,7 @@ public class WakeHandler {
     private static WakeHandler INSTANCE;
     public World world;
 
-    private final ArrayList<QuadTree<WakeNode>> trees;
+    private final ArrayList<QuadTree> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
     public boolean resolutionResetScheduled = false;
     private final int minY;
@@ -50,14 +50,14 @@ public class WakeHandler {
                 this.toBeInserted.get(i).clear();
                 continue;
             }
-            QuadTree<WakeNode> tree = this.trees.get(i);
+            QuadTree tree = this.trees.get(i);
             if (tree != null) {
                 tree.tick();
 
 
-                Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
+                Queue pendingNodes = this.toBeInserted.get(i);
                 while (pendingNodes.peek() != null) {
-                    tree.insert(pendingNodes.poll());
+                    tree.insert((WakeNode) pendingNodes.poll());
                 }
             }
         }
@@ -72,14 +72,14 @@ public class WakeHandler {
         if (i < 0) return;
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree<>());
+            this.trees.add(i, new QuadTree());
         }
 
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<Brick<WakeNode>> getVisible(Frustum frustum) {
-        ArrayList<Brick<WakeNode>> foundBricks = new ArrayList<>();
+    public ArrayList<Brick> getVisible(Frustum frustum) {
+        ArrayList<Brick> foundBricks = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
                 this.trees.get(i).query(frustum, i + this.minY, foundBricks);
@@ -133,7 +133,7 @@ public class WakeHandler {
 
     private void reset() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
-            QuadTree<WakeNode> tree = this.trees.get(i);
+            QuadTree tree = this.trees.get(i);
             if (tree != null) {
                 tree.prune();
             }

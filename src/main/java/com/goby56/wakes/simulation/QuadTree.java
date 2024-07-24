@@ -5,29 +5,30 @@ import net.minecraft.util.math.Box;
 
 import java.util.*;
 
-public class QuadTree<T extends Position<T> & Age<T>> {
-    private static final int MAX_DEPTH = 21;
+public class QuadTree {
+    private static final int MAX_DEPTH = 20;
     private static final int ROOT_X = (int) - Math.pow(2, 25);
     private static final int ROOT_Z = (int) - Math.pow(2, 25);
     private static final int ROOT_WIDTH = (int) Math.pow(2, 26);
 
-    private final QuadTree<T> ROOT;
-    private final QuadTree<T> PARENT;
-    private List<QuadTree<T>> children;
+    private final QuadTree ROOT;
+    private final QuadTree PARENT;
+    private List<QuadTree> children;
 
     private final DecentralizedBounds bounds;
     private final int depth;
-    private Brick<T> brick;
+    private Brick brick;
 
     public QuadTree() {
         this(ROOT_X, ROOT_Z, ROOT_WIDTH, 0, null, null);
     }
 
-    private QuadTree(int x, int z, int width, int depth, QuadTree<T> root, QuadTree<T> parent) {
+    private QuadTree(int x, int z, int width, int depth, QuadTree root, QuadTree parent) {
         this.bounds = new DecentralizedBounds(x, z, width);
         this.depth = depth;
         if (depth >= MAX_DEPTH) {
-            this.brick = new Brick<>(bounds.width());
+            assert bounds.width() == 32;
+            this.brick = new Brick(x, z);
         }
         this.ROOT = root == null ? this : root;
         this.PARENT = parent;
@@ -46,7 +47,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         return aliveChildren > 0;
     }
 
-    public boolean insert(T node) {
+    public boolean insert(WakeNode node) {
         if (!this.bounds.contains(node.x(), node.z())) {
             return false;
         }
@@ -63,7 +64,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         return false;
     }
 
-    public void query(Frustum frustum, int y, ArrayList<Brick<T>> output) {
+    public void query(Frustum frustum, int y, ArrayList<Brick> output) {
         if (!frustum.isVisible(this.bounds.toBox(y))) {
             return;
         }
@@ -71,6 +72,7 @@ public class QuadTree<T extends Position<T> & Age<T>> {
             output.add(brick);
             return;
         }
+        if (children == null) return;
         for (var tree : children) {
             tree.query(frustum, y, output);
         }
@@ -81,13 +83,14 @@ public class QuadTree<T extends Position<T> & Age<T>> {
         int x = this.bounds.x;
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
+        children = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            children.add(i, new QuadTree<>());
+            children.add(i, new QuadTree());
         }
-        children.add(0, new QuadTree<>(x, z, w, depth + 1, this.ROOT, this)); // NW
-        children.add(1, new QuadTree<>(x + w, z, w, depth + 1, this.ROOT, this)); // NE
-        children.add(2, new QuadTree<>(x, z + w, w, depth + 1, this.ROOT, this)); // SW
-        children.add(3, new QuadTree<>(x + w, z + w, w, depth + 1, this.ROOT, this)); // SE
+        children.add(0, new QuadTree(x, z, w, depth + 1, this.ROOT, this)); // NW
+        children.add(1, new QuadTree(x + w, z, w, depth + 1, this.ROOT, this)); // NE
+        children.add(2, new QuadTree(x, z + w, w, depth + 1, this.ROOT, this)); // SW
+        children.add(3, new QuadTree(x + w, z + w, w, depth + 1, this.ROOT, this)); // SE
     }
 
     public int count() {
