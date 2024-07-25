@@ -2,6 +2,7 @@ package com.goby56.wakes.simulation;
 
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;
+import net.minecraft.world.World;
 
 import java.util.*;
 
@@ -34,14 +35,14 @@ public class QuadTree {
         this.PARENT = parent;
     }
 
-    public boolean tick() {
+    public boolean tick(World world) {
         if (brick != null) {
-            return brick.tick();
+            return brick.tick(world);
         }
         if (children == null) return false;
         int aliveChildren = 0;
         for (var tree : children) {
-            if (tree.tick()) aliveChildren++;
+            if (tree.tick(world)) aliveChildren++;
         }
         if (aliveChildren == 0) this.prune();
         return aliveChildren > 0;

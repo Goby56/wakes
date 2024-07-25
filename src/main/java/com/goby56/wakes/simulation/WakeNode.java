@@ -99,11 +99,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     @Override
-    public void tick() {
-        if (this.isDead()) return;
+    public boolean tick() {
+        if (this.isDead()) return false;
         if (this.age++ >= this.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
-            return;
+            return false;
         }
         this.t = this.age / (float) this.maxAge;
 
@@ -138,6 +138,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
 
         floodFill();
+        return true;
     }
 
     public void floodFill() {

@@ -52,12 +52,11 @@ public class WakeHandler {
             }
             QuadTree tree = this.trees.get(i);
             if (tree != null) {
-                tree.tick();
+                tree.tick(world);
 
-
-                Queue pendingNodes = this.toBeInserted.get(i);
+                Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 while (pendingNodes.peek() != null) {
-                    tree.insert((WakeNode) pendingNodes.poll());
+                    tree.insert(pendingNodes.poll());
                 }
             }
         }
