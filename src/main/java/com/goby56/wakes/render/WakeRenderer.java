@@ -4,8 +4,7 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
-import com.goby56.wakes.simulation.WakeNode;
-import com.goby56.wakes.utils.WakesTimers;
+import com.goby56.wakes.utils.WakesDebugInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -44,20 +43,21 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
-        int n = 0;
-        for (var brick : bricks) {
-            Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
-            if (resolution.res != WakeNode.res) continue;
+        // int n = 0;
+        // for (var brick : bricks) {
+        //     Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
+        //     if (resolution.res != WakeNode.res) continue;
 
-           for (var quad : brick.quads) {
-               wakeTextures.get(resolution).render(matrix, context.camera(), brick, quad, wakeHandler.world);
-               n++;
-           }
-        }
-        RenderSystem.enableCull();
+        //     for (var quad : brick.quads) {
+        //         wakeTextures.get(resolution).render(matrix, context.camera(), brick, quad, wakeHandler.world);
+        //         n++;
+        //     }
 
-        quadsRendered = n;
+        // }
+        // RenderSystem.enableCull();
 
-        WakesTimers.wakeRenderingTime.add(System.nanoTime() - tRendering);
+        // quadsRendered = n;
+
+        WakesDebugInfo.wakeRenderingTime.add(System.nanoTime() - tRendering);
     }
 }

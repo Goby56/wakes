@@ -44,11 +44,9 @@ public class WakeTexture {
         int x = quad.x, z = quad.z, w = quad.w, h = quad.h;
         WakeNode[][] nodes = quad.nodes;
 
-
         Vec3d screenSpace = brick.getPos().add(camera.getPos().negate());
         float xPos = (float) screenSpace.x + x;
         float zPos = (float) screenSpace.z + z;
-
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);

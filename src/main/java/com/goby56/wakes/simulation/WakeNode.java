@@ -14,7 +14,6 @@ import net.minecraft.util.math.Vec3d;
 import java.util.*;
 
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
-    private final WakeHandler wakeHandler = WakeHandler.getInstance();
     // TODO MAKE SURE THIS WONT EVER BE NULL
 
     public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
@@ -40,6 +39,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     public float t = 0;
     public int floodLevel;
+
+    // public WakeNode(int x, int z) {
+    //     this.x = x;
+    //     this.z = z;
+    // }
 
     //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
@@ -142,28 +146,29 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     public void floodFill() {
-        if (this.floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
+        WakeHandler wh = WakeHandler.getInstance();
+        if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
             if (this.NORTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.z - 1, this.height, floodLevel - 1));
             } else {
-                this.NORTH.updateFloodLevel(this.floodLevel - 1);
+                this.NORTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.EAST == null) {
-                wakeHandler.insert(new WakeNode(this.x + 1, this.z, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x + 1, this.z, this.height, floodLevel - 1));
             } else {
-                this.EAST.updateFloodLevel(this.floodLevel - 1);
+                this.EAST.updateFloodLevel(floodLevel - 1);
             }
             if (this.SOUTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.z + 1, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.z + 1, this.height, floodLevel - 1));
             } else {
-                this.SOUTH.updateFloodLevel(this.floodLevel - 1);
+                this.SOUTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.WEST == null) {
-                wakeHandler.insert(new WakeNode(this.x - 1, this.z, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x - 1, this.z, this.height, floodLevel - 1));
             } else {
-                this.WEST.updateFloodLevel(this.floodLevel - 1);
+                this.WEST.updateFloodLevel(floodLevel - 1);
             }
-            this.floodLevel = 0;
+            floodLevel = 0;
             // TODO IF BLOCK IS BROKEN (AND WATER APPEARS IN ITS STEAD) RETRY FLOOD FILL
         }
     }

@@ -4,12 +4,11 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeQuad;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.render.WakeTexture;
-import com.goby56.wakes.utils.WakesTimers;
+import com.goby56.wakes.utils.WakesDebugInfo;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class Brick {
     public int[] bitMask = new int[32];
@@ -34,8 +33,7 @@ public class Brick {
         this.quads = new ArrayList<>();
     }
 
-    private void generateMesh() {
-        quads.clear();
+    public void generateMesh() {
         var ints = bitMask;
         for (int i = 0; i < dim; i++) {
             int j = 0;
@@ -57,45 +55,48 @@ public class Brick {
                     ints[i + w] &= ~mask;
                     w++;
                 }
-                quads.add(new WakeQuad(i, j, w, h, getFromArea(i, j, w, h)));
+                quads.add(new WakeQuad(i, dim - j - h, w, h, getFromArea(i, dim - j - h, w, h)));
                 j += h;
             }
         }
     }
 
     private WakeNode[][] getFromArea(int x, int z, int w, int h) {
-        WakeNode[][] nodes = new WakeNode[w][h];
-        for (int i = 0; i < w; i++) {
-            for (int j = 0; j < h; j++) {
-                nodes[i][j] = this.get(x + i, z + j);
+        WakeNode[][] nodes = new WakeNode[h][w];
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                WakeNode node = this.get(x + j, z + i);
+                assert node != null;
+                nodes[i][j] = node;
             }
         }
         return nodes;
     }
 
     public boolean tick(World world) {
-        for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-                if (this.get(i, j) == null) continue;
+        quads.clear();
+        for (int z = 0; z < dim; z++) {
+            for (int x = 0; x < dim; x++) {
+                if (this.get(x, z) == null) continue;
 
                 long tNode = System.nanoTime();
-                if (!this.get(i, j).tick()) {
-                    this.clear(i, j);
+                if (!this.get(x, z).tick()) {
+                    this.clear(x, z);
                 }
-                WakesTimers.nodeLogicTime += (System.nanoTime() - tNode);
+                WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
             }
         }
         if (occupied != 0) {
             long tMesh = System.nanoTime();
             generateMesh();
-            WakesTimers.meshGenerationTime += (System.nanoTime() - tMesh);
+            WakesDebugInfo.meshGenerationTime += (System.nanoTime() - tMesh);
 
             long tTexture = System.nanoTime();
             for (var quad : quads) {
                 WakeTexture tex = WakeRenderer.wakeTextures.get(WakesClient.CONFIG_INSTANCE.wakeResolution);
                 quad.populatePixels(tex, world);
             }
-            WakesTimers.texturingTime += (System.nanoTime() - tTexture);
+            WakesDebugInfo.texturingTime += (System.nanoTime() - tTexture);
 
 
         }
@@ -107,7 +108,7 @@ public class Brick {
     }
 
     public WakeNode get(int x, int z) {
-        return nodes[x][z];
+        return nodes[z][x];
     }
 
     public void insert(WakeNode node) {
@@ -115,13 +116,13 @@ public class Brick {
     }
 
     protected void set(int x, int z, WakeNode node) {
-        boolean wasNull = nodes[x][z] == null;
-        nodes[x][z] = node;
+        boolean wasNull = nodes[z][x] == null;
+        nodes[z][x] = node;
         if (node == null) {
-            bitMask[x] &= ~(1 << z);
+            bitMask[x] &= ~(1 << (dim - z - 1));
             if (!wasNull) this.occupied--;
         } else {
-            bitMask[x] |= (1 << z);
+            bitMask[x] |= (1 << (dim - z - 1));
             if (wasNull) this.occupied++;
         }
     }

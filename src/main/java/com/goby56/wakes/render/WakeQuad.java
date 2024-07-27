@@ -27,10 +27,10 @@ public class WakeQuad {
     }
 
     public void populatePixels(WakeTexture texture, World world) {
-        for (int i = 0; i < w; i++) {
-            for (int j = 0; j < h; j++) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
                 WakeNode node = nodes[i][j];
-                long nodeOffset = (((i*(long) w)+j)*h);
+                long nodeOffset = (((i*(long) h)+j)*w);
                 int waterCol = BiomeColors.getWaterColor(world, node.blockPos());
                 float opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
                 for (int r = 0; r < texture.res; r++) {
