@@ -1,19 +1,16 @@
 package com.goby56.wakes.render;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.RenderType;
-import com.goby56.wakes.render.enums.WakeColor;
-import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
@@ -40,20 +37,16 @@ public class WakeTexture {
         GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, 32 * res, 32 * res, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
     }
 
-    public void render(Matrix4f matrix, Camera camera, Brick brick, WakeQuad quad, World world) {
-        int x = quad.x, z = quad.z, w = quad.w, h = quad.h;
+    public void render(Matrix4f matrix, Camera camera, WakeQuad quad, World world) {
         WakeNode[][] nodes = quad.nodes;
 
-        Vec3d screenSpace = brick.getPos().add(camera.getPos().negate());
-        float xPos = (float) screenSpace.x + x;
-        float zPos = (float) screenSpace.z + z;
+        Vector3f pos = new Vec3d(quad.x, quad.y, quad.z).add(camera.getPos().negate()).toVector3f();
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
-        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, x * res, z * res, w * res, h * res, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, imgPtr);
-
+        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, 0, 0, 32 * res, 32 * res, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, imgPtr);
         RenderSystem.setShaderTexture(0, glTexId);
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
@@ -63,27 +56,32 @@ public class WakeTexture {
 
         int X = nodes.length - 1;
         int Z = nodes[0].length - 1;
-        buffer.vertex(matrix, xPos, nodes[0][0].height, zPos)
+        float u = quad.x / 32f;
+        float v = quad.z / 32f;
+        float uOffset = quad.w / 32f;
+        float vOffset = quad.h / 32f;
+
+        buffer.vertex(matrix, pos.x, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
-                .texture(0, 0)
+                .texture(u, v)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light(nodes[0][0], world))
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, xPos, nodes[0][Z].height, zPos + 1)
+        buffer.vertex(matrix, pos.x, pos.y, pos.z + quad.h)
                 .color(1f, 1f, 1f, 1f)
-                .texture(0, 1)
+                .texture(u, v + vOffset)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light(nodes[0][Z], world))
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, xPos + 1, nodes[X][Z].height, zPos + 1)
+        buffer.vertex(matrix, pos.x + quad.w, pos.y, pos.z + quad.h)
                 .color(1f, 1f, 1f, 1f)
-                .texture(1, 1)
+                .texture(u + uOffset, v + vOffset)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light(nodes[X][Z], world))
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, xPos + 1, nodes[X][0].height, zPos)
+        buffer.vertex(matrix, pos.x + quad.w, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
-                .texture(1, 0)
+                .texture(u + uOffset, v)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light(nodes[X][0], world))
                 .normal(0f, 1f, 0f).next();

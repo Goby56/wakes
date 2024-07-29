@@ -6,7 +6,7 @@ public class WakesDebugInfo {
     public static double meshGenerationTime = 0;
     public static double nodeLogicTime = 0;
     public static double texturingTime = 0;
-    public static ArrayList<Double> wakeRenderingTime = new ArrayList<>(); // Each frame averaged every tick
+    public static ArrayList<Double> wakeRenderingTime = new ArrayList<>(); // Frames averaged each tick
     public static int quadsRendered = 0;
 
     public static void reset() {

@@ -2,28 +2,33 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.WakeColor;
-import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.color.world.BiomeColors;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.lwjgl.system.MemoryUtil;
 
-import java.util.List;
 import java.util.Objects;
 
 public class WakeQuad {
     public final int x;
+    public final float y;
     public final int z;
     public final int w;
     public final int h;
     public final WakeNode[][] nodes;
 
-    public WakeQuad(int x, int z, int w, int h, WakeNode[][] affectedNodes) {
+    public WakeQuad(int x, float y, int z, int w, int h, WakeNode[][] affectedNodes) {
         this.x = x;
+        this.y = y;
         this.z = z;
         this.w = w;
         this.h = h;
         this.nodes = affectedNodes;
+    }
+
+    public Box toBox() {
+        return new Box(x, y, z, x + w, y + 1, z + h);
     }
 
     public void populatePixels(WakeTexture texture, World world) {

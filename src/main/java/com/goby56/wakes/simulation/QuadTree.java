@@ -1,5 +1,6 @@
 package com.goby56.wakes.simulation;
 
+import com.goby56.wakes.render.WakeQuad;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
@@ -19,20 +20,39 @@ public class QuadTree {
     private final DecentralizedBounds bounds;
     private final int depth;
     private Brick brick;
+    private final float yLevel;
 
-    public QuadTree() {
-        this(ROOT_X, ROOT_Z, ROOT_WIDTH, 0, null, null);
+    public QuadTree(float y) {
+        this(ROOT_X, y, ROOT_Z, ROOT_WIDTH, 0, null, null);
     }
 
-    private QuadTree(int x, int z, int width, int depth, QuadTree root, QuadTree parent) {
-        this.bounds = new DecentralizedBounds(x, z, width);
+    private QuadTree(int x, float y, int z, int width, int depth, QuadTree root, QuadTree parent) {
+        this.bounds = new DecentralizedBounds(x, y, z, width);
         this.depth = depth;
-        if (depth >= MAX_DEPTH) {
-            assert bounds.width() == 32;
-            this.brick = new Brick(x, z);
-        }
         this.ROOT = root == null ? this : root;
         this.PARENT = parent;
+        this.yLevel = y;
+        if (depth >= MAX_DEPTH) {
+            assert bounds.width() == 32;
+            this.brick = new Brick(x, y, z);
+            this.ROOT.updateAdjacency(this);
+        }
+    }
+
+    protected void updateAdjacency(QuadTree leaf) {
+        if (this == leaf) return;
+        if (!this.bounds.neighbors(leaf.bounds) && !this.bounds.intersects(leaf.bounds)) {
+            return;
+        }
+        if (brick != null) {
+            brick.updateAdjacency(leaf.brick);
+            return;
+        }
+        if (children != null) {
+            for (var tree : children) {
+               tree.updateAdjacency(leaf);
+            }
+        }
     }
 
     public boolean tick(World world) {
@@ -49,7 +69,8 @@ public class QuadTree {
     }
 
     public boolean insert(WakeNode node) {
-        if (!this.bounds.contains(node.x(), node.z())) {
+        // TODO FIX WAKES ARE INSERTED MULTIPLE TIMES BUT IN DIFFERENT BRICKS (LEAVES GAPS) COULD BE ISSUE WITH MESHER
+        if (!this.bounds.contains(node.x, node.z)) {
             return false;
         }
 
@@ -65,17 +86,17 @@ public class QuadTree {
         return false;
     }
 
-    public void query(Frustum frustum, int y, ArrayList<Brick> output) {
-        if (!frustum.isVisible(this.bounds.toBox(y))) {
+    public void query(Frustum frustum, ArrayList<WakeQuad> output) {
+        if (!frustum.isVisible(this.bounds.toBox((int) yLevel))) {
             return;
         }
         if (brick != null) {
-            output.add(brick);
+            brick.query(frustum, output);
             return;
         }
         if (children == null) return;
         for (var tree : children) {
-            tree.query(frustum, y, output);
+            tree.query(frustum, output);
         }
     }
 
@@ -85,13 +106,10 @@ public class QuadTree {
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
         children = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            children.add(i, new QuadTree());
-        }
-        children.add(0, new QuadTree(x, z, w, depth + 1, this.ROOT, this)); // NW
-        children.add(1, new QuadTree(x + w, z, w, depth + 1, this.ROOT, this)); // NE
-        children.add(2, new QuadTree(x, z + w, w, depth + 1, this.ROOT, this)); // SW
-        children.add(3, new QuadTree(x + w, z + w, w, depth + 1, this.ROOT, this)); // SE
+        children.add(0, new QuadTree(x, yLevel, z, w, depth + 1, this.ROOT, this)); // NW
+        children.add(1, new QuadTree(x + w, yLevel, z, w, depth + 1, this.ROOT, this)); // NE
+        children.add(2, new QuadTree(x, yLevel, z + w, w, depth + 1, this.ROOT, this)); // SW
+        children.add(3, new QuadTree(x + w, yLevel, z + w, w, depth + 1, this.ROOT, this)); // SE
     }
 
     public int count() {
@@ -115,23 +133,10 @@ public class QuadTree {
         children = null;
     }
 
-    public void getBrickBBs(ArrayList<DebugBB> bbs, int height) {
-        if (brick != null) {
-            bbs.add(new DebugBB(bounds.toDebugBox(height), depth));
-        }
-        if (children == null) return;
-        for (var tree : children) {
-            tree.getBrickBBs(bbs, height);
-        }
-    }
-
-    public record DebugBB(Box bb, int depth) {
-    }
-
-    public record DecentralizedBounds(int x, int z, int width) {
+    public record DecentralizedBounds(int x, float y, int z, int width) {
         public boolean contains(int x, int z) {
-            return this.x <= x && x <= this.x + this.width &&
-                    this.z <= z && z <= this.z + this.width;
+            return this.x <= x && x < this.x + this.width &&
+                    this.z <= z && z < this.z + this.width;
         }
 
         public boolean intersects(DecentralizedBounds other) {
@@ -141,15 +146,16 @@ public class QuadTree {
                     this.z + this.width < other.z);
         }
 
+        public boolean neighbors(DecentralizedBounds other) {
+            return !(this.x == other.x + other.width ||
+                    this.x + this.width == other.x ||
+                    this.z == other.z + other.width ||
+                    this.z + this.width == other.z);
+        }
+
         public Box toBox(int y) {
             return new Box(this.x, y - 0.5, this.z,
                     this.x + this.width, y + 0.5, this.z + this.width);
         }
-
-        public Box toDebugBox(int y) {
-            return new Box(this.x + 0.1, y - 1.2, this.z + 0.1,
-                    this.x + this.width - 0.1, y - 1.23, this.z + this.width - 0.1);
-        }
-
     }
 }

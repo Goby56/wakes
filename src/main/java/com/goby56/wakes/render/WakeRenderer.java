@@ -4,6 +4,7 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
+import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesDebugInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -13,7 +14,6 @@ import org.joml.Matrix4f;
 import java.util.*;
 
 public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
-    public static int quadsRendered = 0;
     public static Map<Resolution, WakeTexture> wakeTextures = null;
 
     private void initTextures() {
@@ -37,27 +37,22 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
         double tRendering = System.nanoTime();
 
-        ArrayList<Brick> bricks = wakeHandler.getVisible(context.frustum());
+        ArrayList<WakeQuad> quads = wakeHandler.getVisible(context.frustum());
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
         RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
-        // int n = 0;
-        // for (var brick : bricks) {
-        //     Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
-        //     if (resolution.res != WakeNode.res) continue;
+        Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
+        if (resolution.res != WakeNode.res) return;
+        int n = 0;
+        for (var quad : quads) {
+            wakeTextures.get(resolution).render(matrix, context.camera(), quad, wakeHandler.world);
+            n++;
+        }
+        RenderSystem.enableCull();
 
-        //     for (var quad : brick.quads) {
-        //         wakeTextures.get(resolution).render(matrix, context.camera(), brick, quad, wakeHandler.world);
-        //         n++;
-        //     }
-
-        // }
-        // RenderSystem.enableCull();
-
-        // quadsRendered = n;
-
+        WakesDebugInfo.quadsRendered = n;
         WakesDebugInfo.wakeRenderingTime.add(System.nanoTime() - tRendering);
     }
 }

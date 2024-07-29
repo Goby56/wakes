@@ -2,6 +2,7 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.render.WakeQuad;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
@@ -71,20 +72,20 @@ public class WakeHandler {
         if (i < 0) return;
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree());
+            this.trees.add(i, new QuadTree(node.height));
         }
 
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<Brick> getVisible(Frustum frustum) {
-        ArrayList<Brick> foundBricks = new ArrayList<>();
+    public ArrayList<WakeQuad> getVisible(Frustum frustum) {
+        ArrayList<WakeQuad> visibleQuads = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
-                this.trees.get(i).query(frustum, i + this.minY, foundBricks);
+                this.trees.get(i).query(frustum, visibleQuads);
             }
         }
-        return foundBricks;
+        return visibleQuads;
     }
 
     public int getTotal() {
@@ -96,16 +97,6 @@ public class WakeHandler {
             }
         }
         return n;
-    }
-
-    public ArrayList<QuadTree.DebugBB> getBBs() {
-        ArrayList<QuadTree.DebugBB> boxes = new ArrayList<>();
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            if (this.trees.get(y) != null) {
-                this.trees.get(y).getBrickBBs(boxes, y - Math.abs(this.minY));
-            }
-        }
-        return boxes;
     }
 
     private int getArrayIndex(int height) {

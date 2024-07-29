@@ -130,7 +130,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		if (WakesClient.CONFIG_INSTANCE.disableMod) {
 			return;
 		}
-
 		Entity thisEntity = ((Entity) (Object) this);
 
 		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
