@@ -1,7 +1,9 @@
 package com.goby56.wakes.render;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.simulation.WakeNode;
+import com.goby56.wakes.utils.WakesDebugInfo;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
@@ -38,9 +40,10 @@ public class WakeTexture {
     }
 
     public void render(Matrix4f matrix, Camera camera, WakeQuad quad, World world) {
-        WakeNode[][] nodes = quad.nodes;
+        long tTexture = System.nanoTime();
+        quad.populatePixels(this, world);
+        WakesDebugInfo.texturingTime += (System.nanoTime() - tTexture);
 
-        Vector3f pos = new Vec3d(quad.x, quad.y, quad.z).add(camera.getPos().negate()).toVector3f();
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -54,12 +57,14 @@ public class WakeTexture {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
+        WakeNode[][] nodes = quad.nodes;
         int X = nodes.length - 1;
         int Z = nodes[0].length - 1;
         float u = quad.x / 32f;
         float v = quad.z / 32f;
         float uOffset = quad.w / 32f;
         float vOffset = quad.h / 32f;
+        Vector3f pos = new Vec3d(quad.x, quad.y, quad.z).add(camera.getPos().negate()).toVector3f();
 
         buffer.vertex(matrix, pos.x, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)

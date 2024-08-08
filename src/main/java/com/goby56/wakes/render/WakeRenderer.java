@@ -47,7 +47,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         if (resolution.res != WakeNode.res) return;
         int n = 0;
         for (var quad : quads) {
-            wakeTextures.get(resolution).render(matrix, context.camera(), quad, wakeHandler.world);
+            wakeTextures.get(resolution).render(matrix, context.camera(), quad, context.world());
             n++;
         }
         RenderSystem.enableCull();

@@ -43,32 +43,23 @@ public class Brick {
     }
 
 
-    public boolean tick(World world) {
+    public boolean tick() {
         quads.clear();
+        long tNode = System.nanoTime();
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
                 if (this.get(x, z) == null) continue;
 
-                long tNode = System.nanoTime();
                 if (!this.get(x, z).tick()) {
                     this.clear(x, z);
                 }
-                WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
             }
         }
+        WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
         if (occupied != 0) {
             long tMesh = System.nanoTime();
             generateMesh();
             WakesDebugInfo.meshGenerationTime += (System.nanoTime() - tMesh);
-
-            long tTexture = System.nanoTime();
-            for (var quad : quads) {
-                WakeTexture tex = WakeRenderer.wakeTextures.get(WakesClient.CONFIG_INSTANCE.wakeResolution);
-                quad.populatePixels(tex, world);
-            }
-            WakesDebugInfo.texturingTime += (System.nanoTime() - tTexture);
-
-
         }
         return occupied != 0;
     }

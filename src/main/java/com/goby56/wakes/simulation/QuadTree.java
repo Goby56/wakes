@@ -55,14 +55,14 @@ public class QuadTree {
         }
     }
 
-    public boolean tick(World world) {
+    public boolean tick() {
         if (brick != null) {
-            return brick.tick(world);
+            return brick.tick();
         }
         if (children == null) return false;
         int aliveChildren = 0;
         for (var tree : children) {
-            if (tree.tick(world)) aliveChildren++;
+            if (tree.tick()) aliveChildren++;
         }
         if (aliveChildren == 0) this.prune();
         return aliveChildren > 0;
