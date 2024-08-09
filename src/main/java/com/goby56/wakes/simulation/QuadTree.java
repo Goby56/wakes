@@ -8,7 +8,7 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class QuadTree {
-    private static final int MAX_DEPTH = 20;
+    private static final int MAX_DEPTH = 21;
     private static final int ROOT_X = (int) - Math.pow(2, 25);
     private static final int ROOT_Z = (int) - Math.pow(2, 25);
     private static final int ROOT_WIDTH = (int) Math.pow(2, 26);

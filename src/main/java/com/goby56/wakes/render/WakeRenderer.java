@@ -35,24 +35,23 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null || wakeHandler.resolutionResetScheduled) return;
 
-        double tRendering = System.nanoTime();
 
         ArrayList<WakeQuad> quads = wakeHandler.getVisible(context.frustum());
+
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
-        RenderSystem.disableCull();
         context.lightmapTextureManager().enable();
 
         Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
         if (resolution.res != WakeNode.res) return;
         int n = 0;
+        long tRendering = System.nanoTime();
         for (var quad : quads) {
             wakeTextures.get(resolution).render(matrix, context.camera(), quad, context.world());
             n++;
         }
-        RenderSystem.enableCull();
-
-        WakesDebugInfo.quadsRendered = n;
         WakesDebugInfo.wakeRenderingTime.add(System.nanoTime() - tRendering);
+        WakesDebugInfo.quadsRendered = n;
+
     }
 }

@@ -1,16 +1,12 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeQuad;
-import com.goby56.wakes.render.WakeRenderer;
-import com.goby56.wakes.render.WakeTexture;
 import com.goby56.wakes.utils.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,9 +79,9 @@ public class Brick {
         }
         if (z >= 0 && z < dim) {
             if (x < 0 && WEST != null) {
-                return WEST.nodes[Math.floorMod(z, dim)][x];
+                return WEST.nodes[z][Math.floorMod(x, dim)];
             } else if (x >= dim && EAST != null) {
-                return EAST.nodes[Math.floorMod(z, dim)][x];
+                return EAST.nodes[z][Math.floorMod(x, dim)];
             }
         }
         return null;
@@ -93,8 +89,6 @@ public class Brick {
 
     public void insert(WakeNode node) {
         int x = Math.floorMod(node.x, dim), z = Math.floorMod(node.z, dim);
-        // MinecraftClient.getInstance().player.sendMessage(Text.of(String.format("Placing Node(%d, %f, %d) at (%d, %d) in brick (%f, %f, %f)",
-        //        node.x, node.height, node.z, x, z, pos.x, pos.y, pos.z)));
         for (WakeNode neighbor : getAdjacentNodes(x, z)) {
             neighbor.updateAdjacency(node);
         }

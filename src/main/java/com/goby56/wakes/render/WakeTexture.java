@@ -1,6 +1,5 @@
 package com.goby56.wakes.render;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesDebugInfo;
@@ -42,8 +41,9 @@ public class WakeTexture {
     public void render(Matrix4f matrix, Camera camera, WakeQuad quad, World world) {
         long tTexture = System.nanoTime();
         quad.populatePixels(this, world);
-        WakesDebugInfo.texturingTime += (System.nanoTime() - tTexture);
+        WakesDebugInfo.texturingTime.add(System.nanoTime() - tTexture);
 
+        long tDrawing = System.nanoTime();
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -92,6 +92,7 @@ public class WakeTexture {
                 .normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();
+        WakesDebugInfo.drawingTime.add(System.nanoTime() - tDrawing);
     }
 
     private static int light(WakeNode node, World world) {
