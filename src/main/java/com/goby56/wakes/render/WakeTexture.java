@@ -1,6 +1,8 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.simulation.Brick;
+import com.goby56.wakes.simulation.QuadTree;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesDebugInfo;
 import com.mojang.blaze3d.platform.GlConst;
@@ -8,6 +10,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Matrix4f;
@@ -16,15 +20,15 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.IntBuffer;
+
 public class WakeTexture {
     public int res;
     public int glTexId;
-    public long imgPtr;
 
     public WakeTexture(int res) {
         this.res = res;
         this.glTexId = TextureUtil.generateTextureId();
-        this.imgPtr = MemoryUtil.nmemAlloc((long) 32 * res * 32 * res * 4);
 
         GlStateManager._bindTexture(glTexId);
         GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
@@ -35,21 +39,18 @@ public class WakeTexture {
         GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MIN_FILTER, GL12.GL_NEAREST);
         GlStateManager._texParameter(GlConst.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAG_FILTER, GL12.GL_NEAREST);
 
-        GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, 32 * res, 32 * res, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
+        GlStateManager._texImage2D(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_RGBA, QuadTree.BRICK_WIDTH * res, QuadTree.BRICK_WIDTH * res, 0, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, null);
     }
 
-    public void render(Matrix4f matrix, Camera camera, WakeQuad quad, World world) {
-        long tTexture = System.nanoTime();
-        quad.populatePixels(this, world);
-        WakesDebugInfo.texturingTime.add(System.nanoTime() - tTexture);
-
+    public void render(Matrix4f matrix, Camera camera, Brick brick) {
         long tDrawing = System.nanoTime();
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
-        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, 0, 0, 32 * res, 32 * res, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, imgPtr);
+        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0,0,0,brick.dim * brick.texRes, brick.dim * brick.texRes, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, brick.imgPtr);
+
         RenderSystem.setShaderTexture(0, glTexId);
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
@@ -57,45 +58,33 @@ public class WakeTexture {
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
-        WakeNode[][] nodes = quad.nodes;
-        int X = nodes.length - 1;
-        int Z = nodes[0].length - 1;
-        float u = quad.x / 32f;
-        float v = quad.z / 32f;
-        float uOffset = quad.w / 32f;
-        float vOffset = quad.h / 32f;
-        Vector3f pos = new Vec3d(quad.x, quad.y, quad.z).add(camera.getPos().negate()).toVector3f();
-
+        Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f();
         buffer.vertex(matrix, pos.x, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
-                .texture(u, v)
+                .texture(0, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light(nodes[0][0], world))
+                .light(14680064)
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, pos.x, pos.y, pos.z + quad.h)
+        buffer.vertex(matrix, pos.x, pos.y, pos.z + brick.dim)
                 .color(1f, 1f, 1f, 1f)
-                .texture(u, v + vOffset)
+                .texture(0, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light(nodes[0][Z], world))
+                .light(14680064)
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, pos.x + quad.w, pos.y, pos.z + quad.h)
+        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z + brick.dim)
                 .color(1f, 1f, 1f, 1f)
-                .texture(u + uOffset, v + vOffset)
+                .texture(1, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light(nodes[X][Z], world))
+                .light(14680064)
                 .normal(0f, 1f, 0f).next();
-        buffer.vertex(matrix, pos.x + quad.w, pos.y, pos.z)
+        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
-                .texture(u + uOffset, v)
+                .texture(1, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light(nodes[X][0], world))
+                .light(14680064)
                 .normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();
         WakesDebugInfo.drawingTime.add(System.nanoTime() - tDrawing);
-    }
-
-    private static int light(WakeNode node, World world) {
-        return WorldRenderer.getLightmapCoordinates(world, node.blockPos());
     }
 }

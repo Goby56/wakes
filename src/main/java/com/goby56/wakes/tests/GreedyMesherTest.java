@@ -1,6 +1,5 @@
 package com.goby56.wakes.tests;
 
-import com.goby56.wakes.render.WakeQuad;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

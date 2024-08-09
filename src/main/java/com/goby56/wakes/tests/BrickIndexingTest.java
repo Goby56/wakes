@@ -1,13 +1,5 @@
 package com.goby56.wakes.tests;
 
-import com.goby56.wakes.render.WakeQuad;
-import com.goby56.wakes.simulation.Brick;
-import com.goby56.wakes.simulation.WakeNode;
-import net.minecraft.util.math.Vec3d;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 public class BrickIndexingTest {
     // @Test
     // void brickBitMaskCreation() {

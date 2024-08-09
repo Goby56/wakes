@@ -1,46 +1,61 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.render.WakeQuad;
+import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.render.WakeTexture;
+import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.utils.WakesDebugInfo;
-import net.minecraft.client.MinecraftClient;
+import kroppeb.stareval.function.Type;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.system.MemoryUtil;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 public class Brick {
-    public int[] bitMask = new int[32];
     private final WakeNode[][] nodes;
     public final int capacity;
     public final int dim;
 
     public int occupied = 0;
 
-
     public final Vec3d pos;
-    public final ArrayList<WakeQuad> quads;
 
     public Brick NORTH;
     public Brick EAST;
     public Brick SOUTH;
     public Brick WEST;
 
-    public Brick(int x, float y, int z) {
-        this.dim = 32;
+    public long imgPtr = -1;
+    public int texRes;
+
+    public Brick(int x, float y, int z, int width) {
+        this.dim = width;
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        this.quads = new ArrayList<>();
+        initTexture(WakesClient.CONFIG_INSTANCE.wakeResolution.res);
     }
 
+    public void initTexture(int res) {
+        long size = 4L * dim * dim * res * res;
+        if (imgPtr == -1) {
+            this.imgPtr = MemoryUtil.nmemAlloc(size);
+        } else {
+            this.imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
+        }
+        this.texRes = res;
+    }
+
+    public void deallocTexture() {
+        MemoryUtil.nmemFree(imgPtr);
+    }
 
     public boolean tick() {
-        quads.clear();
         long tNode = System.nanoTime();
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
@@ -52,18 +67,20 @@ public class Brick {
             }
         }
         WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
-        if (occupied != 0) {
-            long tMesh = System.nanoTime();
-            generateMesh();
-            WakesDebugInfo.meshGenerationTime += (System.nanoTime() - tMesh);
-        }
+        long tTexturing = System.nanoTime();
+        populatePixels();
+        WakesDebugInfo.texturingTime += (System.nanoTime() - tTexturing);
         return occupied != 0;
     }
 
-    public void query(Frustum frustum, ArrayList<WakeQuad> output) {
-        for (WakeQuad quad : quads) {
-            Box b = quad.toBox();
-            if (frustum.isVisible(b)) output.add(quad);
+    public void query(Frustum frustum, ArrayList<WakeNode> output) {
+        for (int z = 0; z < dim; z++) {
+            for (int x = 0; x < dim; x++) {
+                var node = this.get(x, z);
+                if (node == null) continue;
+                Box b = node.toBox();
+                if (frustum.isVisible(b)) output.add(node);
+            }
         }
     }
 
@@ -89,20 +106,18 @@ public class Brick {
 
     public void insert(WakeNode node) {
         int x = Math.floorMod(node.x, dim), z = Math.floorMod(node.z, dim);
+        this.set(x, z, node);
         for (WakeNode neighbor : getAdjacentNodes(x, z)) {
             neighbor.updateAdjacency(node);
         }
-        this.set(x, z, node);
     }
 
     protected void set(int x, int z, WakeNode node) {
         boolean wasNull = nodes[z][x] == null;
         nodes[z][x] = node;
         if (node == null) {
-            bitMask[x] &= ~(1 << (dim - z - 1));
             if (!wasNull) this.occupied--;
         } else {
-            bitMask[x] |= (1 << (dim - z - 1));
             if (wasNull) this.occupied++;
         }
     }
@@ -141,43 +156,29 @@ public class Brick {
         }
     }
 
-    public void generateMesh() {
-        var ints = bitMask;
-        for (int i = 0; i < dim; i++) {
-            int j = 0;
-            while (j < dim) {
-                j += Integer.numberOfTrailingZeros(ints[i] >>> j);
-                if (j >= dim) continue;
+    public void populatePixels() {
+        for (int z = 0; z < dim; z++) {
+            for (int x = 0; x < dim; x++) {
+                WakeNode node = this.get(z, x);
 
-                int h = Integer.numberOfTrailingZeros(~(ints[i] >>> j));
+                int waterCol = node != null ? node.waterColor : 0;
+                float opacity = node != null ? (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity) : 0;
 
-                int hm = (h == 32) ? ~0 : (1 << h) - 1;
-                int mask = hm << j;
+                long nodeOffset = 4L * (((long) z * dim * texRes) + (long) x * texRes);
+                for (int r = 0; r < texRes; r++) {
+                    for (int c = 0; c < texRes; c++) {
+                        float avg = 0;
+                        if (node != null) {
+                            avg += (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
+                        }
+                        int color = WakeColor.getColor(avg, waterCol, opacity);
 
-                int w = 1;
-                while (i + w < dim) {
-                    int nextH = (ints[i + w] >>> j) & hm;
-                    if (nextH != hm) {
-                        break;
+                        long pixelOffset = 4L * (((long) r * texRes) + c);
+
+                        MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
                     }
-                    ints[i + w] &= ~mask;
-                    w++;
                 }
-                quads.add(new WakeQuad((int) (i + pos.x), (float) pos.y, (int) (dim - j - h + pos.z), w, h, getFromArea(i, dim - j - h, w, h)));
-                j += h;
             }
         }
-    }
-
-    private WakeNode[][] getFromArea(int x, int z, int w, int h) {
-        WakeNode[][] nodes = new WakeNode[h][w];
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                WakeNode node = this.get(x + j, z + i);
-                assert node != null;
-                nodes[i][j] = node;
-            }
-        }
-        return nodes;
     }
 }

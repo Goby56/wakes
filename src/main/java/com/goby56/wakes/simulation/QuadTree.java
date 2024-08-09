@@ -1,20 +1,19 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.render.WakeQuad;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
 
+import java.nio.IntBuffer;
 import java.util.*;
 
 public class QuadTree {
-    private static final int MAX_DEPTH = 21;
+    public static final int BRICK_WIDTH = 4;
+    private static final int MAX_DEPTH = (int) (26 - Math.log(BRICK_WIDTH) / Math.log(2));
     private static final int ROOT_X = (int) - Math.pow(2, 25);
     private static final int ROOT_Z = (int) - Math.pow(2, 25);
     private static final int ROOT_WIDTH = (int) Math.pow(2, 26);
 
     private final QuadTree ROOT;
-    private final QuadTree PARENT;
     private List<QuadTree> children;
 
     private final DecentralizedBounds bounds;
@@ -23,18 +22,23 @@ public class QuadTree {
     private final float yLevel;
 
     public QuadTree(float y) {
-        this(ROOT_X, y, ROOT_Z, ROOT_WIDTH, 0, null, null);
+        this(ROOT_X, y, ROOT_Z, ROOT_WIDTH, 0, null);
     }
 
-    private QuadTree(int x, float y, int z, int width, int depth, QuadTree root, QuadTree parent) {
+    private QuadTree(int x, float y, int z, int width, int depth, QuadTree root) {
         this.bounds = new DecentralizedBounds(x, y, z, width);
         this.depth = depth;
         this.ROOT = root == null ? this : root;
-        this.PARENT = parent;
         this.yLevel = y;
+    }
+
+    private boolean hasLeaf() {
+        return depth == MAX_DEPTH && brick != null;
+    }
+
+    private void initLeaf() {
         if (depth >= MAX_DEPTH) {
-            assert bounds.width() == 32;
-            this.brick = new Brick(x, y, z);
+            this.brick = new Brick(bounds.x, yLevel, bounds.z, bounds.width);
             this.ROOT.updateAdjacency(this);
         }
     }
@@ -56,7 +60,7 @@ public class QuadTree {
     }
 
     public boolean tick() {
-        if (brick != null) {
+        if (hasLeaf()) {
             return brick.tick();
         }
         if (children == null) return false;
@@ -74,7 +78,10 @@ public class QuadTree {
             return false;
         }
 
-        if (this.brick != null) {
+        if (depth == MAX_DEPTH) {
+            if (brick == null) {
+                initLeaf();
+            }
             brick.insert(node);
             return true;
         }
@@ -86,34 +93,44 @@ public class QuadTree {
         return false;
     }
 
-    public void query(Frustum frustum, ArrayList<WakeQuad> output) {
+    public <T> void query(Frustum frustum, ArrayList<T> output, Class<T> type) {
         if (!frustum.isVisible(this.bounds.toBox((int) yLevel))) {
             return;
         }
-        if (brick != null) {
-            brick.query(frustum, output);
+        if (hasLeaf() && brick.occupied > 0) {
+            // TODO ADD VISIBLE NODES CHECK
+            if (type.equals(Brick.class)) {
+                output.add(type.cast(brick));
+            }
+            if (type.equals(WakeNode.class)) {
+                ArrayList<WakeNode> nodes = new ArrayList<>();
+                brick.query(frustum, nodes);
+                for (var node : nodes) {
+                    output.add(type.cast(node));
+                }
+            }
             return;
         }
         if (children == null) return;
         for (var tree : children) {
-            tree.query(frustum, output);
+            tree.query(frustum, output, type);
         }
     }
 
     private void subdivide() {
-        if (brick != null) return;
+        if (depth == MAX_DEPTH) return;
         int x = this.bounds.x;
         int z = this.bounds.z;
         int w = this.bounds.width >> 1;
         children = new ArrayList<>();
-        children.add(0, new QuadTree(x, yLevel, z, w, depth + 1, this.ROOT, this)); // NW
-        children.add(1, new QuadTree(x + w, yLevel, z, w, depth + 1, this.ROOT, this)); // NE
-        children.add(2, new QuadTree(x, yLevel, z + w, w, depth + 1, this.ROOT, this)); // SW
-        children.add(3, new QuadTree(x + w, yLevel, z + w, w, depth + 1, this.ROOT, this)); // SE
+        children.add(0, new QuadTree(x, yLevel, z, w, depth + 1, this.ROOT)); // NW
+        children.add(1, new QuadTree(x + w, yLevel, z, w, depth + 1, this.ROOT)); // NE
+        children.add(2, new QuadTree(x, yLevel, z + w, w, depth + 1, this.ROOT)); // SW
+        children.add(3, new QuadTree(x + w, yLevel, z + w, w, depth + 1, this.ROOT)); // SE
     }
 
     public int count() {
-        if (brick != null) {
+        if (hasLeaf()) {
            return brick.occupied;
         }
         if (children == null) return 0;
@@ -124,6 +141,7 @@ public class QuadTree {
         if (children != null) {
             for (var tree : children) {
                 tree.prune();
+                if (tree.hasLeaf()) tree.brick.deallocTexture();
             }
             children.set(0, null);
             children.set(1, null);

@@ -2,7 +2,6 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
-import com.goby56.wakes.render.WakeQuad;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
@@ -78,11 +77,11 @@ public class WakeHandler {
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<WakeQuad> getVisible(Frustum frustum) {
-        ArrayList<WakeQuad> visibleQuads = new ArrayList<>();
+    public <T> ArrayList<T> getVisible(Frustum frustum, Class<T> type) {
+        ArrayList<T> visibleQuads = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
-                this.trees.get(i).query(frustum, visibleQuads);
+                this.trees.get(i).query(frustum, visibleQuads, type);
             }
         }
         return visibleQuads;

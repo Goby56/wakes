@@ -3,6 +3,8 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.color.world.BiomeColors;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
@@ -39,6 +41,9 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     public float t = 0;
     public int floodLevel;
+
+    public int waterColor = 0;
+    public int lightCoordinate = 0;
 
     // public WakeNode(int x, int z) {
     //     this.x = x;
@@ -140,7 +145,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 this.u[0][z][x] *= beta;
             }
         }
-
+        waterColor = BiomeColors.getWaterColor(MinecraftClient.getInstance().world, this.blockPos());
+        lightCoordinate = WorldRenderer.getLightmapCoordinates(MinecraftClient.getInstance().world, this.blockPos());
         floodFill();
         return true;
     }

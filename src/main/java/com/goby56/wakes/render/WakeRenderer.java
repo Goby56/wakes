@@ -36,7 +36,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         if (wakeHandler == null || wakeHandler.resolutionResetScheduled) return;
 
 
-        ArrayList<WakeQuad> quads = wakeHandler.getVisible(context.frustum());
+        ArrayList<Brick> bricks = wakeHandler.getVisible(context.frustum(), Brick.class);
 
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
@@ -46,8 +46,8 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         if (resolution.res != WakeNode.res) return;
         int n = 0;
         long tRendering = System.nanoTime();
-        for (var quad : quads) {
-            wakeTextures.get(resolution).render(matrix, context.camera(), quad, context.world());
+        for (var brick : bricks) {
+            wakeTextures.get(resolution).render(matrix, context.camera(), brick);
             n++;
         }
         WakesDebugInfo.wakeRenderingTime.add(System.nanoTime() - tRendering);
