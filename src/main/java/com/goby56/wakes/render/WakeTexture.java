@@ -3,24 +3,15 @@ package com.goby56.wakes.render;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.QuadTree;
-import com.goby56.wakes.simulation.WakeNode;
-import com.goby56.wakes.utils.WakesDebugInfo;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
-import org.lwjgl.system.MemoryUtil;
-
-import java.nio.IntBuffer;
 
 public class WakeTexture {
     public int res;
@@ -43,7 +34,6 @@ public class WakeTexture {
     }
 
     public void render(Matrix4f matrix, Camera camera, Brick brick) {
-        long tDrawing = System.nanoTime();
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -85,6 +75,5 @@ public class WakeTexture {
                 .normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();
-        WakesDebugInfo.drawingTime.add(System.nanoTime() - tDrawing);
     }
 }

@@ -1,16 +1,13 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.WakeTexture;
 import com.goby56.wakes.render.enums.WakeColor;
-import com.goby56.wakes.utils.WakesDebugInfo;
-import kroppeb.stareval.function.Type;
+import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -70,6 +67,7 @@ public class Brick {
         long tTexturing = System.nanoTime();
         populatePixels();
         WakesDebugInfo.texturingTime += (System.nanoTime() - tTexturing);
+        WakesDebugInfo.nodeCount += occupied;
         return occupied != 0;
     }
 
@@ -106,6 +104,10 @@ public class Brick {
 
     public void insert(WakeNode node) {
         int x = Math.floorMod(node.x, dim), z = Math.floorMod(node.z, dim);
+        if (nodes[z][x] != null) {
+            nodes[z][x].revive(node);
+            return;
+        }
         this.set(x, z, node);
         for (WakeNode neighbor : getAdjacentNodes(x, z)) {
             neighbor.updateAdjacency(node);

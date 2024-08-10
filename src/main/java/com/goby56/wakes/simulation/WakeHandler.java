@@ -2,6 +2,7 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
@@ -54,10 +55,12 @@ public class WakeHandler {
             if (tree != null) {
                 tree.tick();
 
+                long tInsertion = System.nanoTime();
                 Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 while (pendingNodes.peek() != null) {
                     tree.insert(pendingNodes.poll());
                 }
+                WakesDebugInfo.insertionTime = System.nanoTime() - tInsertion;
             }
         }
         if (this.resolutionResetScheduled) {
@@ -85,17 +88,6 @@ public class WakeHandler {
             }
         }
         return visibleQuads;
-    }
-
-    public int getTotal() {
-        // TODO SEEMS LIKE THERE ARE DUPLICATE NODES
-        int n = 0;
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            if (this.trees.get(y) != null) {
-                n += this.trees.get(y).count();
-            }
-        }
-        return n;
     }
 
     private int getArrayIndex(int height) {

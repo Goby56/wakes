@@ -41,6 +41,7 @@ public class WakesConfig {
     public int floodFillDistance = 3;
     public int ticksBeforeFill = 2;
     public boolean drawDebugBoxes = false;
+    public boolean showDebugInfo = false;
     public RenderType renderType = RenderType.AUTO;
     public boolean useLODs = true;
 

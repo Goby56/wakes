@@ -129,14 +129,6 @@ public class QuadTree {
         children.add(3, new QuadTree(x + w, yLevel, z + w, w, depth + 1, this.ROOT)); // SE
     }
 
-    public int count() {
-        if (hasLeaf()) {
-           return brick.occupied;
-        }
-        if (children == null) return 0;
-        return children.stream().reduce(0, (tot, tree) -> tot + tree.count(), Integer::sum);
-    }
-
     public void prune() {
         if (children != null) {
             for (var tree : children) {
