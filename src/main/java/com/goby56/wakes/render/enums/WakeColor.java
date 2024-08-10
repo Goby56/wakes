@@ -3,6 +3,7 @@ package com.goby56.wakes.render.enums;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.math.ColorHelper;
 
 public enum WakeColor implements StringIdentifiable {
     TRANSPARENT(0, 0, 0, 0),
@@ -26,7 +27,7 @@ public enum WakeColor implements StringIdentifiable {
         this.abgr = alpha << 24 | blue << 16 | green << 8 | red;
     }
 
-    private int blend(int waterColor, float opacity, boolean isWhite) {
+    private int blend(int waterColor, int lightColor, float opacity, boolean isWhite) {
         float srcA = (this.abgr >>> 24 & 0xFF) / 255f;
         int a = (int) (opacity * 255 * srcA);
         int b = 255, g = 255, r = 255;
@@ -35,15 +36,19 @@ public enum WakeColor implements StringIdentifiable {
             g = (int) ((this.abgr >> 8 & 0xFF) * (1 - srcA) + (waterColor >> 8 & 0xFF) * (srcA));
             r = (int) ((this.abgr & 0xFF) * (1 - srcA) + (waterColor >> 16 & 0xFF) * (srcA));
         }
+        float lightA = WakesClient.CONFIG_INSTANCE.lightInfluence / 255f;
+        b = (int) ((b * (1-lightA) + (lightColor >> 16 & 0xFF) * lightA));
+        g = (int) ((g * (1-lightA) + (lightColor >> 8 & 0xFF) * lightA));
+        r = (int) ((r * (1-lightA) + (lightColor & 0xFF) * lightA));
 
         return a << 24 | b << 16 | g << 8 | r;
     }
 
-    public static int getColor(float waveEqAvg, int waterColor, float opacity) {
+    public static int getColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
         double clampedRange = 100 / (1 + Math.exp(-0.1 * waveEqAvg)) - 50;
         for (WakesConfig.ColorInterval interval : WakesClient.CONFIG_INSTANCE.colorIntervals) {
             if (interval.lower <= clampedRange && clampedRange <= interval.upper) {
-                return interval.color.blend(waterColor, opacity, interval.color == WakeColor.WHITE);
+                return interval.color.blend(waterColor, lightColor, opacity, interval.color == WakeColor.WHITE);
             }
         }
         return WakeColor.TRANSPARENT.abgr;

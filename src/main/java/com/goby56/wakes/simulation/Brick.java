@@ -3,9 +3,17 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.RunArgs;
+import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
@@ -159,24 +167,33 @@ public class Brick {
     }
 
     public void populatePixels() {
+        World world = MinecraftClient.getInstance().world;
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
                 WakeNode node = this.get(x, z);
-
-                int waterCol = node != null ? node.waterColor : 0;
-                float opacity = node != null ? (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity) : 0;
+                int lightCol = LightmapTextureManager.MAX_LIGHT_COORDINATE;
+                int waterCol = 0;
+                float opacity = 0;
+                if (node != null) {
+                    waterCol = BiomeColors.getWaterColor(world, node.blockPos());
+                    int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, node.blockPos());
+                    lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
+                            LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
+                            LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
+                    );
+                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+                }
 
                 long nodeOffset = texRes * 4L * (((long) z * dim * texRes) + (long) x);
                 for (int r = 0; r < texRes; r++) {
                     for (int c = 0; c < texRes; c++) {
-                        float avg = 0;
+                        int color = 0;
                         if (node != null) {
-                            avg += (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
+                            float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
+                            color = WakeColor.getColor(avg, waterCol, lightCol, opacity);
                         }
-                        int color = waterCol != 0 ? WakeColor.getColor(avg, waterCol, opacity) : 0;
 
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
-
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
                     }
                 }

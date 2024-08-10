@@ -42,14 +42,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float t = 0;
     public int floodLevel;
 
-    public int waterColor = 0;
-    public int lightCoordinate = 0;
-
-    // public WakeNode(int x, int z) {
-    //     this.x = x;
-    //     this.z = z;
-    // }
-
     //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
         this.initValues();
@@ -145,8 +137,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 this.u[0][z][x] *= beta;
             }
         }
-        waterColor = BiomeColors.getWaterColor(MinecraftClient.getInstance().world, this.blockPos());
-        lightCoordinate = WorldRenderer.getLightmapCoordinates(MinecraftClient.getInstance().world, this.blockPos());
         floodFill();
         return true;
     }
