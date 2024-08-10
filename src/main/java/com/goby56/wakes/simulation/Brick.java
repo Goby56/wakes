@@ -159,21 +159,21 @@ public class Brick {
     public void populatePixels() {
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
-                WakeNode node = this.get(z, x);
+                WakeNode node = this.get(x, z);
 
                 int waterCol = node != null ? node.waterColor : 0;
                 float opacity = node != null ? (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity) : 0;
 
-                long nodeOffset = 4L * (((long) z * dim * texRes) + (long) x * texRes);
+                long nodeOffset = texRes * 4L * (((long) z * dim * texRes) + (long) x);
                 for (int r = 0; r < texRes; r++) {
                     for (int c = 0; c < texRes; c++) {
                         float avg = 0;
                         if (node != null) {
                             avg += (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
                         }
-                        int color = WakeColor.getColor(avg, waterCol, opacity);
+                        int color = waterCol != 0 ? WakeColor.getColor(avg, waterCol, opacity) : 0;
 
-                        long pixelOffset = 4L * (((long) r * texRes) + c);
+                        long pixelOffset = 4L * (((long) r * dim * texRes) + c);
 
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
                     }

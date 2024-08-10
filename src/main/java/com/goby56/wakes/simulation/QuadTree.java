@@ -7,7 +7,7 @@ import java.nio.IntBuffer;
 import java.util.*;
 
 public class QuadTree {
-    public static final int BRICK_WIDTH = 4;
+    public static final int BRICK_WIDTH = 16;
     private static final int MAX_DEPTH = (int) (26 - Math.log(BRICK_WIDTH) / Math.log(2));
     private static final int ROOT_X = (int) - Math.pow(2, 25);
     private static final int ROOT_Z = (int) - Math.pow(2, 25);
