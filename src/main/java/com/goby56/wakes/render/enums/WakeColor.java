@@ -3,7 +3,6 @@ package com.goby56.wakes.render.enums;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.ColorHelper;
 
 public enum WakeColor implements StringIdentifiable {
     TRANSPARENT(0, 0, 0, 0),
@@ -36,11 +35,16 @@ public enum WakeColor implements StringIdentifiable {
             g = (int) ((this.abgr >> 8 & 0xFF) * (1 - srcA) + (waterColor >> 8 & 0xFF) * (srcA));
             r = (int) ((this.abgr & 0xFF) * (1 - srcA) + (waterColor >> 16 & 0xFF) * (srcA));
         }
-        b = (int) ((b * ((lightColor >> 16 & 0xFF) / 255f)));
-        g = (int) ((g * ((lightColor >> 8  & 0xFF) / 255f)));
-        r = (int) ((r * ((lightColor       & 0xFF) / 255f)));
+        b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
+        g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
+        r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
 
         return a << 24 | b << 16 | g << 8 | r;
+    }
+
+    private static double invertedLogisticCurve(float x) {
+        float k = WakesClient.CONFIG_INSTANCE.shader_light_passthrough;
+        return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
     public static int getColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {

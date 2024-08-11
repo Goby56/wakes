@@ -44,7 +44,7 @@ public class WakesConfig {
     public boolean showDebugInfo = false;
     public RenderType renderType = RenderType.AUTO;
     public boolean useLODs = true;
-    public int lightInfluence = 127;
+    public float shader_light_passthrough = 0.5f;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;

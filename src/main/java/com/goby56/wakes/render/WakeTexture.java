@@ -42,28 +42,38 @@ public class WakeTexture {
         GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0,0,0,brick.dim * brick.texRes, brick.dim * brick.texRes, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, brick.imgPtr);
 
         RenderSystem.setShaderTexture(0, glTexId);
-        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalProgram);
+        //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalProgram);
+        RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
         Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f();
+        int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
         buffer.vertex(matrix, pos.x, pos.y, pos.z)
-                .texture(0, 0)
                 .color(1f, 1f, 1f, 1f)
+                .texture(0, 0)
+                .overlay(OverlayTexture.DEFAULT_UV)
+                .light(light)
                 .normal(0f, 1f, 0f).next();
         buffer.vertex(matrix, pos.x, pos.y, pos.z + brick.dim)
-                .texture(0, 1)
                 .color(1f, 1f, 1f, 1f)
+                .texture(0, 1)
+                .overlay(OverlayTexture.DEFAULT_UV)
+                .light(light)
                 .normal(0f, 1f, 0f).next();
         buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z + brick.dim)
-                .texture(1, 1)
                 .color(1f, 1f, 1f, 1f)
+                .texture(1, 1)
+                .overlay(OverlayTexture.DEFAULT_UV)
+                .light(light)
                 .normal(0f, 1f, 0f).next();
         buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z)
-                .texture(1, 0)
                 .color(1f, 1f, 1f, 1f)
+                .texture(1, 0)
+                .overlay(OverlayTexture.DEFAULT_UV)
+                .light(light)
                 .normal(0f, 1f, 0f).next();
 
         Tessellator.getInstance().draw();

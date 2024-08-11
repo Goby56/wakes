@@ -10,6 +10,7 @@ import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.debug.WakeDebugRenderer;
 import ladysnake.satin.api.managed.ManagedCoreShader;
 import ladysnake.satin.api.managed.ShaderEffectManager;
+import net.coderbot.iris.Iris;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -33,6 +34,7 @@ public class WakesClient implements ClientModInitializer {
 	public static WakesConfig CONFIG_INSTANCE;
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
 			new Identifier(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+	public static boolean areShadersEnabled = false;
 
 	@Override
 	public void onInitializeClient() {

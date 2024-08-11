@@ -30,7 +30,7 @@ public enum RenderType {
 
     public static Supplier<ShaderProgram> getProgram() {
         if (WakesClient.CONFIG_INSTANCE.renderType == RenderType.AUTO) {
-            if (WakesClient.areShadersEnabled()) {
+            if (WakesClient.areShadersEnabled) {
                 return ENTITY_TRANSLUCENT_CULL.program;
             } else {
                 return CUSTOM.program;
