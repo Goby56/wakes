@@ -36,10 +36,9 @@ public enum WakeColor implements StringIdentifiable {
             g = (int) ((this.abgr >> 8 & 0xFF) * (1 - srcA) + (waterColor >> 8 & 0xFF) * (srcA));
             r = (int) ((this.abgr & 0xFF) * (1 - srcA) + (waterColor >> 16 & 0xFF) * (srcA));
         }
-        float lightA = WakesClient.CONFIG_INSTANCE.lightInfluence / 255f;
-        b = (int) ((b * (1-lightA) + (lightColor >> 16 & 0xFF) * lightA));
-        g = (int) ((g * (1-lightA) + (lightColor >> 8 & 0xFF) * lightA));
-        r = (int) ((r * (1-lightA) + (lightColor & 0xFF) * lightA));
+        b = (int) ((b * ((lightColor >> 16 & 0xFF) / 255f)));
+        g = (int) ((g * ((lightColor >> 8  & 0xFF) / 255f)));
+        r = (int) ((r * ((lightColor       & 0xFF) / 255f)));
 
         return a << 24 | b << 16 | g << 8 | r;
     }

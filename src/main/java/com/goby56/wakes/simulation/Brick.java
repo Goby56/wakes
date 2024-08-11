@@ -181,6 +181,7 @@ public class Brick {
                             LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
+                    // TODO LERP LIGHT FROM SURROUNDING BLOCKS
                     opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
                 }
 
