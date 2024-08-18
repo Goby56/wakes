@@ -17,7 +17,9 @@ public class PickBoat implements ClientPickBlockGatherCallback {
     @Override
     public ItemStack pick(PlayerEntity player, HitResult result) {
         if (CONFIG_INSTANCE.pickBoat) {
-            if (player.raycast(5, 0, true) instanceof BlockHitResult fluidHit) {
+            if (player.raycast(5, 0, false).getType().equals(HitResult.Type.BLOCK)) return ItemStack.EMPTY;
+            if (player.raycast(5, 0, true) instanceof BlockHitResult fluidHit &&
+                    fluidHit.getType().equals(HitResult.Type.BLOCK)) {
                 if (player.getWorld().getFluidState(fluidHit.getBlockPos()).isOf(Fluids.WATER)) {
                     var boatTypes = BoatEntity.Type.values();
                     for (BoatEntity.Type boatType : boatTypes) {
