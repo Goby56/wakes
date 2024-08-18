@@ -2,11 +2,11 @@ package com.goby56.wakes;
 
 import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
-import com.goby56.wakes.render.debug.WakeDebugRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
