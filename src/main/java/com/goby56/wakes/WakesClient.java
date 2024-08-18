@@ -2,12 +2,12 @@ package com.goby56.wakes;
 
 import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import com.goby56.wakes.debug.WakeDebugRenderer;
 import ladysnake.satin.api.managed.ManagedCoreShader;
 import ladysnake.satin.api.managed.ShaderEffectManager;
 import net.fabricmc.api.ClientModInitializer;
