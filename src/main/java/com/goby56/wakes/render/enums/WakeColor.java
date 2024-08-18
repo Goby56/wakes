@@ -43,7 +43,7 @@ public enum WakeColor implements StringIdentifiable {
     }
 
     private static double invertedLogisticCurve(float x) {
-        float k = WakesClient.CONFIG_INSTANCE.shader_light_passthrough;
+        float k = WakesClient.CONFIG_INSTANCE.shaderLightPassthrough;
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
