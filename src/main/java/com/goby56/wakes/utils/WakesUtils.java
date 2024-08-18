@@ -54,7 +54,7 @@ public class WakesUtils {
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
                     Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingHeight(), z);
-                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, boat.getVelocity().x, 0f, boat.getVelocity().z);
+                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
         }

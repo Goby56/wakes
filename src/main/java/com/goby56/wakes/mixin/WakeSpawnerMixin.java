@@ -31,6 +31,10 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow private Vec3d pos;
 	@Shadow private World world;
 
+	@Shadow public abstract float getYaw(float tickDelta);
+
+	@Shadow public abstract float getYaw();
+
 	@Unique private boolean onWaterSurface = false;
 	@Unique private Vec3d prevPosOnSurface = null;
 	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
@@ -87,6 +91,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Override
 	public void setRecentlyTeleported(boolean b) {
 		this.hasRecentlyTeleported = b;
+	}
+
+	@Override
+	public SplashPlaneParticle getSplashPlane() {
+		return this.splashPlane;
 	}
 
 	// TODO FIX PLAYER TELEPORTATION CAUSING LONG WAKES

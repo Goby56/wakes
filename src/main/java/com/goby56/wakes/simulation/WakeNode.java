@@ -35,7 +35,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public WakeNode WEST = null;
 
     // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME (MAYBE)
-    public final int maxAge = 30;
+    public static int maxAge = 30;
     public int age = 0;
     private boolean dead = false;
 

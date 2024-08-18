@@ -26,6 +26,7 @@ wakes:
                 width: Width
                 height: Height
                 depth: Depth
+                gap: Gap
                 cap_velocity: Velocity cap
             interval:
                 lower: Lower

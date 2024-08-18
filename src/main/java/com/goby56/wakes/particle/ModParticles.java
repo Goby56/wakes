@@ -13,13 +13,13 @@ import net.minecraft.util.Identifier;
 
 public class ModParticles {
     public static WithOwnerParticleType SPLASH_PLANE;
-    public static DefaultParticleType SPLASH_CLOUD = FabricParticleTypes.simple();
+    public static WithOwnerParticleType SPLASH_CLOUD;
 
     public static void registerParticles() {
         SPLASH_PLANE = Registry.register(Registries.PARTICLE_TYPE, new Identifier(WakesClient.MOD_ID, "splash_plane"), new WithOwnerParticleType(true));
         ParticleFactoryRegistry.getInstance().register(SPLASH_PLANE, SplashPlaneParticle.Factory::new);
 
-        Registry.register(Registries.PARTICLE_TYPE, new Identifier(WakesClient.MOD_ID, "splash_cloud"), SPLASH_CLOUD);
+        SPLASH_CLOUD = Registry.register(Registries.PARTICLE_TYPE, new Identifier(WakesClient.MOD_ID, "splash_cloud"), new WithOwnerParticleType(true));
         ParticleFactoryRegistry.getInstance().register(SPLASH_CLOUD, SplashCloudParticle.Factory::new);
     }
 }

@@ -16,4 +16,6 @@ public interface ProducesWake {
 
     void setRecentlyTeleported(boolean b);
 
+    SplashPlaneParticle getSplashPlane();
+
 }

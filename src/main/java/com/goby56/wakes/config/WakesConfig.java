@@ -88,13 +88,14 @@ public class WakesConfig {
     }
 
     // Splash plane
-    public float splashPlaneWidth = 3f;
+    public float splashPlaneWidth = 2f;
     public float splashPlaneHeight = 1.5f;
-    public float splashPlaneDepth = 2f;
+    public float splashPlaneDepth = 3f;
+    public float splashPlaneOffset = -0.1f;
+    public float splashPlaneGap = 1f;
     public int splashPlaneResolution = 5;
     public float maxSplashPlaneVelocity = 0.5f;
-    public float splashPlaneScale = 1f;
-    public float splashPlaneOffset = 0f;
+    public float splashPlaneScale = 0.8f;
 
     public static WakesConfig loadConfig() {
         Jankson jankson = Jankson.builder().build();
