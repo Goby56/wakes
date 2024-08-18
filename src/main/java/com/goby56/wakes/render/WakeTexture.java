@@ -34,6 +34,7 @@ public class WakeTexture {
     }
 
     public void render(Matrix4f matrix, Camera camera, Brick brick) {
+        if (!brick.hasPopulatedPixels) return;
         GlStateManager._bindTexture(glTexId);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
         GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
@@ -42,7 +43,6 @@ public class WakeTexture {
         GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0,0,0,brick.dim * brick.texRes, brick.dim * brick.texRes, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, brick.imgPtr);
 
         RenderSystem.setShaderTexture(0, glTexId);
-        //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalProgram);
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
 

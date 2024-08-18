@@ -37,6 +37,7 @@ public class Brick {
 
     public long imgPtr = -1;
     public int texRes;
+    public boolean hasPopulatedPixels = false;
 
     public Brick(int x, float y, int z, int width) {
         this.dim = width;
@@ -54,6 +55,7 @@ public class Brick {
             this.imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
         }
         this.texRes = res;
+        this.hasPopulatedPixels = false;
     }
 
     public void deallocTexture() {
@@ -185,6 +187,7 @@ public class Brick {
                     opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
                 }
 
+                // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)
                 long nodeOffset = texRes * 4L * (((long) z * dim * texRes) + (long) x);
                 for (int r = 0; r < texRes; r++) {
                     for (int c = 0; c < texRes; c++) {
@@ -200,5 +203,6 @@ public class Brick {
                 }
             }
         }
+        hasPopulatedPixels = true;
     }
 }

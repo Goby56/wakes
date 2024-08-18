@@ -73,7 +73,6 @@ public class QuadTree {
     }
 
     public boolean insert(WakeNode node) {
-        // TODO FIX WAKES ARE INSERTED MULTIPLE TIMES BUT IN DIFFERENT BRICKS (LEAVES GAPS) COULD BE ISSUE WITH MESHER
         if (!this.bounds.contains(node.x, node.z)) {
             return false;
         }
