@@ -6,7 +6,6 @@ import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.utils.WakesUtils;
-import com.terraformersmc.modmenu.util.mod.Mod;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -24,9 +23,6 @@ import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.particle.DefaultParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Random;
 
 public class SplashPlaneParticle extends Particle {
     Entity owner;
@@ -141,6 +137,7 @@ public class SplashPlaneParticle extends Particle {
         @Nullable
         @Override
         public Particle createParticle(DefaultParticleType parameters, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
+            SplashPlaneParticle wake = new SplashPlaneParticle(world, x, y, z);
             SplashPlaneParticle splashPlane = new SplashPlaneParticle(world, x, y, z);
             if (parameters instanceof WithOwnerParticleType type) {
                 splashPlane.owner = type.owner;
