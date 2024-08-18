@@ -90,7 +90,7 @@ public class WakesConfig {
     public float splashPlaneWidth = 2f;
     public float splashPlaneHeight = 1.5f;
     public float splashPlaneDepth = 3f;
-    public float splashPlaneOffset = -0.1f;
+    public float splashPlaneOffset = -0.2f;
     public float splashPlaneGap = 1f;
     public int splashPlaneResolution = 5;
     public float maxSplashPlaneVelocity = 0.5f;

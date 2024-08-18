@@ -80,7 +80,7 @@ public class SplashPlaneParticle extends Particle {
             this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         }
         this.direction = Vec3d.fromPolar(0, -this.yaw);
-        Vec3d planeOffset = direction.multiply((this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
+        Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
     }

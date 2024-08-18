@@ -76,7 +76,7 @@ public class YACLIntegration {
                                         .controller(opt -> floatSlider(opt, 0.1f, 2f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane.offset", false)
-                                        .binding(-0.1f, () -> config.splashPlaneOffset, val -> config.splashPlaneOffset = val)
+                                        .binding(-0.2f, () -> config.splashPlaneOffset, val -> config.splashPlaneOffset = val)
                                         .controller(opt -> floatSlider(opt, -1f, 1f, 0.1f))
                                         .build())
                                 .option(optionOf(Float.class, "splash_plane.gap", false)
