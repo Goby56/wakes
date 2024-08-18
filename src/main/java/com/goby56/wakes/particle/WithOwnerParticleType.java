@@ -1,9 +1,9 @@
 package com.goby56.wakes.particle;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.SimpleParticleType;
 
-public class WithOwnerParticleType extends DefaultParticleType {
+public class WithOwnerParticleType extends SimpleParticleType {
     public Entity owner;
 
     protected WithOwnerParticleType(boolean alwaysShow) {

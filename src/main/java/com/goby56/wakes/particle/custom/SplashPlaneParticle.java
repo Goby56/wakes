@@ -21,7 +21,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,14 +133,14 @@ public class SplashPlaneParticle extends Particle {
     }
 
     @Environment(EnvType.CLIENT)
-    public static class Factory implements ParticleFactory<DefaultParticleType> {
+    public static class Factory implements ParticleFactory<SimpleParticleType> {
 
         public Factory(SpriteProvider spriteSet) {
         }
 
         @Nullable
         @Override
-        public Particle createParticle(DefaultParticleType parameters, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
+        public Particle createParticle(SimpleParticleType parameters, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
             SplashPlaneParticle splashPlane = new SplashPlaneParticle(world, x, y, z);
             if (parameters instanceof WithOwnerParticleType type) {
                 splashPlane.owner = type.owner;

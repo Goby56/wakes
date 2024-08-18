@@ -47,7 +47,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         public Vec2f uvOffset = new Vec2f(0f, 0f);
 
         public Texture(String path, int resolution, int frames, int stages) {
-            this.id = new Identifier("wakes", path);
+            this.id = Identifier.of("wakes", path);
             this.res = resolution;
             this.width = frames;
             this.height = stages * 2;
@@ -101,8 +101,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     }
 
     private static void renderSurface(Matrix4f matrix, Vector3f color, int light, boolean slightlyTransparent) {
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -122,14 +121,13 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
                         .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)
-                        .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                        .next();
+                        .normal((float) normal.x, (float) normal.y, (float) normal.z);
             }
         }
 
         RenderSystem.disableCull();
         RenderSystem.enableDepthTest();
-        Tessellator.getInstance().draw();
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
         RenderSystem.enableCull();
     }
 
