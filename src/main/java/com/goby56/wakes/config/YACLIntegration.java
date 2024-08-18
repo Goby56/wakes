@@ -123,7 +123,7 @@ public class YACLIntegration {
                                 .binding(false, () -> config.debugMode, val -> config.debugMode = val)
                                 .build())
                         .option(booleanOption("pick_boat", false)
-                                .binding(false, () -> config.pickBoat, val -> config.pickBoat = val)
+                                .binding(true, () -> config.pickBoat, val -> config.pickBoat = val)
                                 .build())
                         .option(booleanOption("disable_mod", false)
                                 .binding(false, () -> config.disableMod, val -> config.disableMod = val)

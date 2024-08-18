@@ -41,7 +41,7 @@ public class WakesConfig {
     public int floodFillDistance = 3;
     public int ticksBeforeFill = 2;
     public boolean debugMode = false;
-    public boolean pickBoat = false;
+    public boolean pickBoat = true;
     public RenderType renderType = RenderType.AUTO;
     public boolean useLODs = false;
 
