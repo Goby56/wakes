@@ -19,15 +19,22 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class SplashPlaneParticle extends Particle {
     Entity owner;
     float yaw;
     float prevYaw;
     int ticksSinceSplash = 0;
+
+    Vec3d direction = Vec3d.ZERO;
+
 
     protected SplashPlaneParticle(ClientWorld world, double x, double y, double z) {
         super(world, x, y, z);
@@ -65,24 +72,16 @@ public class SplashPlaneParticle extends Particle {
 
     private void aliveTick(ProducesWake wakeProducer) {
         this.ticksSinceSplash++;
-
-        Vec3d vel = wakeProducer.getNumericalVelocity();
-        this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
-        Vec3d normVel = vel.normalize();
-        Vec3d planePos = this.owner.getPos().add(normVel.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset));
-        this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
-
-        // TODO ADD DISTANCING OFFSET BETWEEN PLANES
-        int t = (int) Math.floor(WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity / vel.horizontalLength());
-        if (this.ticksSinceSplash > t && WakesClient.CONFIG_INSTANCE.spawnParticles) {
-            this.ticksSinceSplash = 0;
-            Vec3d particlePos = planePos.subtract(new Vec3d(normVel.x, 0f, normVel.z).multiply(this.owner.getWidth() / 2f));
-            Vec3d particleOffset = new Vec3d(-normVel.z, 0f, normVel.x).multiply(this.owner.getWidth() / 2f);
-            Vec3d pos = particlePos.add(particleOffset);
-            world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, wakeProducer.producingHeight(), pos.z, vel.x, vel.y ,vel.z);
-            pos = particlePos.add(particleOffset.multiply(-1f));
-            world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, wakeProducer.producingHeight(), pos.z, vel.x, vel.y ,vel.z);
+        if (this.owner instanceof BoatEntity) {
+            this.yaw = -this.owner.getYaw();
+        } else {
+            Vec3d vel = wakeProducer.getNumericalVelocity();
+            this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         }
+        this.direction = Vec3d.fromPolar(0, -this.yaw);
+        Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset);
+        Vec3d planePos = this.owner.getPos().add(planeOffset);
+        this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
     }
 
     @Override
@@ -93,7 +92,7 @@ public class SplashPlaneParticle extends Particle {
                 this.owner instanceof ClientPlayerEntity) {
             return;
         }
-        
+
         MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
         int light = this.getBrightness(tickDelta);
 
@@ -123,6 +122,10 @@ public class SplashPlaneParticle extends Particle {
         return matrixStack;
     }
 
+    public Vec3d getPos() {
+        return new Vec3d(x, y, z);
+    }
+
     @Override
     public ParticleTextureSheet getType() {
         return ParticleTextureSheet.CUSTOM;
@@ -137,13 +140,17 @@ public class SplashPlaneParticle extends Particle {
         @Nullable
         @Override
         public Particle createParticle(SimpleParticleType parameters, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
-            SplashPlaneParticle wake = new SplashPlaneParticle(world, x, y, z);
+            SplashPlaneParticle splashPlane = new SplashPlaneParticle(world, x, y, z);
             if (parameters instanceof WithOwnerParticleType type) {
-                wake.owner = type.owner;
-                wake.yaw = wake.prevYaw = type.owner.getYaw();
-                ((ProducesWake) wake.owner).setSplashPlane(wake);
+                splashPlane.owner = type.owner;
+                splashPlane.yaw = splashPlane.prevYaw = type.owner.getYaw();
+                ((ProducesWake) splashPlane.owner).setSplashPlane(splashPlane);
+                if (type.owner instanceof BoatEntity) {
+                    world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, 1, 0 ,0);
+                    world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, -1, 0 ,0);
+                }
             }
-            return wake;
+            return splashPlane;
         }
     }
 }

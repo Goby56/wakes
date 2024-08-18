@@ -24,7 +24,6 @@ public class LilyPadFallMixin {
     public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, float fallDistance, CallbackInfo ci) {
         if (!world.getBlockState(pos.up()).isOf(Blocks.LILY_PAD)) return;
         if (WakesClient.CONFIG_INSTANCE.disableMod) return;
-
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);
         ProducesWake wakeProducer = (ProducesWake) entity;
         if (rule.simulateWakes) {

@@ -18,6 +18,7 @@ wakes:
         option:
             wake_resolution: Wake resolution
             wake_opacity: Wake opacity
+            shader_light_passthrough: Shader light pass through
             first_person_splash_plane: First person splash plane
             splash_plane:
                 scale: Scale
@@ -25,6 +26,7 @@ wakes:
                 width: Width
                 height: Height
                 depth: Depth
+                gap: Gap
                 cap_velocity: Velocity cap
             interval:
                 lower: Lower
@@ -53,11 +55,9 @@ wakes:
             render_type: Shader program
             flood_fill_distance: Flood fill distance
             ticks_before_fill: Ticks before flood fill
-            debug_mode: Use debug mode
-            pick_boat: Enable picking boats from water
-            enable_depth_test: Enable depth test
+            draw_debug_boxes: Draw debug boxes
+            show_debug_info: Show debug info
             disable_mod: Disable mod
-            use_lods: Utilize level of detail
         description:
             first_person_splash_plane: >
                 Should the player's splash plane be seen while in first person?
@@ -72,3 +72,5 @@ wakes:
             effect_spawning_rules: "Specifies which effect(s) a source (player, mob, etc) can produce. \n\nSimulation refers to the simulated waves on the water that acts as wakes. \n\nPlanes refers to the splashes that shoot out on either side."
             wake_resolution: >
                 The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
+            shader_light_passthrough: >
+                Used to fine tune the appearance of wakes when using shaders. A higher value yields brighter wakes.

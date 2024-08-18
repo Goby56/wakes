@@ -2,22 +2,20 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.Queue;
 
 public class WakeHandler {
-    public final int MAX_QUERY_RANGE = 10;
-
     private static WakeHandler INSTANCE;
     public World world;
 
-    private final ArrayList<QuadTree<WakeNode>> trees;
+    private final ArrayList<QuadTree> trees;
     private final ArrayList<Queue<WakeNode>> toBeInserted;
     public boolean resolutionResetScheduled = false;
     private final int minY;
@@ -53,15 +51,16 @@ public class WakeHandler {
                 this.toBeInserted.get(i).clear();
                 continue;
             }
-            QuadTree<WakeNode> tree = this.trees.get(i);
+            QuadTree tree = this.trees.get(i);
             if (tree != null) {
                 tree.tick();
 
-
+                long tInsertion = System.nanoTime();
                 Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 while (pendingNodes.peek() != null) {
                     tree.insert(pendingNodes.poll());
                 }
+                WakesDebugInfo.insertionTime = System.nanoTime() - tInsertion;
             }
         }
         if (this.resolutionResetScheduled) {
@@ -75,53 +74,20 @@ public class WakeHandler {
         if (i < 0) return;
 
         if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree<>(0, 0, 30000000));
+            this.trees.add(i, new QuadTree(node.height));
         }
 
         this.toBeInserted.get(i).add(node);
     }
 
-    public ArrayList<WakeNode> getVisible(Frustum frustum) {
-        ArrayList<WakeNode> foundNodes = new ArrayList<>();
+    public <T> ArrayList<T> getVisible(Frustum frustum, Class<T> type) {
+        ArrayList<T> visibleQuads = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
             if (this.trees.get(i) != null) {
-                this.trees.get(i).query(frustum, i + this.minY, foundNodes);
+                this.trees.get(i).query(frustum, visibleQuads, type);
             }
         }
-        return foundNodes;
-    }
-
-    public int getTotal() {
-        // TODO SEEMS LIKE THERE ARE DUPLICATE NODES
-        int n = 0;
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            if (this.trees.get(y) != null) {
-                n += this.trees.get(y).count();
-            }
-        }
-        return n;
-    }
-
-    public int getMaxDepth() {
-        int maxDepth = 0;
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            QuadTree<WakeNode> t = this.trees.get(y);
-            if (t != null) {
-                int depth = t.getDepth();
-                if (depth > maxDepth) maxDepth = depth;
-            }
-        }
-        return maxDepth;
-    }
-
-    public ArrayList<QuadTree.DebugBB> getBBs() {
-        ArrayList<QuadTree.DebugBB> boxes = new ArrayList<>();
-        for (int y = 0; y < this.maxY - this.minY; y++) {
-            if (this.trees.get(y) != null) {
-                this.trees.get(y).getBBs(boxes, y - Math.abs(this.minY));
-            }
-        }
-        return boxes;
+        return visibleQuads;
     }
 
     private int getArrayIndex(int height) {
@@ -148,7 +114,7 @@ public class WakeHandler {
 
     private void reset() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
-            QuadTree<WakeNode> tree = this.trees.get(i);
+            QuadTree tree = this.trees.get(i);
             if (tree != null) {
                 tree.prune();
             }

@@ -101,7 +101,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     }
 
     private static void renderSurface(Matrix4f matrix, Vector3f color, int light, boolean slightlyTransparent) {
-        BufferBuilder bufBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -113,8 +113,8 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
             for (int i = 0; i < vertices.size(); i++) {
                 Vec3d vertex = vertices.get(i);
                 Vec3d normal = normals.get(i);
-                bufBuilder.vertex(matrix,
-                                (float) (s * vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth),
+                buffer.vertex(matrix,
+                                (float) (s * (vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth + WakesClient.CONFIG_INSTANCE.splashPlaneGap)),
                                 (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
                                 (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
                         .color(color.x, color.y, color.z, opacity)
@@ -127,7 +127,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
 
         RenderSystem.disableCull();
         RenderSystem.enableDepthTest();
-        BufferRenderer.drawWithGlobalProgram(bufBuilder.end());
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
         RenderSystem.enableCull();
     }
 

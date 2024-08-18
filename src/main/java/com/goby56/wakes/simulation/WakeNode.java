@@ -1,11 +1,10 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.DynamicWakeTexture;
-import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
@@ -13,12 +12,10 @@ import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.system.MemoryUtil;
 
 import java.util.*;
 
 public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
-    private final WakeHandler wakeHandler = WakeHandler.getInstance();
     // TODO MAKE SURE THIS WONT EVER BE NULL
 
     public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
@@ -27,9 +24,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     private static float beta;
     public float[][][] u;
     public float[][] initialValues;
-
-    public DynamicWakeTexture tex;
-    public float distanceFromCamera;
 
     public final int x;
     public final int z;
@@ -41,7 +35,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public WakeNode WEST = null;
 
     // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME (MAYBE)
-    public final int maxAge = 30;
+    public static int maxAge = 30;
     public int age = 0;
     private boolean dead = false;
 
@@ -106,11 +100,11 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     }
 
     @Override
-    public void tick() {
-        if (this.isDead()) return;
+    public boolean tick() {
+        if (this.isDead()) return false;
         if (this.age++ >= this.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
-            return;
+            return false;
         }
         this.t = this.age / (float) this.maxAge;
 
@@ -143,59 +137,35 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                 this.u[0][z][x] *= beta;
             }
         }
-
         floodFill();
-
-        prepareTexture();
+        return true;
     }
 
     public void floodFill() {
-        if (this.floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
+        WakeHandler wh = WakeHandler.getInstance();
+        if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
             if (this.NORTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.z - 1, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.z - 1, this.height, floodLevel - 1));
             } else {
-                this.NORTH.updateFloodLevel(this.floodLevel - 1);
+                this.NORTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.EAST == null) {
-                wakeHandler.insert(new WakeNode(this.x + 1, this.z, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x + 1, this.z, this.height, floodLevel - 1));
             } else {
-                this.EAST.updateFloodLevel(this.floodLevel - 1);
+                this.EAST.updateFloodLevel(floodLevel - 1);
             }
             if (this.SOUTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.z + 1, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.z + 1, this.height, floodLevel - 1));
             } else {
-                this.SOUTH.updateFloodLevel(this.floodLevel - 1);
+                this.SOUTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.WEST == null) {
-                wakeHandler.insert(new WakeNode(this.x - 1, this.z, this.height, this.floodLevel - 1));
+                wh.insert(new WakeNode(this.x - 1, this.z, this.height, floodLevel - 1));
             } else {
-                this.WEST.updateFloodLevel(this.floodLevel - 1);
+                this.WEST.updateFloodLevel(floodLevel - 1);
             }
-            this.floodLevel = 0;
+            floodLevel = 0;
             // TODO IF BLOCK IS BROKEN (AND WATER APPEARS IN ITS STEAD) RETRY FLOOD FILL
-        }
-    }
-
-    public void prepareTexture() {
-        int waterCol = BiomeColors.getWaterColor(wakeHandler.world, this.blockPos());
-        float opacity = (float) ((-Math.pow(this.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
-        if (WakesClient.CONFIG_INSTANCE.useLODs) {
-            this.tex = DynamicWakeTexture.fromDist(this.distanceFromCamera);
-        } else {
-            this.tex = new DynamicWakeTexture(WakeNode.res);
-        }
-        int samples = Math.max(1, WakeNode.res / this.tex.res);
-        for (int i = 0; i < this.tex.res; i++) {
-            for (int j = 0; j < this.tex.res; j++) {
-                float avg = 0;
-                for (int dy = 0; dy < samples; dy++) {
-                    for (int dx = 0; dx < samples; dx++) {
-                        avg += (this.u[0][i + dy + 1][j + dx + 1] + this.u[1][i + dy + 1][j + dx + 1] + this.u[2][i + dy + 1][j + dx + 1]) / 3;
-                    }
-                }
-                int color = WakeColor.getColor(avg / (samples * samples), waterCol, opacity);
-                MemoryUtil.memPutInt(this.tex.imgPtr + (((i*(long) this.tex.res)+j)*4), color);
-            }
         }
     }
 

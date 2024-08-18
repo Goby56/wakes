@@ -25,6 +25,10 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow private Vec3d pos;
 	@Shadow private World world;
 
+	@Shadow public abstract float getYaw(float tickDelta);
+
+	@Shadow public abstract float getYaw();
+
 	@Unique private boolean onWaterSurface = false;
 	@Unique private Vec3d prevPosOnSurface = null;
 	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
@@ -83,6 +87,11 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.hasRecentlyTeleported = b;
 	}
 
+	@Override
+	public SplashPlaneParticle getSplashPlane() {
+		return this.splashPlane;
+	}
+
 	// TODO FIX PLAYER TELEPORTATION CAUSING LONG WAKES
 //	@Inject(at = @At("TAIL"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FF)Z")
 //	private void onTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, CallbackInfoReturnable<Boolean> cir) {
@@ -124,7 +133,6 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		if (WakesClient.CONFIG_INSTANCE.disableMod) {
 			return;
 		}
-
 		Entity thisEntity = ((Entity) (Object) this);
 
 		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);

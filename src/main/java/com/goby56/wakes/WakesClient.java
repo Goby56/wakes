@@ -1,13 +1,13 @@
 package com.goby56.wakes;
 
-import com.goby56.wakes.command.DebugCommand;
+import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
-import com.goby56.wakes.render.WakeTextureRenderer;
 import com.goby56.wakes.render.debug.WakeDebugRenderer;
+import com.goby56.wakes.render.WakeRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -33,6 +33,7 @@ public class WakesClient implements ClientModInitializer {
 	public static WakesConfig CONFIG_INSTANCE;
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
 			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+	public static boolean areShadersEnabled = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -40,11 +41,7 @@ public class WakesClient implements ClientModInitializer {
 		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
 
 		// Mod configs
-//		AutoConfig.register(WakesConfig.class, GsonConfigSerializer::new);
 		CONFIG_INSTANCE = WakesConfig.loadConfig();
-
-		// Models
-		//EntityModelLayerRegistry.registerModelLayer(WakeModel.MODEL_LAYER, WakeModel::getTexturedModelData);
 
 		// Particles
 		ModParticles.registerParticles();
@@ -54,7 +51,7 @@ public class WakesClient implements ClientModInitializer {
 		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
 
 		// Rendering events
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeTextureRenderer());
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
 		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());

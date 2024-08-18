@@ -40,10 +40,11 @@ public class WakesConfig {
     public boolean disableMod = false;
     public int floodFillDistance = 3;
     public int ticksBeforeFill = 2;
-    public boolean debugMode = false;
     public boolean pickBoat = true;
     public RenderType renderType = RenderType.AUTO;
-    public boolean useLODs = false;
+    public boolean drawDebugBoxes = false;
+    public boolean showDebugInfo = false;
+    public float shaderLightPassthrough = 0.5f;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
@@ -87,13 +88,14 @@ public class WakesConfig {
     }
 
     // Splash plane
-    public float splashPlaneWidth = 3f;
+    public float splashPlaneWidth = 2f;
     public float splashPlaneHeight = 1.5f;
-    public float splashPlaneDepth = 2f;
+    public float splashPlaneDepth = 3f;
+    public float splashPlaneOffset = -0.2f;
+    public float splashPlaneGap = 1f;
     public int splashPlaneResolution = 5;
     public float maxSplashPlaneVelocity = 0.5f;
-    public float splashPlaneScale = 1f;
-    public float splashPlaneOffset = 0f;
+    public float splashPlaneScale = 0.8f;
 
     public static WakesConfig loadConfig() {
         Jankson jankson = Jankson.builder().build();
