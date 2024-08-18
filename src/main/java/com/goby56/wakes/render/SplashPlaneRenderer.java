@@ -76,7 +76,6 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
 
-        //if (this.owner.getVelocity().normalize().dotProduct(Vec3d.fromPolar(0, this.yaw)) <= 0) return;
         matrices.push();
         float velocity = (float) Math.floor(((ProducesWake) entity).getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity);

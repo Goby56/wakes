@@ -10,7 +10,6 @@ import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.debug.WakeDebugRenderer;
 import ladysnake.satin.api.managed.ManagedCoreShader;
 import ladysnake.satin.api.managed.ShaderEffectManager;
-import net.coderbot.iris.Iris;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
