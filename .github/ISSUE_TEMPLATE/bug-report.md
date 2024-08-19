@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Have you found a bug with the mod? Please use this template and report it.
+about: Have you found a bug with the mod? Please use this template and report it. If applicable, please add more describing labels.
 title: A very informative and concise title
 labels: bug
 assignees: ''
