@@ -57,6 +57,7 @@ wakes:
             ticks_before_fill: Ticks before flood fill
             draw_debug_boxes: Draw debug boxes
             show_debug_info: Show debug info
+            pick_boat: Enable picking boats from water
             disable_mod: Disable mod
         description:
             first_person_splash_plane: >
