@@ -38,7 +38,7 @@ public class QuadTree {
 
     private void initLeaf() {
         if (depth >= MAX_DEPTH) {
-            this.brick = new Brick(bounds.x, yLevel, bounds.z, bounds.width);
+            this.brick = new Brick(bounds.x, this.yLevel, bounds.z, bounds.width);
             this.ROOT.updateAdjacency(this);
         }
     }

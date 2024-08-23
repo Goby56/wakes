@@ -94,7 +94,7 @@ public class WakeHandler {
         if (height < this.minY || height > this.maxY) {
             return -1;
         }
-        return height + Math.abs(this.minY);
+        return height - this.minY;
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {

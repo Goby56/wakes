@@ -42,6 +42,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float t = 0;
     public int floodLevel;
 
+    public Entity spawner;
+
     //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
         this.initValues();
