@@ -19,7 +19,7 @@ public class QuadTree {
     private final DecentralizedBounds bounds;
     private final int depth;
     private Brick brick;
-    private final float yLevel;
+    public final float yLevel;
 
     public QuadTree(float y) {
         this(ROOT_X, y, ROOT_Z, ROOT_WIDTH, 0, null);
@@ -97,7 +97,6 @@ public class QuadTree {
             return;
         }
         if (hasLeaf() && brick.occupied > 0) {
-            // TODO ADD VISIBLE NODES CHECK
             if (type.equals(Brick.class)) {
                 output.add(type.cast(brick));
             }

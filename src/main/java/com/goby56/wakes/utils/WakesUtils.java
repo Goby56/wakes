@@ -10,14 +10,13 @@ import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -39,7 +38,8 @@ public class WakesUtils {
             return;
         }
 
-        for (WakeNode node : WakeNode.Factory.splashNodes(entity, ((ProducesWake) entity).producingHeight())) {
+        for (WakeNode node : WakeNode.Factory.splashNodes(entity, ((ProducesWake) entity).producingWaterLevel())) {
+            node.spawner = entity.getName().toString();
             instance.insert(node);
         }
     }
@@ -53,7 +53,7 @@ public class WakesUtils {
                     Vec3d rot = boat.getRotationVec(1.0f);
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingHeight(), z);
+                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingWaterLevel(), z);
                     world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
@@ -73,10 +73,11 @@ public class WakesUtils {
         }
         ProducesWake producer = (ProducesWake) entity;
         double velocity = producer.getHorizontalVelocity();
-        float height = producer.producingHeight();
+        int y = producer.producingWaterLevel();
 
         if (entity instanceof BoatEntity boat) {
-            for (WakeNode node : WakeNode.Factory.rowingNodes(boat, height)) {
+            for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
+                node.spawner = entity.getName().toString();
                 wakeHandler.insert(node);
             }
             if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
@@ -92,7 +93,8 @@ public class WakesUtils {
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), height, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
+            node.spawner = entity.getName().toString();
             wakeHandler.insert(node);
         }
     }
@@ -228,6 +230,10 @@ public class WakesUtils {
         return n;
     }
 
+    public static BlockPos vecToBlockPos(Vec3d v) {
+        return new BlockPos((int) Math.floor(v.x), (int) Math.floor(v.y), (int) Math.floor(v.z));
+    }
+
     public static float getWaterLevel(World world, Entity entityInWater) {
         Box box = entityInWater.getBoundingBox();
         return getWaterLevel(world,
@@ -267,21 +273,12 @@ public class WakesUtils {
 
     }
 
-    public static BlockPos vecToBlockPos(Vec3d pos) {
-        return new BlockPos((int) Math.floor(pos.x), (int) Math.floor(pos.y), (int) Math.floor(pos.z));
-    }
-
-
-    public static MatrixStack getMatrixStackFromCamera(Camera camera, float tickDelta, Vec3d prevPos, Vec3d currPos) {
-        // Think it moves the matrix context smoothly to the camera
-        // https://github.com/Ladysnake/Effective/blob/main/src/main/java/ladysnake/effective/particle/SplashParticle.java
-        Vec3d cameraPos = camera.getPos();
-        float x = (float) (MathHelper.lerp(tickDelta, prevPos.x, currPos.x) - cameraPos.getX());
-        float y = (float) (MathHelper.lerp(tickDelta, prevPos.y, currPos.y) - cameraPos.getY());
-        float z = (float) (MathHelper.lerp(tickDelta, prevPos.z, currPos.z) - cameraPos.getZ());
-
-        MatrixStack matrixStack = new MatrixStack();
-        matrixStack.translate(x, y, z);
-        return matrixStack;
+    public static boolean validNodePos(World world, BlockPos pos) {
+        FluidState fluidState = world.getFluidState(pos);
+        FluidState fluidStateAbove = world.getFluidState(pos.up());
+        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
+            return fluidState.isStill();
+        }
+        return false;
     }
 }

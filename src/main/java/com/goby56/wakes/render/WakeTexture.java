@@ -3,6 +3,7 @@ package com.goby56.wakes.render;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.QuadTree;
+import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
@@ -48,7 +49,7 @@ public class WakeTexture {
 
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
-        Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f();
+        Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
         int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
         buffer.vertex(matrix, pos.x, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)

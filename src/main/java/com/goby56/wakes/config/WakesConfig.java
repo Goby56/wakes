@@ -26,7 +26,6 @@ public class WakesConfig {
             "mobs", EffectSpawningRule.ONLY_SIMULATION,
             "items", EffectSpawningRule.ONLY_SIMULATION
     ));
-    public boolean wakesInRunningWater = false;
 
     // Behaviour
     public float wavePropagationFactor = 0.95f;

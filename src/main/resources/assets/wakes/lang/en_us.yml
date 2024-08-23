@@ -44,7 +44,6 @@ wakes:
                     only_simulation: Only simulation
                     only_planes: Only planes
                     disabled: Disabled
-            wakes_in_running_water: Wakes in running water
             spawn_particles: Spawn particles
             wave_propagation_factor: Wave propagation factor
             wave_decay_factor: Wave decay factor

@@ -113,7 +113,6 @@ public class Brick {
     }
 
     public void insert(WakeNode node) {
-        if (Math.abs(node.height - this.pos.y) > 1f) System.out.printf("INSERTING %s IN WRONG BRICK (%f)\n", node, this.pos.y);
         int x = Math.floorMod(node.x, dim), z = Math.floorMod(node.z, dim);
         if (nodes[z][x] != null) {
             nodes[z][x].revive(node);

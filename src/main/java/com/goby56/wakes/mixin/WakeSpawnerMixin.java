@@ -34,7 +34,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
 	@Unique private double horizontalNumericalVelocity = 0;
 	@Unique private double verticalNumericalVelocity = 0;
-	@Unique private Float producingWaterLevel = null;
+	@Unique private Integer producingWaterLevel = null;
 	@Unique private SplashPlaneParticle splashPlane;
 	@Unique private boolean hasRecentlyTeleported = false;
 
@@ -68,13 +68,13 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
-	public float producingHeight() {
+	public Integer producingWaterLevel() {
 		return this.producingWaterLevel;
 	}
 
 	@Override
-	public void setProducingHeight(float h) {
-		this.producingWaterLevel = h;
+	public void setProducingHeight(int y) {
+		this.producingWaterLevel = y;
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 		if (this.onWaterSurface && !this.hasRecentlyTeleported) {
 			if (this.producingWaterLevel == null)
-				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
+				this.producingWaterLevel = (int) Math.floor(WakesUtils.getWaterLevel(this.world, thisEntity));
 
 			Vec3d currPos = new Vec3d(thisEntity.getX(), this.producingWaterLevel, thisEntity.getZ());
 
@@ -138,7 +138,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
 		if (rule.simulateWakes) {
 			if (this.producingWaterLevel == null)
-				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
+				this.producingWaterLevel = (int) Math.floor(WakesUtils.getWaterLevel(this.world, thisEntity));
 			WakesUtils.placeFallSplash(((Entity) (Object) this));
 		}
 		// TODO ADD WAKE WHEN GETTING OUT OF WATER

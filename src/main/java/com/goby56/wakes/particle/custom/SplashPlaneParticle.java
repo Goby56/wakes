@@ -24,9 +24,6 @@ import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 public class SplashPlaneParticle extends Particle {
     Entity owner;
     float yaw;
@@ -81,7 +78,7 @@ public class SplashPlaneParticle extends Particle {
         this.direction = Vec3d.fromPolar(0, -this.yaw);
         Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
-        this.setPos(planePos.x, wakeProducer.producingHeight(), planePos.z);
+        this.setPos(planePos.x, wakeProducer.producingWaterLevel(), planePos.z);
     }
 
     @Override
