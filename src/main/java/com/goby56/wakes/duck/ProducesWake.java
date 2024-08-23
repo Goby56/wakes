@@ -5,8 +5,8 @@ import net.minecraft.util.math.Vec3d;
 
 public interface ProducesWake {
     boolean onWaterSurface();
-    Integer producingWaterLevel();
-    void setProducingHeight(int y);
+    Float producingWaterLevel();
+    void setProducingHeight(float h);
     Vec3d getPrevPos();
     void setPrevPos(Vec3d pos);
     Vec3d getNumericalVelocity();

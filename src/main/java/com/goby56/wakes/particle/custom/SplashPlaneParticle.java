@@ -5,6 +5,7 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
+import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,7 +29,6 @@ public class SplashPlaneParticle extends Particle {
     Entity owner;
     float yaw;
     float prevYaw;
-    int ticksSinceSplash = 0;
 
     Vec3d direction = Vec3d.ZERO;
 
@@ -68,7 +68,6 @@ public class SplashPlaneParticle extends Particle {
     }
 
     private void aliveTick(ProducesWake wakeProducer) {
-        this.ticksSinceSplash++;
         if (this.owner instanceof BoatEntity) {
             this.yaw = -this.owner.getYaw();
         } else {

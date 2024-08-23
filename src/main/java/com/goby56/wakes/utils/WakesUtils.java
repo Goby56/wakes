@@ -38,8 +38,7 @@ public class WakesUtils {
             return;
         }
 
-        for (WakeNode node : WakeNode.Factory.splashNodes(entity, ((ProducesWake) entity).producingWaterLevel())) {
-            node.spawner = entity.getName().toString();
+        for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).producingWaterLevel()))) {
             instance.insert(node);
         }
     }
@@ -73,11 +72,10 @@ public class WakesUtils {
         }
         ProducesWake producer = (ProducesWake) entity;
         double velocity = producer.getHorizontalVelocity();
-        int y = producer.producingWaterLevel();
+        int y = (int) Math.floor(producer.producingWaterLevel());
 
         if (entity instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
-                node.spawner = entity.getName().toString();
                 wakeHandler.insert(node);
             }
             if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
@@ -94,7 +92,6 @@ public class WakesUtils {
             return;
         }
         for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
-            node.spawner = entity.getName().toString();
             wakeHandler.insert(node);
         }
     }
@@ -230,10 +227,6 @@ public class WakesUtils {
         return n;
     }
 
-    public static BlockPos vecToBlockPos(Vec3d v) {
-        return new BlockPos((int) Math.floor(v.x), (int) Math.floor(v.y), (int) Math.floor(v.z));
-    }
-
     public static float getWaterLevel(World world, Entity entityInWater) {
         Box box = entityInWater.getBoundingBox();
         return getWaterLevel(world,
@@ -271,14 +264,5 @@ public class WakesUtils {
         }
         return maxY + 1;
 
-    }
-
-    public static boolean validNodePos(World world, BlockPos pos) {
-        FluidState fluidState = world.getFluidState(pos);
-        FluidState fluidStateAbove = world.getFluidState(pos.up());
-        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
-            return fluidState.isStill();
-        }
-        return false;
     }
 }

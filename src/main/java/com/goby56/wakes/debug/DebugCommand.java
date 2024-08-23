@@ -42,7 +42,6 @@ public class DebugCommand {
         if (!cmdCtx.getSource().getWorld().getFluidState(new BlockPos((int) pos.x, (int) Math.floor(pos.y), (int) pos.z)).isIn(FluidTags.WATER)) return 0;
         WakeNode node = new WakeNode(result.getPos(), 100);
         node.floodLevel = cmdCtx.getArgument("flood_level", Integer.class);
-        node.spawner = "Command";
         WakeHandler.getInstance().insert(node);
         return 1;
     }

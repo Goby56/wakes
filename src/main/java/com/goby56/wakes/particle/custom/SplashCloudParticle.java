@@ -44,7 +44,7 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
         
         if (this.owner instanceof ProducesWake wake) {
             SplashPlaneParticle splashPlane = wake.getSplashPlane();
-            if (splashPlane == null || wake.producingWaterLevel() == null) {
+            if (splashPlane == null) {
                 this.markDead();
                 return;
             }
@@ -55,7 +55,7 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
 
             Vec3d particleOffset = new Vec3d(-splashPlane.direction.z, 0f, splashPlane.direction.x).multiply(this.offset * this.owner.getWidth() / 2f);
             Vec3d pos = splashPlane.getPos().add(particleOffset).add(splashPlane.direction.multiply(-0.2f));
-            this.setPos(pos.x, wake.producingWaterLevel(), pos.z);
+            this.setPos(pos.x, pos.y, pos.z);
         }
     }
 

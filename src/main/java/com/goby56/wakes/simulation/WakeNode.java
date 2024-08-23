@@ -40,8 +40,6 @@ public class WakeNode {
     public float t = 0;
     public int floodLevel;
 
-    public String spawner = "Self";
-
     //TODO MORE GENERALIZED CONSTRUCTOR
     public WakeNode(Vec3d position, int initialStrength) {
         this.initValues();
