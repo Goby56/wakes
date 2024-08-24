@@ -235,13 +235,6 @@ public class WakesUtils {
                 MathHelper.floor(box.minZ), MathHelper.ceil(box.maxZ));
     }
 
-//    public static float getWaterLevel(ModelPart.Cuboid cuboidInWater) {
-//        return getWaterLevel(
-//                (int) cuboidInWater.minX, (int) cuboidInWater.maxX,
-//                (int) cuboidInWater.minY, (int) cuboidInWater.maxY,
-//                (int) cuboidInWater.minZ, (int) cuboidInWater.maxZ);
-//    }
-
     private static float getWaterLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
         // Taken from BoatEntity$getWaterLevelBelow
         BlockPos.Mutable blockPos = new BlockPos.Mutable();
