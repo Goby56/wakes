@@ -1,0 +1,76 @@
+wakes: 
+    yacl_missing:
+        .: Yet Another Config Lib 並不存在於你的 mods 資料夾中
+        message: >
+            如果你想要編輯設定，你需要 YACL V3。你想要安裝它嗎？
+    config: 
+        title: Wakes 設定
+        category:
+            basic: 基本設定
+            advanced: 進階設定
+            debug: 除錯
+        group:
+            wake_appearance: 跡流外觀
+            wake_behaviour: 跡流行為
+            effect_spawning: 效果生成
+            splash_plane: 潑濺平面
+            initial_wave_strengths: 初始波浪強度
+        option:
+            wake_resolution: 跡流解析度
+            wake_opacity: 跡流不透明度
+            shader_light_passthrough: 著色器光線穿透
+            first_person_splash_plane: 第一人稱潑濺平面
+            splash_plane: 
+                scale: 縮放比例
+                offset: 偏移
+                width: 寬度
+                height: 高度
+                depth: 深度
+                gap: 間隙
+                cap_velocity: 速度上限
+            interval: 
+                lower: 下限
+                upper: 上限
+                color: 顏色
+            effect_spawning_rules:
+                source: 
+                    boat: 船
+                    player: 玩家
+                    other_players: 其他玩家
+                    mobs: 生物
+                    items: 物品
+                effect: 
+                    simulation_and_planes: 模擬 & 平面
+                    only_simulation: 僅模擬
+                    only_planes: 僅平面
+                    disabled: 停用
+            spawn_particles: 生成粒子
+            wave_propagation_factor: 波浪傳播因子
+            wave_decay_factor: 波浪衰減因子
+            initial_wave_strength:
+                wake: 跡流強度
+                paddle: 槳板強度
+                splash: 潑濺強度
+            render_type: 著色器程式
+            flood_fill_distance: 泛洪填充距離
+            ticks_before_fill: 泛洪填充前的刻數
+            draw_debug_boxes: 繪製除錯方塊
+            show_debug_info: 顯示除錯資訊
+            pick_boat: 啟用從水中拾取船隻
+            disable_mod: 停用模組
+        description:
+            first_person_splash_plane: >
+                在第一人稱視角時，是否應該看到玩家的潑濺平面？
+            wave_propagation_factor: >
+                像素對跡流內相鄰像素的影響
+            wave_decay_factor: >
+                指定每個刻後像素值的剩餘量。（對數刻度）
+            initial_wave_strengths: >
+                用於產生跡流的來源起始強度。
+            splash_plane.cap_velocity: >
+                達到潑濺平面最大尺寸的速度
+            effect_spawning_rules: "指定來源（玩家、生物等）可以產生的效果。\n\n模擬是指水面上作為跡流的模擬波浪。\n\n平面是指從兩側射出的潑濺。"
+            wake_resolution: >
+                跡流的像素解析度。適合調整跡流以更好地視覺適應某些資源包。
+            shader_light_passthrough: >
+                用於微調使用著色器時跡流的外觀。值越高，跡流越亮。
