@@ -40,6 +40,7 @@ public class PickBoat implements ClientPickBlockGatherCallback {
 
     private ItemStack getBoatFromType(BoatEntity.Type type) {
         String waterCraft = type == BoatEntity.Type.BAMBOO ? "raft" : "boat";
-        return new ItemStack(Registries.ITEM.get(new Identifier(type.toString() + "_" + waterCraft)));
+        return new ItemStack(Registries.ITEM.get(Identifier.of(type.toString() + "_" + waterCraft)));
+
     }
 }

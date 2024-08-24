@@ -29,7 +29,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": "~1.20.5",
+		"minecraft": "~1.21",
 		"java": ">=21",
 		"fabric-api": "*"
 	},
@@ -37,7 +37,7 @@
 		"blazingly-fast-boats": "*"
 	},
 	"recommends": {
-		"modmenu": ">=10.0.0",
-		"yet_another_config_lib_v3": ">=3.3.2"
+		"modmenu": ">=11.0.0",
+		"yet_another_config_lib_v3": ">=3.5.0"
 	}
 }
