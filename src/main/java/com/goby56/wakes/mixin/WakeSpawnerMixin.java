@@ -68,7 +68,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
-	public float producingHeight() {
+	public Float producingWaterLevel() {
 		return this.producingWaterLevel;
 	}
 
@@ -113,8 +113,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		}
 
 		if (this.onWaterSurface && !this.hasRecentlyTeleported) {
-			if (this.producingWaterLevel == null)
-				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
+			this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
 
 			Vec3d currPos = new Vec3d(thisEntity.getX(), this.producingWaterLevel, thisEntity.getZ());
 

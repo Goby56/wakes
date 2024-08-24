@@ -27,6 +27,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
     @Override
     public void afterTranslucent(WorldRenderContext context) {
         if (WakesClient.CONFIG_INSTANCE.disableMod) {
+            WakesDebugInfo.quadsRendered = 0;
             return;
         }
 
@@ -35,9 +36,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null || wakeHandler.resolutionResetScheduled) return;
 
-        long tCulling = System.nanoTime();
         ArrayList<Brick> bricks = wakeHandler.getVisible(context.frustum(), Brick.class);
-        WakesDebugInfo.cullingTime.add(System.nanoTime() - tCulling);
 
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();

@@ -3,11 +3,10 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -15,9 +14,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 
-public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
-    // TODO MAKE SURE THIS WONT EVER BE NULL
-
+public class WakeNode {
     public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
 
     private static float alpha;
@@ -26,8 +23,9 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public float[][] initialValues;
 
     public final int x;
+    public final int y;
     public final int z;
-    public float height;
+    public static final float WATER_OFFSET = 8 / 9f;
 
     public WakeNode NORTH = null;
     public WakeNode EAST = null;
@@ -46,8 +44,8 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
     public WakeNode(Vec3d position, int initialStrength) {
         this.initValues();
         this.x = (int) Math.floor(position.x);
+        this.y = (int) Math.floor(position.y);
         this.z = (int) Math.floor(position.z);
-        this.height = (float) position.getY();
         int sx = (int) Math.floor(res * (position.x - this.x));
         int sz = (int) Math.floor(res * (position.z - this.z));
         for (int z = -1; z < 2; z++) {
@@ -58,20 +56,20 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
     }
 
-    private WakeNode(int x, int z, float height, int floodLevel) {
+    private WakeNode(int x, int y, int z, int floodLevel) {
         this.initValues();
         this.x = x;
+        this.y = y;
         this.z = z;
-        this.height = height;
         this.floodLevel = floodLevel;
     }
 
-    private WakeNode(long pos, float height) {
+    private WakeNode(long pos, int y) {
         this.initValues();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
+        this.y = y;
         this.z = xz[1];
-        this.height = height;
         this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
     }
 
@@ -99,14 +97,13 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         WakeNode.beta = (float) (Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
     }
 
-    @Override
     public boolean tick() {
         if (this.isDead()) return false;
-        if (this.age++ >= this.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
             return false;
         }
-        this.t = this.age / (float) this.maxAge;
+        this.t = this.age / (float) WakeNode.maxAge;
 
         for (int i = 2; i >= 1; i--) {
             if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][res];
@@ -145,22 +142,22 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         WakeHandler wh = WakeHandler.getInstance();
         if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
             if (this.NORTH == null) {
-                wh.insert(new WakeNode(this.x, this.z - 1, this.height, floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
             } else {
                 this.NORTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.EAST == null) {
-                wh.insert(new WakeNode(this.x + 1, this.z, this.height, floodLevel - 1));
+                wh.insert(new WakeNode(this.x + 1, this.y, this.z, floodLevel - 1));
             } else {
                 this.EAST.updateFloodLevel(floodLevel - 1);
             }
             if (this.SOUTH == null) {
-                wh.insert(new WakeNode(this.x, this.z + 1, this.height, floodLevel - 1));
+                wh.insert(new WakeNode(this.x, this.y, this.z + 1, floodLevel - 1));
             } else {
                 this.SOUTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.WEST == null) {
-                wh.insert(new WakeNode(this.x - 1, this.z, this.height, floodLevel - 1));
+                wh.insert(new WakeNode(this.x - 1, this.y, this.z, floodLevel - 1));
             } else {
                 this.WEST.updateFloodLevel(floodLevel - 1);
             }
@@ -169,7 +166,6 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
     }
 
-    @Override
     public void updateAdjacency(WakeNode node) {
         if (node.x == this.x && node.z == this.z - 1) {
             this.NORTH = node;
@@ -199,6 +195,37 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
         }
     }
 
+    public boolean validPos() {
+        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(this.blockPos());
+        FluidState fluidStateAbove = MinecraftClient.getInstance().world.getFluidState(this.blockPos().up());
+        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
+            return fluidState.isStill();
+        }
+        return false;
+    }
+
+    public Box toBox() {
+        return new Box(this.x, this.y, this.z, this.x + 1, this.y + (1 - WakeNode.WATER_OFFSET), this.z + 1);
+    }
+
+    public void revive(WakeNode node) {
+        this.age = 0;
+        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.initialValues = node.initialValues;
+    }
+
+    public void markDead() {
+        this.dead = true;
+    }
+
+    public boolean isDead() {
+        return this.dead;
+    }
+
+    public BlockPos blockPos() {
+        return new BlockPos(this.x, this.y, this.z);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -214,65 +241,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
     @Override
     public String toString() {
-        return "WakeNode{" +
-                "x=" + x +
-                ", z=" + z +
-                ", height=" + height +
-                '}';
+        return String.format("WakeNode{%d, %d, %d}", x, y, z);
     }
-
-    @Override
-    public Box toBox() {
-        return new Box(this.x, Math.floor(this.height), this.z, this.x + 1, Math.ceil(this.height), this.z + 1);
-    }
-
-    @Override
-    public int x() {
-        return this.x;
-    }
-
-    @Override
-    public int z() {
-        return this.z;
-    }
-
-    @Override
-    public void revive(WakeNode node) {
-        this.age = 0;
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
-        this.initialValues = node.initialValues;
-    }
-
-    @Override
-    public void markDead() {
-        this.dead = true;
-    }
-
-    @Override
-    public boolean isDead() {
-        return this.dead;
-    }
-
-    @Override
-    public boolean inValidPos() {
-        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(this.blockPos());
-        FluidState fluidStateAbove = MinecraftClient.getInstance().world.getFluidState(this.blockPos().up());
-        if (fluidState.isIn(FluidTags.WATER) && !fluidStateAbove.isIn(FluidTags.WATER)) {
-            return fluidState.isStill() || WakesClient.CONFIG_INSTANCE.wakesInRunningWater;
-        }
-        return false;
-    }
-
-    public Vec3d getPos() {
-        return new Vec3d(this.x, this.height, this.z);
-    }
-
-    public BlockPos blockPos() {
-        return new BlockPos(this.x, (int) Math.floor(this.height), this.z);
-    }
-
     public static class Factory {
-        public static Set<WakeNode> splashNodes(Entity entity, float height) {
+        public static Set<WakeNode> splashNodes(Entity entity, int y) {
             int res = WakeNode.res;
             int w = (int) (0.8 * entity.getWidth() * res / 2);
             int x = (int) (entity.getX() * res);
@@ -286,10 +258,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                     }
                 }
             }
-            return pixelsToNodes(pixelsAffected, height, WakesClient.CONFIG_INSTANCE.splashStrength, Math.abs(entity.getVelocity().y));
+            return pixelsToNodes(pixelsAffected, y, WakesClient.CONFIG_INSTANCE.splashStrength, Math.abs(entity.getVelocity().y));
         }
 
-        public static Set<WakeNode> rowingNodes(BoatEntity boat, float height) {
+        public static Set<WakeNode> rowingNodes(BoatEntity boat, int y) {
             Set<WakeNode> nodesAffected = new HashSet<>();
             double velocity = boat.getVelocity().horizontalLength();
             for (int i = 0; i < 2; i++) {
@@ -299,18 +271,18 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
                         Vec3d rot = boat.getRotationVec(1.0f);
                         double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                         double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                        Vec3d paddlePos = new Vec3d(x, height, z);
+                        Vec3d paddlePos = new Vec3d(x, y, z);
                         Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
                         Vec3d from = paddlePos;
                         Vec3d to = paddlePos.add(dir.multiply(2));
-                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, height, WakesClient.CONFIG_INSTANCE.paddleStrength, velocity));
+                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesClient.CONFIG_INSTANCE.paddleStrength, velocity));
                     }
                 }
             }
             return nodesAffected;
         }
 
-        public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity) {
+        public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity) {
             int res = WakeNode.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
@@ -319,10 +291,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
-            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity);
+            return pixelsToNodes(pixelsAffected, y, waveStrength, velocity);
         }
 
-        public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, float height, float waveStrength, double velocity, float width) {
+        public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity, float width) {
             int res = WakeNode.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
@@ -338,10 +310,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             for (int i = -w; i < w; i++) {
                 WakesUtils.bresenhamLine((int) (x1 + nx * i), (int) (z1 + nz * i), (int) (x2 + nx * i), (int) (z2 + nz * i), pixelsAffected);
             }
-            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity);
+            return pixelsToNodes(pixelsAffected, y, waveStrength, velocity);
         }
 
-        public static Set<WakeNode> nodeLine(double x, double z, float height, float waveStrength, Vec3d velocity, float width) {
+        public static Set<WakeNode> nodeLine(double x, int y, double z, float waveStrength, Vec3d velocity, float width) {
             int res = WakeNode.res;
             Vec3d dir = velocity.normalize();
             double nx = -dir.z;
@@ -355,10 +327,10 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
-            return pixelsToNodes(pixelsAffected, height, waveStrength, velocity.horizontalLength());
+            return pixelsToNodes(pixelsAffected, y, waveStrength, velocity.horizontalLength());
         }
 
-        private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, float height, float waveStrength, double velocity) {
+        private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, int y, float waveStrength, double velocity) {
             int res = WakeNode.res;
             int power = (int) (Math.log(res) / Math.log(2));
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
@@ -378,7 +350,7 @@ public class WakeNode implements Position<WakeNode>, Age<WakeNode> {
             }
             Set<WakeNode> nodesAffected = new HashSet<>();
             for (Long nodePos : pixelsInNodes.keySet()) {
-                WakeNode node = new WakeNode(nodePos, height);
+                WakeNode node = new WakeNode(nodePos, y);
                 for (Long subPos : pixelsInNodes.get(nodePos)) {
                     node.setInitialValue(subPos, (int) (waveStrength * velocity));
                 }

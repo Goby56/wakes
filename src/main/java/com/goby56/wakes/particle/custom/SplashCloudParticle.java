@@ -1,6 +1,5 @@
 package com.goby56.wakes.particle.custom;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeNode;
@@ -56,7 +55,7 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
 
             Vec3d particleOffset = new Vec3d(-splashPlane.direction.z, 0f, splashPlane.direction.x).multiply(this.offset * this.owner.getWidth() / 2f);
             Vec3d pos = splashPlane.getPos().add(particleOffset).add(splashPlane.direction.multiply(-0.2f));
-            this.setPos(pos.x, wake.producingHeight(), pos.z);
+            this.setPos(pos.x, pos.y, pos.z);
         }
     }
 

@@ -83,6 +83,7 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
+        // TODO MAKE SPLASH PLANE LOOK MORE LIKE WAKES (SIMULATE AND COLOR EACH PIXEL)
         Vector3f color = new Vector3f();
         int waterCol = BiomeColors.getWaterColor(entity.getWorld(), entity.getBlockPos());
         color.x = (float) (waterCol >> 16 & 0xFF) / 255f;

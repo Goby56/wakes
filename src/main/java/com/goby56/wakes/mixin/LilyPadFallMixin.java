@@ -3,6 +3,7 @@ package com.goby56.wakes.mixin;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
+import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -27,7 +28,7 @@ public class LilyPadFallMixin {
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);
         ProducesWake wakeProducer = (ProducesWake) entity;
         if (rule.simulateWakes) {
-            wakeProducer.setProducingHeight(pos.getY() + world.getFluidState(pos).getHeight());
+            wakeProducer.setProducingHeight(pos.getY() + WakeNode.WATER_OFFSET);
             WakesUtils.placeFallSplash(entity);
         }
     }

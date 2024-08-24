@@ -26,7 +26,6 @@ public class WakesConfig {
             "mobs", EffectSpawningRule.ONLY_SIMULATION,
             "items", EffectSpawningRule.ONLY_SIMULATION
     ));
-    public boolean wakesInRunningWater = false;
 
     // Behaviour
     public float wavePropagationFactor = 0.95f;
@@ -38,7 +37,7 @@ public class WakesConfig {
 
     // Debug
     public boolean disableMod = false;
-    public int floodFillDistance = 3;
+    public int floodFillDistance = 2;
     public int ticksBeforeFill = 2;
     public boolean pickBoat = true;
     public RenderType renderType = RenderType.AUTO;

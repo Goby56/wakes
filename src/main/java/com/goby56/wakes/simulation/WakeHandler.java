@@ -15,8 +15,8 @@ public class WakeHandler {
     private static WakeHandler INSTANCE;
     public World world;
 
-    private final ArrayList<QuadTree> trees;
-    private final ArrayList<Queue<WakeNode>> toBeInserted;
+    private QuadTree[] trees;
+    private QueueSet<WakeNode>[] toBeInserted;
     public boolean resolutionResetScheduled = false;
     private final int minY;
     private final int maxY;
@@ -27,11 +27,10 @@ public class WakeHandler {
         this.minY = world.getBottomY();
         this.maxY = world.getTopY();
         int worldHeight = this.maxY - this.minY;
-        this.trees = new ArrayList<>(worldHeight);
-        this.toBeInserted = new ArrayList<>(worldHeight);
+        this.trees = new QuadTree[worldHeight];
+        this.toBeInserted = new QueueSet[worldHeight];
         for (int i = 0; i < worldHeight; i++) {
-            this.trees.add(null);
-            this.toBeInserted.add(new QueueSet<>());
+            toBeInserted[i] = new QueueSet<>();
         }
     }
 
@@ -47,20 +46,17 @@ public class WakeHandler {
 
     public void tick() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
+            Queue<WakeNode> pendingNodes = this.toBeInserted[i];
             if (this.resolutionResetScheduled) {
-                this.toBeInserted.get(i).clear();
+                if (pendingNodes != null) pendingNodes.clear();
                 continue;
             }
-            QuadTree tree = this.trees.get(i);
+            QuadTree tree = this.trees[i];
             if (tree != null) {
                 tree.tick();
-
-                long tInsertion = System.nanoTime();
-                Queue<WakeNode> pendingNodes = this.toBeInserted.get(i);
                 while (pendingNodes.peek() != null) {
                     tree.insert(pendingNodes.poll());
                 }
-                WakesDebugInfo.insertionTime = System.nanoTime() - tInsertion;
             }
         }
         if (this.resolutionResetScheduled) {
@@ -70,31 +66,40 @@ public class WakeHandler {
 
     public void insert(WakeNode node) {
         if (this.resolutionResetScheduled) return;
-        int i = this.getArrayIndex((int) node.height);
+        int i = this.getArrayIndex(node.y);
         if (i < 0) return;
 
-        if (this.trees.get(i) == null) {
-            this.trees.add(i, new QuadTree(node.height));
+        if (this.trees[i] == null) {
+            this.trees[i] = new QuadTree(node.y);
         }
 
-        this.toBeInserted.get(i).add(node);
+        if (node.validPos()) {
+            this.toBeInserted[i].add(node);
+        }
     }
 
     public <T> ArrayList<T> getVisible(Frustum frustum, Class<T> type) {
         ArrayList<T> visibleQuads = new ArrayList<>();
         for (int i = 0; i < this.maxY - this.minY; i++) {
-            if (this.trees.get(i) != null) {
-                this.trees.get(i).query(frustum, visibleQuads, type);
+            if (this.trees[i] != null) {
+                this.trees[i].query(frustum, visibleQuads, type);
             }
         }
         return visibleQuads;
     }
 
-    private int getArrayIndex(int height) {
-        if (height < this.minY || height > this.maxY) {
+    private int getArrayIndex(int y) {
+        if (y < this.minY || y > this.maxY) {
             return -1;
         }
-        return height + Math.abs(this.minY);
+        return y - this.minY;
+    }
+
+    private int getYLevel(int i) {
+        if (i < 0 || i > this.maxY - this.minY) {
+            throw new IndexOutOfBoundsException();
+        }
+        return i + this.minY;
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {
@@ -114,10 +119,11 @@ public class WakeHandler {
 
     private void reset() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
-            QuadTree tree = this.trees.get(i);
+            QuadTree tree = this.trees[i];
             if (tree != null) {
                 tree.prune();
             }
+            toBeInserted[i].clear();
         }
     }
 
