@@ -54,11 +54,9 @@ public class WakeHandler {
             QuadTree tree = this.trees[i];
             if (tree != null) {
                 tree.tick();
-                long tInsertion = System.nanoTime();
                 while (pendingNodes.peek() != null) {
                     tree.insert(pendingNodes.poll());
                 }
-                WakesDebugInfo.insertionTime = System.nanoTime() - tInsertion;
             }
         }
         if (this.resolutionResetScheduled) {

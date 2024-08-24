@@ -1,7 +1,6 @@
 package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.gui.hud.DebugHud;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +16,11 @@ public abstract class DebugHudMixin {
     @Inject(at = @At("RETURN"), method = "getLeftText")
     protected void getLeftText(CallbackInfoReturnable<List<String>> info) {
         if (WakesClient.CONFIG_INSTANCE.showDebugInfo) {
-            WakesDebugInfo.show(info);
+            if (WakesClient.CONFIG_INSTANCE.disableMod) {
+                info.getReturnValue().add("[Wakes] Mod disabled!");
+            } else {
+                WakesDebugInfo.show(info);
+            }
         }
     }
 }

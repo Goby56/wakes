@@ -117,7 +117,7 @@ public class YACLIntegration {
                                         .enumClass(RenderType.class))
                                 .build())
                         .option(optionOf(Integer.class, "flood_fill_distance", false)
-                                .binding(3, () -> config.floodFillDistance, val -> config.floodFillDistance = val)
+                                .binding(2, () -> config.floodFillDistance, val -> config.floodFillDistance = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
                                 .build())
                         .option(optionOf(Integer.class, "ticks_before_fill", false)
