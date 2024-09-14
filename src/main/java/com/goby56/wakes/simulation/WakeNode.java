@@ -7,10 +7,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import java.util.*;
 
@@ -140,6 +140,7 @@ public class WakeNode {
 
     public void floodFill() {
         WakeHandler wh = WakeHandler.getInstance();
+        assert wh != null;
         if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
             if (this.NORTH == null) {
                 wh.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
@@ -195,9 +196,9 @@ public class WakeNode {
         }
     }
 
-    public boolean validPos() {
-        FluidState fluidState = MinecraftClient.getInstance().world.getFluidState(this.blockPos());
-        FluidState fluidStateAbove = MinecraftClient.getInstance().world.getFluidState(this.blockPos().up());
+    public boolean validPos(World world) {
+        FluidState fluidState = world.getFluidState(this.blockPos());
+        FluidState fluidStateAbove = world.getFluidState(this.blockPos().up());
         if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
             return fluidState.isStill();
         }

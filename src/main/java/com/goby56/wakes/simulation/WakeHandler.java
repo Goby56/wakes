@@ -73,7 +73,7 @@ public class WakeHandler {
             this.trees[i] = new QuadTree(node.y);
         }
 
-        if (node.validPos()) {
+        if (node.validPos(world)) {
             this.toBeInserted[i].add(node);
         }
     }
