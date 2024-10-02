@@ -3,12 +3,8 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.RunArgs;
-import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
@@ -168,6 +164,16 @@ public class Brick {
         }
     }
 
+    public void addTimeDelta(float dt) {
+        for (int z = 0; z < dim; z++) {
+            for (int x = 0; x < dim; x++) {
+                var node = this.get(x, z);
+                if (node == null) continue;
+                node.t += dt;
+            }
+        }
+    }
+
     public void populatePixels() {
         World world = MinecraftClient.getInstance().world;
         for (int z = 0; z < dim; z++) {
@@ -177,14 +183,15 @@ public class Brick {
                 int waterCol = 0;
                 float opacity = 0;
                 if (node != null) {
-                    waterCol = BiomeColors.getWaterColor(world, node.blockPos());
+                    // waterCol = BiomeColors.getWaterColor(world, node.blockPos());
                     int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, node.blockPos());
                     lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
                             LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+                    float f = node.t / WakesClient.CONFIG_INSTANCE.wakeVisibilityDuration;
+                    opacity = (float) (Math.exp(-f*f) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)

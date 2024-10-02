@@ -54,6 +54,8 @@ wakes:
             render_type: Shader program
             flood_fill_distance: Flood fill distance
             ticks_before_fill: Ticks before flood fill
+            max_node_age: Max node age
+            opacity_falloff: Wake visibility duration
             draw_debug_boxes: Draw debug boxes
             show_debug_info: Show debug info
             pick_boat: Enable picking boats from water

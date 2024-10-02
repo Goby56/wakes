@@ -33,7 +33,6 @@ public class WakeNode {
     public WakeNode WEST = null;
 
     // TODO MAKE DISAPPEARANCE DEPENDENT ON WAVE VALUES INSTEAD OF AGE/TIME (MAYBE)
-    public static int maxAge = 30;
     public int age = 0;
     private boolean dead = false;
 
@@ -98,12 +97,12 @@ public class WakeNode {
     }
 
     public boolean tick() {
+        int maxAge = WakesClient.CONFIG_INSTANCE.maxNodeAge;
         if (this.isDead()) return false;
-        if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
             return false;
         }
-        this.t = this.age / (float) WakeNode.maxAge;
 
         for (int i = 2; i >= 1; i--) {
             if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][res];

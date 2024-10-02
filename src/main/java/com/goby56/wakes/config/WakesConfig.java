@@ -44,6 +44,8 @@ public class WakesConfig {
     public boolean drawDebugBoxes = false;
     public boolean showDebugInfo = false;
     public float shaderLightPassthrough = 0.5f;
+    public int maxNodeAge = 30;
+    public int wakeVisibilityDuration = 0;
 
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;

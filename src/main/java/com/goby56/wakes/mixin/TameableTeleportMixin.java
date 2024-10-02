@@ -13,12 +13,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(TameableEntity.class)
 public class TameableTeleportMixin {
 
-    @Shadow @Final private TameableEntity tameable;
 
     @Inject(at = @At("TAIL"), method = "tryTeleportTo")
     private void onTeleport(int x, int y, int z, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValue()) {
-            ((ProducesWake) this.tameable).setRecentlyTeleported(true);
+            ((ProducesWake) this).setRecentlyTeleported(true);
         }
     }
 }

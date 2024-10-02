@@ -1,5 +1,6 @@
 package com.goby56.wakes.particle.custom;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeNode;
@@ -22,7 +23,7 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
         this.prevPosY = y;
         this.prevPosZ = z;
 
-        this.maxAge = WakeNode.maxAge;
+        this.maxAge = WakesClient.CONFIG_INSTANCE.maxNodeAge;
         this.setSprite(sprites.getSprite(world.random));
 
         this.offset = velocityX;

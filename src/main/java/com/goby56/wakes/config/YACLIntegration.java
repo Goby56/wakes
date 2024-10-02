@@ -59,7 +59,10 @@ public class YACLIntegration {
                                         .controller(opt -> floatSlider(opt, 0f, 2f, 0.01f))
                                         .build())
                                 .option(optionOf(Float.class, "wave_decay_factor", true)
-                                        .binding(0.5f, () -> config.waveDecayFactor, val -> config.waveDecayFactor = val)
+                                        .binding(0.5f, () -> config.waveDecayFactor, val -> {
+                                            config.waveDecayFactor = val;
+                                            WakeNode.calculateWaveDevelopmentFactors();
+                                        })
                                         .controller(opt -> floatSlider(opt, 0f, 1f, 0.01f))
                                         .build())
                                 .build())
@@ -123,6 +126,14 @@ public class YACLIntegration {
                         .option(optionOf(Integer.class, "ticks_before_fill", false)
                                 .binding(2, () -> config.ticksBeforeFill, val -> config.ticksBeforeFill = val)
                                 .controller(opt -> integerSlider(opt, 1, 5))
+                                .build())
+                        .option(optionOf(Integer.class, "max_node_age", false)
+                                .binding(30, () -> config.maxNodeAge, val -> config.maxNodeAge = val)
+                                .controller(opt -> integerSlider(opt, 1, 100))
+                                .build())
+                        .option(optionOf(Integer.class, "wake_visibility_duration", false)
+                                .binding(1, () -> config.wakeVisibilityDuration, val -> config.wakeVisibilityDuration = val)
+                                .controller(opt -> integerSlider(opt, 1, 200))
                                 .build())
                         .option(booleanOption("pick_boat", false)
                                 .binding(true, () -> config.pickBoat, val -> config.pickBoat = val)

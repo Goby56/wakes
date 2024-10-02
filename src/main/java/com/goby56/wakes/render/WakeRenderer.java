@@ -48,6 +48,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         long tRendering = System.nanoTime();
         for (var brick : bricks) {
             wakeTextures.get(resolution).render(matrix, context.camera(), brick);
+            brick.addTimeDelta(context.camera().getLastTickDelta());
             n++;
         }
         WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
