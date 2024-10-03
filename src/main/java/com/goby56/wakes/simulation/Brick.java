@@ -1,6 +1,6 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
@@ -40,7 +40,7 @@ public class Brick {
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        initTexture(WakesClient.CONFIG_INSTANCE.wakeResolution.res);
+        initTexture(WakesConfig.wakeResolution.res);
     }
 
     public void initTexture(int res) {
@@ -190,8 +190,8 @@ public class Brick {
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    float f = node.t / WakesClient.CONFIG_INSTANCE.wakeVisibilityDuration;
-                    opacity = (float) (Math.exp(-f*f) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+                    float f = node.t / WakesConfig.wakeVisibilityDuration;
+                    opacity = (float) (Math.exp(-f*f) * WakesConfig.wakeOpacity);
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)

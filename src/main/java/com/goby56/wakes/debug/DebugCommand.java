@@ -29,8 +29,6 @@ public class DebugCommand {
                         .then(ClientCommandManager.literal("node")
                                 .then(ClientCommandManager.argument("flood_level", IntegerArgumentType.integer(0, 5))
                                         .executes(DebugCommand::spawnWakeNode)))));
-                        //.then(ClientCommandManager.literal("splash_cloud_particle")
-                                //.executes(DebugCommand::spawnSplashCloudParticle)))));
     }
 
     public static int spawnWakeNode(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {

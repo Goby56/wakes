@@ -26,7 +26,6 @@ public class WakesClient implements ClientModInitializer {
 	public static ModMetadata METADATA;
 	public static final String CONFIG_PATH = String.format("%s/%s.json", FabricLoader.getInstance().getConfigDir().toString(), MOD_ID);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static WakesConfig CONFIG_INSTANCE;
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
 			new Identifier(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 	public static boolean areShadersEnabled = false;
@@ -37,7 +36,6 @@ public class WakesClient implements ClientModInitializer {
 		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
 
 		// Mod configs
-		CONFIG_INSTANCE = WakesConfig.loadConfig();
 		MidnightConfig.init(MOD_ID, WakesConfig.class);
 
 		// Game events

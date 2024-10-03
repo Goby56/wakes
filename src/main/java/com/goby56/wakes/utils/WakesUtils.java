@@ -1,6 +1,7 @@
 package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.simulation.WakeHandler;
@@ -50,13 +51,13 @@ public class WakesUtils {
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesConfig.initialStrength, velocity, entity.getWidth())) {
             wakeHandler.insert(node);
         }
     }
 
     public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
-        Map<String, EffectSpawningRule> effectRule = WakesClient.CONFIG_INSTANCE.effectSpawningRules;
+        Map<String, EffectSpawningRule> effectRule = WakesConfig.effectSpawningRules;
         if (source instanceof BoatEntity boat) {
             List<Entity> passengers = boat.getPassengerList();
             if (passengers.contains(MinecraftClient.getInstance().player)) {

@@ -19,8 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 public class WakesConfig extends MidnightConfig {
+    public static final String DEBUG = "Debug";
+
     // Spawning
-    public Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
+    @Entry() public static Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
             "boat", EffectSpawningRule.SIMULATION_AND_PLANES,
             "player", EffectSpawningRule.ONLY_SIMULATION,
             "other_players", EffectSpawningRule.ONLY_SIMULATION,
@@ -29,28 +31,27 @@ public class WakesConfig extends MidnightConfig {
     ));
 
     // Behaviour
-    public float wavePropagationFactor = 0.95f;
-    public float waveDecayFactor = 0.5f;
-    public int initialStrength = 20;
-    public int paddleStrength = 100;
-    public int splashStrength = 100;
+    @Entry() public static float wavePropagationFactor = 0.95f;
+    @Entry() public static float waveDecayFactor = 0.5f;
+    @Entry() public static int initialStrength = 20;
+    @Entry() public static int paddleStrength = 100;
+    @Entry() public static int splashStrength = 100;
 
     // Debug
-    public boolean disableMod = false;
-    public int floodFillDistance = 2;
-    public int ticksBeforeFill = 2;
-    public boolean pickBoat = true;
-    public RenderType renderType = RenderType.AUTO;
-    public boolean drawDebugBoxes = false;
-    public boolean showDebugInfo = false;
-    public float shaderLightPassthrough = 0.5f;
-    public int maxNodeAge = 30;
-    public int wakeVisibilityDuration = 0;
+    @Entry() public static boolean disableMod = false;
+    @Entry() public static int floodFillDistance = 2;
+    @Entry() public static int ticksBeforeFill = 2;
+    @Entry() public static RenderType renderType = RenderType.AUTO;
+    @Entry() public static boolean drawDebugBoxes = false;
+    @Entry() public static boolean showDebugInfo = false;
+    @Entry() public static float shaderLightPassthrough = 0.5f;
+    @Entry() public static int maxNodeAge = 30;
+    @Entry() public static int wakeVisibilityDuration = 100;
 
     // Appearance
-    public Resolution wakeResolution = Resolution.SIXTEEN;
-    public float wakeOpacity = 1f;
-    public List<ColorInterval> colorIntervals = List.of(
+    @Entry() public static Resolution wakeResolution = Resolution.SIXTEEN;
+    @Entry() public static float wakeOpacity = 1f;
+    public static List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
             new ColorInterval(WakeColor.GRAY, -35, -30),

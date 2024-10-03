@@ -1,6 +1,7 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
@@ -26,7 +27,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
-        if (WakesClient.CONFIG_INSTANCE.disableMod) {
+        if (WakesConfig.disableMod) {
             WakesDebugInfo.quadsRendered = 0;
             return;
         }
@@ -42,7 +43,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.enableBlend();
         context.lightmapTextureManager().enable();
 
-        Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
+        Resolution resolution = WakesConfig.wakeResolution;
         if (resolution.res != WakeNode.res) return;
         int n = 0;
         long tRendering = System.nanoTime();

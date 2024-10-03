@@ -49,7 +49,7 @@ public class WakeTexture {
 
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-        Vec3f pos = new Vec3f(brick.pos.add(camera.getPos().negate()).add(0, WakeNode.WATER_OFFSET, 0));
+        Vec3f pos = new Vec3f(brick.pos.add(camera.getPos().negate()));
 
         int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
         buffer.vertex(matrix, pos.getX(), pos.getY(), pos.getZ())

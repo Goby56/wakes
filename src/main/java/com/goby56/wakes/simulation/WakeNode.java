@@ -1,7 +1,10 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -15,7 +18,7 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class WakeNode {
-    public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+    public static int res = WakesConfig.wakeResolution.res;
 
     private static float alpha;
     private static float beta;
@@ -52,7 +55,7 @@ public class WakeNode {
                 this.u[0][sz+1+z][sx+1+x] = initialStrength;
             }
         }
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     private WakeNode(int x, int y, int z, int floodLevel) {
@@ -69,7 +72,7 @@ public class WakeNode {
         this.x = xz[0];
         this.y = y;
         this.z = xz[1];
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     private void initValues() {
@@ -92,14 +95,14 @@ public class WakeNode {
     public static void calculateWaveDevelopmentFactors() {
         float time = 20f; // ticks
         // TODO CHANGE "16" TO ACTUAL RES? MAYBE?
-        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.wavePropagationFactor * 16f / time, 2);
-        WakeNode.beta = (float) (Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
+        WakeNode.alpha = (float) Math.pow(WakesConfig.wavePropagationFactor * 16f / time, 2);
+        WakeNode.beta = (float) (Math.log(10 * WakesConfig.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
     }
 
     public boolean tick() {
-        int maxAge = WakesClient.CONFIG_INSTANCE.maxNodeAge;
+        int maxAge = WakesConfig.maxNodeAge;
         if (this.isDead()) return false;
-        if (this.age++ >= maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= maxAge || res != WakesConfig.wakeResolution.res) {
             this.markDead();
             return false;
         }
@@ -140,7 +143,7 @@ public class WakeNode {
     public void floodFill() {
         WakeHandler wh = WakeHandler.getInstance();
         assert wh != null;
-        if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
+        if (floodLevel > 0 && this.age > WakesConfig.ticksBeforeFill) {
             if (this.NORTH == null) {
                 wh.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
             } else {
@@ -196,8 +199,7 @@ public class WakeNode {
     }
 
     public boolean validPos(World world) {
-        // Return true if in ink
-        return true;
+        return world.getBlockState(this.blockPos().down()).isOf(Blocks.OBSIDIAN);
     }
 
     public Box toBox() {
@@ -206,7 +208,7 @@ public class WakeNode {
 
     public void revive(WakeNode node) {
         this.age = 0;
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
         this.initialValues = node.initialValues;
     }
 
@@ -254,7 +256,7 @@ public class WakeNode {
                     }
                 }
             }
-            return pixelsToNodes(pixelsAffected, y, WakesClient.CONFIG_INSTANCE.splashStrength, Math.abs(entity.getVelocity().y));
+            return pixelsToNodes(pixelsAffected, y, WakesConfig.splashStrength, Math.abs(entity.getVelocity().y));
         }
 
         public static Set<WakeNode> rowingNodes(BoatEntity boat, int y) {
@@ -271,7 +273,7 @@ public class WakeNode {
                         Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
                         Vec3d from = paddlePos;
                         Vec3d to = paddlePos.add(dir.multiply(2));
-                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesClient.CONFIG_INSTANCE.paddleStrength, velocity));
+                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesConfig.paddleStrength, velocity));
                     }
                 }
             }

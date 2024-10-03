@@ -1,6 +1,7 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
@@ -103,7 +104,7 @@ public class WakeHandler {
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {
-        WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
+        WakesConfig.wakeResolution = newRes;
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null) {
             return;
@@ -113,7 +114,7 @@ public class WakeHandler {
 
     private void changeResolution() {
         this.reset();
-        WakeNode.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        WakeNode.res = WakesConfig.wakeResolution.res;
         this.resolutionResetScheduled = false;
     }
 

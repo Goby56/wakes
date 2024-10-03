@@ -1,6 +1,7 @@
 package com.goby56.wakes.debug;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
@@ -18,7 +19,7 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
-        if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
+        if (WakesConfig.drawDebugBoxes) {
             for (var node : wakeHandler.getVisible(context.frustum(), WakeNode.class)) {
                 DebugRenderer.drawBox(node.toBox().offset(context.camera().getPos().negate()),
                         1, 0, 1, 0.5f);
