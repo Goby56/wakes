@@ -8,8 +8,8 @@ import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.*;
-import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.*;
+import dev.isxander.yacl.api.Option;
+import dev.isxander.yacl.api.YetAnotherConfigLib;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 

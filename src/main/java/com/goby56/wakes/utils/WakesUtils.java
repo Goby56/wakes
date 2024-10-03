@@ -3,8 +3,6 @@ package com.goby56.wakes.utils;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
-import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.MinecraftClient;
@@ -15,16 +13,9 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,29 +33,6 @@ public class WakesUtils {
             instance.insert(node);
         }
     }
-
-    public static void spawnPaddleSplashCloudParticle(World world, BoatEntity boat) {
-        // TODO MORE OBJECT ORIENTED APPROACH TO PARTICLE SPAWNING
-        for (int i = 0; i < 2; i++) {
-            if (boat.isPaddleMoving(i)) {
-                double phase = boat.paddlePhases[i] % (2*Math.PI);
-                if (BoatEntity.NEXT_PADDLE_PHASE / 2 <= phase && phase <= BoatEntity.EMIT_SOUND_EVENT_PADDLE_ROTATION + BoatEntity.NEXT_PADDLE_PHASE) {
-                    Vec3d rot = boat.getRotationVec(1.0f);
-                    double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
-                    double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingWaterLevel(), z);
-                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
-                }
-            }
-        }
-    }
-
-    public static void spawnSplashPlane(World world, Entity owner) {
-        WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
-        Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
-    }
-
     public static void placeWakeTrail(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (wakeHandler == null) {
@@ -74,15 +42,6 @@ public class WakesUtils {
         double velocity = producer.getHorizontalVelocity();
         int y = (int) Math.floor(producer.producingWaterLevel());
 
-        if (entity instanceof BoatEntity boat) {
-            for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
-                wakeHandler.insert(node);
-            }
-            if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
-                WakesUtils.spawnPaddleSplashCloudParticle(entity.getWorld(), boat);
-            }
-        }
-      
         // TODO FIX ENTERING BOAT CREATES LONG WAKE
         // if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
         //     ((ProducesWake) entity).setPrevPos(null);
@@ -225,44 +184,5 @@ public class WakesUtils {
             }
         }
         return n;
-    }
-
-    public static float getWaterLevel(World world, Entity entityInWater) {
-        Box box = entityInWater.getBoundingBox();
-        return getWaterLevel(world,
-                MathHelper.floor(box.minX), MathHelper.ceil(box.maxX),
-                MathHelper.floor(box.minY), MathHelper.ceil(box.maxY),
-                MathHelper.floor(box.minZ), MathHelper.ceil(box.maxZ));
-    }
-
-//    public static float getWaterLevel(ModelPart.Cuboid cuboidInWater) {
-//        return getWaterLevel(
-//                (int) cuboidInWater.minX, (int) cuboidInWater.maxX,
-//                (int) cuboidInWater.minY, (int) cuboidInWater.maxY,
-//                (int) cuboidInWater.minZ, (int) cuboidInWater.maxZ);
-//    }
-
-    private static float getWaterLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
-        // Taken from BoatEntity$getWaterLevelBelow
-        BlockPos.Mutable blockPos = new BlockPos.Mutable();
-
-        yLoop:
-        for (int y = minY; y < maxY; ++y) {
-            float f = 0.0f;
-            for (int x = minX; x < maxX; ++x) {
-                for (int z = minZ; z < maxZ; ++z) {
-                    blockPos.set(x, y, z);
-                    FluidState fluidState = world.getFluidState(blockPos);
-                    if (fluidState.isIn(FluidTags.WATER)) {
-                        f = Math.max(f, fluidState.getHeight(world, blockPos));
-                    }
-                    if (f >= 1.0f) continue yLoop;
-                }
-            }
-            if (!(f < 1.0f)) continue;
-            return blockPos.getY() + f;
-        }
-        return maxY + 1;
-
     }
 }

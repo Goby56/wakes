@@ -79,7 +79,7 @@ dependencies {
 
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-	include(modImplementation("org.ladysnake:satin:${project.satin_version}"))
+	include(modImplementation("io.github.ladysnake:satin:${project.satin_version}"))
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.0-M1"
 

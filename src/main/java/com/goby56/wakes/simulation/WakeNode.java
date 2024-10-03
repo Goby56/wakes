@@ -196,12 +196,8 @@ public class WakeNode {
     }
 
     public boolean validPos(World world) {
-        FluidState fluidState = world.getFluidState(this.blockPos());
-        FluidState fluidStateAbove = world.getFluidState(this.blockPos().up());
-        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
-            return fluidState.isStill();
-        }
-        return false;
+        // Return true if in ink
+        return true;
     }
 
     public Box toBox() {

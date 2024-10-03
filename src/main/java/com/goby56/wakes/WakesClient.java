@@ -5,12 +5,11 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
-import com.goby56.wakes.particle.ModParticles;
-import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import ladysnake.satin.api.managed.ManagedCoreShader;
+import ladysnake.satin.api.managed.ShaderEffectManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
@@ -19,8 +18,6 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Identifier;
-import org.ladysnake.satin.api.managed.ManagedCoreShader;
-import org.ladysnake.satin.api.managed.ShaderEffectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +40,6 @@ public class WakesClient implements ClientModInitializer {
 		// Mod configs
 		CONFIG_INSTANCE = WakesConfig.loadConfig();
 
-		// Particles
-		ModParticles.registerParticles();
-
 		// Game events
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
 		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
@@ -53,8 +47,6 @@ public class WakesClient implements ClientModInitializer {
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
-
-		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());
 
 		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);

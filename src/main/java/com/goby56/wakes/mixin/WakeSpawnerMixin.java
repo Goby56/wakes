@@ -2,7 +2,6 @@ package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
-import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -24,18 +23,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Shadow public abstract boolean isTouchingWater();
 	@Shadow private Vec3d pos;
 	@Shadow private World world;
-
-	@Shadow public abstract float getYaw(float tickDelta);
-
-	@Shadow public abstract float getYaw();
-
 	@Unique private boolean onWaterSurface = false;
 	@Unique private Vec3d prevPosOnSurface = null;
 	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
 	@Unique private double horizontalNumericalVelocity = 0;
 	@Unique private double verticalNumericalVelocity = 0;
 	@Unique private Float producingWaterLevel = null;
-	@Unique private SplashPlaneParticle splashPlane;
 	@Unique private boolean hasRecentlyTeleported = false;
 
 	@Override
@@ -78,26 +71,9 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	}
 
 	@Override
-	public void setSplashPlane(SplashPlaneParticle particle) {
-		this.splashPlane = particle;
-	}
-
-	@Override
 	public void setRecentlyTeleported(boolean b) {
 		this.hasRecentlyTeleported = b;
 	}
-
-	@Override
-	public SplashPlaneParticle getSplashPlane() {
-		return this.splashPlane;
-	}
-
-	// TODO FIX PLAYER TELEPORTATION CAUSING LONG WAKES
-//	@Inject(at = @At("TAIL"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FF)Z")
-//	private void onTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, CallbackInfoReturnable<Boolean> cir) {
-//		this.setRecentlyTeleported(true);
-//		System.out.printf("%s wants to teleport\n", this);
-//	}
 
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
@@ -113,11 +89,14 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		}
 
 		if (this.onWaterSurface && !this.hasRecentlyTeleported) {
-			this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
+			this.producingWaterLevel = (float) thisEntity.getPos().y;
 
 			Vec3d currPos = new Vec3d(thisEntity.getX(), this.producingWaterLevel, thisEntity.getZ());
 
-			this.spawnEffects(thisEntity);
+			EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
+			if (rule.simulateWakes) {
+				WakesUtils.placeWakeTrail(thisEntity);
+			}
 
 			this.setPrevPos(currPos);
 		} else {
@@ -127,33 +106,18 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.setRecentlyTeleported(false);
 	}
 
-	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
-	private void onSwimmingStart(CallbackInfo ci) {
-		if (WakesClient.CONFIG_INSTANCE.disableMod) {
-			return;
-		}
-		Entity thisEntity = ((Entity) (Object) this);
-
-		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
-		if (rule.simulateWakes) {
-			if (this.producingWaterLevel == null)
-				this.producingWaterLevel = WakesUtils.getWaterLevel(this.world, thisEntity);
-			WakesUtils.placeFallSplash(((Entity) (Object) this));
-		}
-		// TODO ADD WAKE WHEN GETTING OUT OF WATER
-	}
-
-	private void spawnEffects(Entity thisEntity) {
-		EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
-		if (rule.simulateWakes) {
-			WakesUtils.placeWakeTrail(thisEntity);
-		}
-		if (rule.renderPlanes) {
-			if (this.splashPlane == null && this.horizontalNumericalVelocity > 1e-2) {
-				WakesUtils.spawnSplashPlane(this.world, thisEntity);
-			}
-		}
-	}
+	// @Inject(at = @At("TAIL"), method = "onSwimmingStart")
+	// private void onSwimmingStart(CallbackInfo ci) {
+	// 	if (WakesClient.CONFIG_INSTANCE.disableMod) {
+	// 		return;
+	// 	}
+	// 	Entity thisEntity = ((Entity) (Object) this);
+	//
+	// 	EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(thisEntity);
+	// 	if (rule.simulateWakes) {
+	// 		WakesUtils.placeFallSplash(((Entity) (Object) this));
+	// 	}
+	// }
 
 	private Vec3d calculateVelocity(Entity thisEntity) {
 		if (thisEntity instanceof ClientPlayerEntity) {

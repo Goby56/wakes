@@ -9,8 +9,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
 
@@ -47,35 +47,36 @@ public class WakeTexture {
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        Vec3f pos = new Vec3f(brick.pos.add(camera.getPos().negate()).add(0, WakeNode.WATER_OFFSET, 0));
 
-        Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
         int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
-        buffer.vertex(matrix, pos.x, pos.y, pos.z)
+        buffer.vertex(matrix, pos.getX(), pos.getY(), pos.getZ())
                 .color(1f, 1f, 1f, 1f)
                 .texture(0, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
                 .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x, pos.y, pos.z + brick.dim)
+        buffer.vertex(matrix, pos.getX(), pos.getY(), pos.getZ() + brick.dim)
                 .color(1f, 1f, 1f, 1f)
                 .texture(0, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
                 .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z + brick.dim)
+        buffer.vertex(matrix, pos.getX() + brick.dim, pos.getY(), pos.getZ() + brick.dim)
                 .color(1f, 1f, 1f, 1f)
                 .texture(1, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
                 .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z)
+        buffer.vertex(matrix, pos.getX() + brick.dim, pos.getY(), pos.getZ())
                 .color(1f, 1f, 1f, 1f)
                 .texture(1, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
                 .normal(0f, 1f, 0f);
 
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        Tessellator.getInstance().draw();
     }
 }
