@@ -9,6 +9,7 @@ import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.google.gson.Gson;
+import eu.midnightdust.lib.config.MidnightConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WakesConfig {
+public class WakesConfig extends MidnightConfig {
     // Spawning
     public Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
             "boat", EffectSpawningRule.SIMULATION_AND_PLANES,
@@ -33,7 +34,6 @@ public class WakesConfig {
     public int initialStrength = 20;
     public int paddleStrength = 100;
     public int splashStrength = 100;
-    public boolean spawnParticles = true;
 
     // Debug
     public boolean disableMod = false;
@@ -50,7 +50,6 @@ public class WakesConfig {
     // Appearance
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
-    public boolean firstPersonSplashPlane = false;
     public List<ColorInterval> colorIntervals = List.of(
             new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
             new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
@@ -87,16 +86,6 @@ public class WakesConfig {
         }
 
     }
-
-    // Splash plane
-    public float splashPlaneWidth = 2f;
-    public float splashPlaneHeight = 1.5f;
-    public float splashPlaneDepth = 3f;
-    public float splashPlaneOffset = -0.2f;
-    public float splashPlaneGap = 1f;
-    public int splashPlaneResolution = 5;
-    public float maxSplashPlaneVelocity = 0.5f;
-    public float splashPlaneScale = 0.8f;
 
     public static WakesConfig loadConfig() {
         Jankson jankson = Jankson.builder().build();

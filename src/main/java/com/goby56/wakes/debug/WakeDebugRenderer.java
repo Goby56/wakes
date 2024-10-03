@@ -20,16 +20,14 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
         WakeHandler wakeHandler = WakeHandler.getInstance();
         if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
             for (var node : wakeHandler.getVisible(context.frustum(), WakeNode.class)) {
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
-                        node.toBox().offset(context.camera().getPos().negate()),
+                DebugRenderer.drawBox(node.toBox().offset(context.camera().getPos().negate()),
                         1, 0, 1, 0.5f);
             }
             for (var brick : wakeHandler.getVisible(context.frustum(), Brick.class)) {
                 Vec3d pos = brick.pos;
                 Box box = new Box(pos.x, pos.y - (1 - WakeNode.WATER_OFFSET), pos.z, pos.x + brick.dim, pos.y, pos.z + brick.dim);
                 var col = Color.getHSBColor(new Random(pos.hashCode()).nextFloat(), 1f, 1f).getRGBColorComponents(null);
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
-                        box.offset(context.camera().getPos().negate()),
+                DebugRenderer.drawBox(box.offset(context.camera().getPos().negate()),
                         col[0], col[1], col[2], 0.5f);
             }
         }

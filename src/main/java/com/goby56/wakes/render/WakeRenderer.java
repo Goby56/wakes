@@ -9,7 +9,7 @@ import com.goby56.wakes.debug.WakesDebugInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import org.joml.Matrix4f;
+import net.minecraft.util.math.Matrix4f;
 
 import java.util.*;
 
@@ -48,7 +48,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         long tRendering = System.nanoTime();
         for (var brick : bricks) {
             wakeTextures.get(resolution).render(matrix, context.camera(), brick);
-            brick.addTimeDelta(context.camera().getLastTickDelta());
+            brick.addTimeDelta(context.tickDelta());
             n++;
         }
         WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);

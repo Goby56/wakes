@@ -3,16 +3,15 @@ package com.goby56.wakes;
 import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
-import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeTicker;
 import com.goby56.wakes.render.WakeRenderer;
+import eu.midnightdust.lib.config.MidnightConfig;
 import ladysnake.satin.api.managed.ManagedCoreShader;
 import ladysnake.satin.api.managed.ShaderEffectManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -29,7 +28,7 @@ public class WakesClient implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static WakesConfig CONFIG_INSTANCE;
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
-			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+			new Identifier(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 	public static boolean areShadersEnabled = false;
 
 	@Override
@@ -39,10 +38,10 @@ public class WakesClient implements ClientModInitializer {
 
 		// Mod configs
 		CONFIG_INSTANCE = WakesConfig.loadConfig();
+		MidnightConfig.init(MOD_ID, WakesConfig.class);
 
 		// Game events
 		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
-		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
@@ -50,10 +49,6 @@ public class WakesClient implements ClientModInitializer {
 
 		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);
-	}
-
-	public static boolean isYACLLoaded() {
-		return FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
 	}
 
 	public static boolean areShadersEnabled() {
