@@ -2,13 +2,12 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
-import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Queue;
 
 public class WakeHandler {
@@ -17,11 +16,12 @@ public class WakeHandler {
 
     private QuadTree[] trees;
     private QueueSet<WakeNode>[] toBeInserted;
-    public boolean resolutionResetScheduled = false;
     private final int minY;
     private final int maxY;
 
-    private WakeHandler(ClientWorld world) {
+    public static boolean resolutionResetScheduled = false;
+
+    private WakeHandler(World world) {
         this.world = world;
         WakeNode.calculateWaveDevelopmentFactors();
         this.minY = world.getBottomY();
@@ -34,38 +34,46 @@ public class WakeHandler {
         }
     }
 
-    public static WakeHandler getInstance() {
+    public static Optional<WakeHandler> getInstance() {
         if (INSTANCE == null) {
             if (MinecraftClient.getInstance().world == null) {
-                return null;
+                return Optional.empty();
             }
             INSTANCE = new WakeHandler(MinecraftClient.getInstance().world);
         }
-        return INSTANCE;
+        return Optional.of(INSTANCE);
+    }
+
+    public static void init(World world) {
+        INSTANCE = new WakeHandler(world);
+    }
+
+    public static void kill() {
+        INSTANCE = null;
     }
 
     public void tick() {
         for (int i = 0; i < this.maxY - this.minY; i++) {
             Queue<WakeNode> pendingNodes = this.toBeInserted[i];
-            if (this.resolutionResetScheduled) {
+            if (resolutionResetScheduled) {
                 if (pendingNodes != null) pendingNodes.clear();
                 continue;
             }
             QuadTree tree = this.trees[i];
             if (tree != null) {
-                tree.tick();
+                tree.tick(this);
                 while (pendingNodes.peek() != null) {
                     tree.insert(pendingNodes.poll());
                 }
             }
         }
-        if (this.resolutionResetScheduled) {
+        if (resolutionResetScheduled) {
             this.changeResolution();
         }
     }
 
     public void insert(WakeNode node) {
-        if (this.resolutionResetScheduled) return;
+        if (resolutionResetScheduled) return;
         int i = this.getArrayIndex(node.y);
         if (i < 0) return;
 
@@ -104,17 +112,13 @@ public class WakeHandler {
 
     public static void scheduleResolutionChange(Resolution newRes) {
         WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
-        WakeHandler wakeHandler = WakeHandler.getInstance();
-        if (wakeHandler == null) {
-            return;
-        }
-        wakeHandler.resolutionResetScheduled = true;
+        resolutionResetScheduled = true;
     }
 
     private void changeResolution() {
         this.reset();
         WakeNode.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
-        this.resolutionResetScheduled = false;
+        resolutionResetScheduled = false;
     }
 
     private void reset() {
@@ -124,12 +128,6 @@ public class WakeHandler {
                 tree.prune();
             }
             toBeInserted[i].clear();
-        }
-    }
-
-    public static class WorldNotFoundException extends Exception {
-        public WorldNotFoundException() {
-            super("WakeHandler singleton was accessed too early! Player needs to be in a world.");
         }
     }
 }

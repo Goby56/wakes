@@ -33,8 +33,8 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
         if (wakeTextures == null) initTextures();
 
-        WakeHandler wakeHandler = WakeHandler.getInstance();
-        if (wakeHandler == null || wakeHandler.resolutionResetScheduled) return;
+        WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+        if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
 
         ArrayList<Brick> bricks = wakeHandler.getVisible(context.frustum(), Brick.class);
 

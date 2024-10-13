@@ -9,6 +9,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -97,7 +98,7 @@ public class WakeNode {
         WakeNode.beta = (float) (Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
     }
 
-    public boolean tick() {
+    public boolean tick(WakeHandler wakeHandler) {
         if (this.isDead()) return false;
         if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
             this.markDead();
@@ -134,31 +135,29 @@ public class WakeNode {
                 this.u[0][z][x] *= beta;
             }
         }
-        floodFill();
+        floodFill(wakeHandler);
         return true;
     }
 
-    public void floodFill() {
-        WakeHandler wh = WakeHandler.getInstance();
-        assert wh != null;
+    public void floodFill(WakeHandler wakeHandler) {
         if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
             if (this.NORTH == null) {
-                wh.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
             } else {
                 this.NORTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.EAST == null) {
-                wh.insert(new WakeNode(this.x + 1, this.y, this.z, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x + 1, this.y, this.z, floodLevel - 1));
             } else {
                 this.EAST.updateFloodLevel(floodLevel - 1);
             }
             if (this.SOUTH == null) {
-                wh.insert(new WakeNode(this.x, this.y, this.z + 1, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x, this.y, this.z + 1, floodLevel - 1));
             } else {
                 this.SOUTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.WEST == null) {
-                wh.insert(new WakeNode(this.x - 1, this.y, this.z, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x - 1, this.y, this.z, floodLevel - 1));
             } else {
                 this.WEST.updateFloodLevel(floodLevel - 1);
             }

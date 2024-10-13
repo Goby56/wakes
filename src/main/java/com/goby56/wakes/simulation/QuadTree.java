@@ -59,14 +59,14 @@ public class QuadTree {
         }
     }
 
-    public boolean tick() {
+    public boolean tick(WakeHandler wakeHandler) {
         if (hasLeaf()) {
-            return brick.tick();
+            return brick.tick(wakeHandler);
         }
         if (children == null) return false;
         int aliveChildren = 0;
         for (var tree : children) {
-            if (tree.tick()) aliveChildren++;
+            if (tree.tick(wakeHandler)) aliveChildren++;
         }
         if (aliveChildren == 0) this.prune();
         return aliveChildren > 0;

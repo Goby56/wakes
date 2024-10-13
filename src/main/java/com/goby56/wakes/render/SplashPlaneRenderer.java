@@ -24,7 +24,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted {
+public class SplashPlaneRenderer {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
@@ -187,10 +187,5 @@ public class SplashPlaneRenderer implements ClientLifecycleEvents.ClientStarted 
     public static void initSplashPlane() {
         distributePoints();
         generateMesh();
-    }
-
-    @Override
-    public void onClientStarted(MinecraftClient client) {
-        initSplashPlane();
     }
 }

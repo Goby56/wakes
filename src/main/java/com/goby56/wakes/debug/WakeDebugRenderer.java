@@ -20,7 +20,8 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
-        WakeHandler wakeHandler = WakeHandler.getInstance();
+        WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+        if (wakeHandler == null) return;
         if (WakesClient.CONFIG_INSTANCE.drawDebugBoxes) {
             for (var node : wakeHandler.getVisible(context.frustum(), WakeNode.class)) {
                 DebugRenderer.drawBox(context.matrixStack(), context.consumers(),

@@ -62,13 +62,13 @@ public class Brick {
         MemoryUtil.nmemFree(imgPtr);
     }
 
-    public boolean tick() {
+    public boolean tick(WakeHandler wakeHandler) {
         long tNode = System.nanoTime();
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
                 if (this.get(x, z) == null) continue;
 
-                if (!this.get(x, z).tick()) {
+                if (!this.get(x, z).tick(wakeHandler)) {
                     this.clear(x, z);
                 }
             }

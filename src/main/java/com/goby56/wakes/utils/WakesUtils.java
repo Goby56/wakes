@@ -33,13 +33,11 @@ import java.util.Map;
 public class WakesUtils {
 
     public static void placeFallSplash(Entity entity) {
-        WakeHandler instance = WakeHandler.getInstance();
-        if (instance == null) {
-            return;
-        }
+        WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+        if (wakeHandler == null) return;
 
         for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).producingWaterLevel()))) {
-            instance.insert(node);
+            wakeHandler.insert(node);
         }
     }
 
@@ -66,10 +64,9 @@ public class WakesUtils {
     }
 
     public static void placeWakeTrail(Entity entity) {
-        WakeHandler wakeHandler = WakeHandler.getInstance();
-        if (wakeHandler == null) {
-            return;
-        }
+        WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+        if (wakeHandler == null) return;
+
         ProducesWake producer = (ProducesWake) entity;
         double velocity = producer.getHorizontalVelocity();
         int y = (int) Math.floor(producer.producingWaterLevel());

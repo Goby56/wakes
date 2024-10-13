@@ -36,13 +36,15 @@ public class DebugCommand {
     }
 
     public static int spawnWakeNode(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {
+        WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+        if (wakeHandler == null) return 0;
         HitResult result = cmdCtx.getSource().getPlayer().raycast(10, 0, true);
         Vec3d pos = result.getPos();
         if (!result.getType().equals(HitResult.Type.BLOCK)) return 0;
         if (!cmdCtx.getSource().getWorld().getFluidState(new BlockPos((int) pos.x, (int) Math.floor(pos.y), (int) pos.z)).isIn(FluidTags.WATER)) return 0;
         WakeNode node = new WakeNode(result.getPos(), 100);
         node.floodLevel = cmdCtx.getArgument("flood_level", Integer.class);
-        WakeHandler.getInstance().insert(node);
+        wakeHandler.insert(node);
         return 1;
     }
 

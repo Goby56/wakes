@@ -4,10 +4,12 @@ import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.event.PickBoat;
-import com.goby56.wakes.event.WakeTicker;
+import com.goby56.wakes.event.WakeClientTicker;
+import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import com.goby56.wakes.simulation.WakeHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -37,7 +39,6 @@ public class WakesClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
 
 		// Mod configs
@@ -46,15 +47,18 @@ public class WakesClient implements ClientModInitializer {
 		// Particles
 		ModParticles.registerParticles();
 
+		// Wake handler handling
+		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
+		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
+
 		// Game events
-		ClientTickEvents.END_WORLD_TICK.register(new WakeTicker());
 		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
-		ClientLifecycleEvents.CLIENT_STARTED.register(new SplashPlaneRenderer());
+		SplashPlaneRenderer.initSplashPlane();
 
 		// Commands
 		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);
