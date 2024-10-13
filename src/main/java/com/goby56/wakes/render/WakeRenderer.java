@@ -26,7 +26,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
     @Override
     public void afterTranslucent(WorldRenderContext context) {
-        if (WakesClient.CONFIG_INSTANCE.disableMod) {
+        if (WakesClient.CONFIG.disableMod) {
             WakesDebugInfo.quadsRendered = 0;
             return;
         }
@@ -42,7 +42,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         RenderSystem.enableBlend();
         context.lightmapTextureManager().enable();
 
-        Resolution resolution = WakesClient.CONFIG_INSTANCE.wakeResolution;
+        Resolution resolution = WakesClient.CONFIG.wakeResolution;
         if (resolution.res != WakeNode.res) return;
         int n = 0;
         long tRendering = System.nanoTime();

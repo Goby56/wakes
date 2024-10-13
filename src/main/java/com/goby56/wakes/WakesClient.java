@@ -1,5 +1,6 @@
 package com.goby56.wakes;
 
+import com.goby56.wakes.config.WakesConfigs;
 import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
@@ -9,10 +10,10 @@ import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
-import com.goby56.wakes.simulation.WakeHandler;
+import me.fzzyhmstrs.fzzy_config.api.ConfigApiJava;
+import me.fzzyhmstrs.fzzy_config.api.RegisterType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
@@ -33,6 +34,7 @@ public class WakesClient implements ClientModInitializer {
 	public static final String CONFIG_PATH = String.format("%s/%s.json", FabricLoader.getInstance().getConfigDir().toString(), MOD_ID);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static WakesConfig CONFIG_INSTANCE;
+	public static WakesConfigs CONFIG = ConfigApiJava.registerAndLoadConfig(WakesConfigs::new, RegisterType.CLIENT);
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
 			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 	public static boolean areShadersEnabled = false;
@@ -64,8 +66,8 @@ public class WakesClient implements ClientModInitializer {
 		ClientCommandRegistrationCallback.EVENT.register(DebugCommand::register);
 	}
 
-	public static boolean isYACLLoaded() {
-		return FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
+	public static boolean isFzzyLoaded() {
+		return FabricLoader.getInstance().isModLoaded("fzzy-config");
 	}
 
 	public static boolean areShadersEnabled() {

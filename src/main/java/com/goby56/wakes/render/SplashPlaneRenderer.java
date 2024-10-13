@@ -69,7 +69,7 @@ public class SplashPlaneRenderer {
     }
 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
-        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
+        if (WakesClient.CONFIG.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
         RenderSystem.setShader(RenderType.getProgram());
@@ -107,7 +107,7 @@ public class SplashPlaneRenderer {
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
-        float opacity = WakesClient.CONFIG_INSTANCE.wakeOpacity;
+        float opacity = WakesClient.CONFIG.wakeOpacity;
         opacity *= slightlyTransparent ? 0.9f : 1f;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;

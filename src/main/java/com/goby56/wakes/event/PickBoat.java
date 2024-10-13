@@ -1,5 +1,6 @@
 package com.goby56.wakes.event;
 
+import com.goby56.wakes.WakesClient;
 import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -11,12 +12,10 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import java.util.Random;
 
-import static com.goby56.wakes.WakesClient.CONFIG_INSTANCE;
-
 public class PickBoat implements ClientPickBlockGatherCallback {
     @Override
     public ItemStack pick(PlayerEntity player, HitResult result) {
-        if (CONFIG_INSTANCE.pickBoat) {
+        if (WakesClient.CONFIG.pickBoat) {
             if (player.raycast(5, 0, false).getType().equals(HitResult.Type.BLOCK)) return ItemStack.EMPTY;
             if (player.raycast(5, 0, true) instanceof BlockHitResult fluidHit &&
                     fluidHit.getType().equals(HitResult.Type.BLOCK)) {

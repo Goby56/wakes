@@ -5,7 +5,6 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
-import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -48,7 +47,7 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void tick() {
-        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
+        if (WakesClient.CONFIG.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
         this.prevPosX = this.x;
@@ -84,7 +83,7 @@ public class SplashPlaneParticle extends Particle {
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         if (this.dead) return;
         if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
-                !WakesClient.CONFIG_INSTANCE.firstPersonSplashPlane &&
+                !WakesClient.CONFIG.firstPersonSplashPlane &&
                 this.owner instanceof ClientPlayerEntity) {
             return;
         }

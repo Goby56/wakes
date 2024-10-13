@@ -75,7 +75,7 @@ public class WakesUtils {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
                 wakeHandler.insert(node);
             }
-            if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
+            if (WakesClient.CONFIG.spawnParticles) {
                 WakesUtils.spawnPaddleSplashCloudParticle(entity.getWorld(), boat);
             }
         }

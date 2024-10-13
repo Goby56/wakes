@@ -111,13 +111,13 @@ public class WakeHandler {
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {
-        WakesClient.CONFIG_INSTANCE.wakeResolution = newRes;
+        WakesClient.CONFIG.wakeResolution = newRes;
         resolutionResetScheduled = true;
     }
 
     private void changeResolution() {
         this.reset();
-        WakeNode.res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+        WakeNode.res = WakesClient.CONFIG.wakeResolution.res;
         resolutionResetScheduled = false;
     }
 

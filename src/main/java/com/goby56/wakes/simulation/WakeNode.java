@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class WakeNode {
-    public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+    public static int res = WakesClient.CONFIG.wakeResolution.res;
 
     private static float alpha;
     private static float beta;
@@ -100,7 +100,7 @@ public class WakeNode {
 
     public boolean tick(WakeHandler wakeHandler) {
         if (this.isDead()) return false;
-        if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG.wakeResolution.res) {
             this.markDead();
             return false;
         }
