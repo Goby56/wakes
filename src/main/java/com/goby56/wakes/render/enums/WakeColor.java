@@ -2,44 +2,35 @@ package com.goby56.wakes.render.enums;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import net.minecraft.util.StringIdentifiable;
 
-public enum WakeColor implements StringIdentifiable {
-    TRANSPARENT(0, 0, 0, 0),
-    DARK_GRAY(147, 153, 166, 40),
-    GRAY(158, 165, 176, 100),
-    LIGHT_GRAY(196, 202, 209, 180),
-    WHITE(255, 255, 255, 255),
-    RED(189, 42, 42, 255),
-    ORANGE(214, 111, 51, 255),
-    YELLOW(227, 225, 84, 255),
-    GREEN(115, 189, 42, 255),
-    CAMO(8, 135, 57, 255),
-    TURQUOISE(42, 189, 140, 255),
-    BLUE(65, 51, 214, 255),
-    PURPLE(149, 51, 214, 255),
-    PINK(214, 51, 192, 255);
-
+public class WakeColor {
+    public final int argb;
     public final int abgr;
+    public final int r;
+    public final int g;
+    public final int b;
+    public final int a;
+    public boolean isHighlight;
 
-    WakeColor(int red, int green, int blue, int alpha) {
-        this.abgr = alpha << 24 | blue << 16 | green << 8 | red;
+
+    public WakeColor(int argb, boolean isHighlight) {
+       this(argb);
+       this.isHighlight = isHighlight;
     }
 
-    private int blend(int waterColor, int lightColor, float opacity, boolean isWhite) {
-        float srcA = (this.abgr >>> 24 & 0xFF) / 255f;
-        int a = (int) (opacity * 255 * srcA);
-        int b = 255, g = 255, r = 255;
-        if (!isWhite) {
-            b = (int) ((this.abgr >> 16 & 0xFF) * (1 - srcA) + (waterColor & 0xFF) * (srcA));
-            g = (int) ((this.abgr >> 8 & 0xFF) * (1 - srcA) + (waterColor >> 8 & 0xFF) * (srcA));
-            r = (int) ((this.abgr & 0xFF) * (1 - srcA) + (waterColor >> 16 & 0xFF) * (srcA));
-        }
-        b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
-        g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
-        r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
+    public WakeColor(int argb) {
+        // Minecraft seems to work with argb but OpenGL uses abgr
+        this(argb >> 24 & 0xFF, argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF);
+    }
 
-        return a << 24 | b << 16 | g << 8 | r;
+    public WakeColor(int red, int green, int blue, int alpha) {
+        this.argb = alpha << 24 | red << 16 | green << 8 | blue;
+        this.abgr = alpha << 24 | blue << 16 | green << 8 | red;
+        this.a = alpha;
+        this.r = red;
+        this.g = green;
+        this.b = blue;
+        this.isHighlight = false;
     }
 
     private static double invertedLogisticCurve(float x) {
@@ -47,18 +38,34 @@ public enum WakeColor implements StringIdentifiable {
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
-    public static int getColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
+    public static int sampleColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
+        WakeColor tint = new WakeColor(waterColor);
         double clampedRange = 100 / (1 + Math.exp(-0.1 * waveEqAvg)) - 50;
-        for (WakesConfig.ColorInterval interval : WakesClient.CONFIG_INSTANCE.colorIntervals) {
-            if (interval.lower <= clampedRange && clampedRange <= interval.upper) {
-                return interval.color.blend(waterColor, lightColor, opacity, interval.color == WakeColor.WHITE);
+        int highlightIndex = WakesClient.CONFIG.customization.highlight.get();
+        int i = 0;
+        for (var colorInterval : WakesClient.CONFIG.customization.colorIntervals.getEntries()) {
+            if (colorInterval.getKey() >= clampedRange) {
+                WakeColor color = new WakeColor(colorInterval.getValue().argb(), i == highlightIndex);
+                return color.blend(tint, lightColor, opacity).abgr;
             }
+            i++;
         }
-        return WakeColor.TRANSPARENT.abgr;
+        return 0;
     }
 
-    @Override
-    public String asString() {
-        return name().toLowerCase();
+    public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
+        float srcA = this.a / 255f;
+        int a = (int) (opacity * 255 * srcA);
+        int r = 255, g = 255, b = 255;
+        if (!this.isHighlight) {
+            r = (int) ((this.r) * (1 - srcA) + (tint.r) * (srcA));
+            g = (int) ((this.g) * (1 - srcA) + (tint.g) * (srcA));
+            b = (int) ((this.b) * (1 - srcA) + (tint.b) * (srcA));
+        }
+        r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
+        g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
+        b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
+
+        return new WakeColor(r, g, b, a);
     }
 }

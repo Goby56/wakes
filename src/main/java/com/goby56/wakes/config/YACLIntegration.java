@@ -136,15 +136,6 @@ public class YACLIntegration {
                         .option(booleanOption("disable_mod", false)
                                 .binding(false, () -> config.disableMod, val -> config.disableMod = val)
                                 .build())
-                        .group(intervalGroup(0, WakeColor.TRANSPARENT, -50, -45))
-                        .group(intervalGroup(1, WakeColor.DARK_GRAY, -45, -35))
-                        .group(intervalGroup(2, WakeColor.GRAY, -35, -30))
-                        .group(intervalGroup(3, WakeColor.LIGHT_GRAY, -30, -15))
-                        .group(intervalGroup(4, WakeColor.TRANSPARENT, -15, 2))
-                        .group(intervalGroup(5, WakeColor.LIGHT_GRAY, 2, 10))
-                        .group(intervalGroup(6, WakeColor.WHITE, 10, 20))
-                        .group(intervalGroup(7, WakeColor.LIGHT_GRAY, 20, 40))
-                        .group(intervalGroup(8, WakeColor.GRAY, 40, 50))
                         .build())
                 .save(config::saveConfig)
                 .build()
@@ -209,26 +200,6 @@ public class YACLIntegration {
                 .controller(opt -> EnumControllerBuilder.create(opt)
                         .enumClass(EffectSpawningRule.class)
                         .formatValue(val -> WakesUtils.translatable("config.option.effect_spawning_rules.effect", val.toString().toLowerCase())))
-                .build();
-    }
-
-    private static OptionGroup intervalGroup(int n, WakeColor defaultColor, int defaultLower, int defaultUpper) {
-        WakesConfig config = WakesClient.CONFIG_INSTANCE;
-        return OptionGroup.createBuilder()
-                .name(Text.of(String.valueOf(n+1)))
-                .option(optionOf(Integer.class, "interval.lower", false)
-                        .binding(defaultLower, () -> config.colorIntervals.get(n).lower, config.colorIntervals.get(n)::setLower)
-                        .controller(opt -> integerSlider(opt, -50, 50))
-                        .build())
-                .option(optionOf(Integer.class, "interval.upper", false)
-                        .binding(defaultUpper, () -> config.colorIntervals.get(n).upper, config.colorIntervals.get(n)::setUpper)
-                        .controller(opt -> integerSlider(opt, -50, 50))
-                        .build())
-                .option(optionOf(WakeColor.class, "interval.color", false)
-                        .binding(defaultColor, () -> config.colorIntervals.get(n).color, config.colorIntervals.get(n)::setColor)
-                        .controller(opt -> EnumControllerBuilder.create(opt)
-                                .enumClass(WakeColor.class))
-                        .build())
                 .build();
     }
 }

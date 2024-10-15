@@ -49,17 +49,6 @@ public class WakesConfig {
     public Resolution wakeResolution = Resolution.SIXTEEN;
     public float wakeOpacity = 1f;
     public boolean firstPersonSplashPlane = false;
-    public List<ColorInterval> colorIntervals = List.of(
-            new ColorInterval(WakeColor.TRANSPARENT, -50, -45),
-            new ColorInterval(WakeColor.DARK_GRAY, -45, -35),
-            new ColorInterval(WakeColor.GRAY, -35, -30),
-            new ColorInterval(WakeColor.LIGHT_GRAY, -30, -15),
-            new ColorInterval(WakeColor.TRANSPARENT, -15, 2),
-            new ColorInterval(WakeColor.LIGHT_GRAY, 2, 10),
-            new ColorInterval(WakeColor.WHITE, 10, 20),
-            new ColorInterval(WakeColor.LIGHT_GRAY, 20, 40),
-            new ColorInterval(WakeColor.GRAY, 40, 50)
-    );
 
     public static class ColorInterval {
         public WakeColor color;

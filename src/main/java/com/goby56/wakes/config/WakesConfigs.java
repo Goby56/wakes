@@ -2,6 +2,7 @@ package com.goby56.wakes.config;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.render.enums.WakeColor;
 import me.fzzyhmstrs.fzzy_config.config.Config;
 import me.fzzyhmstrs.fzzy_config.config.ConfigSection;
 import me.fzzyhmstrs.fzzy_config.validation.collection.ValidatedEnumMap;
@@ -38,16 +39,11 @@ public class WakesConfigs extends Config {
             super();
         }
 
-        public ValidatedColor wakeColor = new ValidatedColor(100, 100, 200, 200);
+        public ValidatedInt highlight = new ValidatedInt(0, 20, 0);
 
         public ValidatedMap<Integer, ValidatedColor.ColorHolder> colorIntervals = new ValidatedMap<>(
                 new LinkedHashMap<>(),
-                new ValidatedInt(0, 100, 0),
-                new ValidatedColor(100, 100, 200, 200)
-        );
-
-        public ValidatedList<ValidatedColor.ColorHolder> colors = new ValidatedList<>(
-                new LinkedList<>(),
+                new ValidatedInt(0, 50, -50),
                 new ValidatedColor(100, 100, 200, 200)
         );
     }

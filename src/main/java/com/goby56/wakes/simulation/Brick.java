@@ -3,12 +3,9 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.RunArgs;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
@@ -194,7 +191,7 @@ public class Brick {
                         int color = 0;
                         if (node != null) {
                             float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
-                            color = WakeColor.getColor(avg, waterCol, lightCol, opacity);
+                            color = WakeColor.sampleColor(avg, waterCol, lightCol, opacity);
                         }
 
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
