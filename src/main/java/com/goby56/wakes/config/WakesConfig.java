@@ -13,11 +13,19 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class WakesConfig {
+
+    public ArrayList<Float> wakeGradientRanges = new ArrayList<>(List.of(-40f, -10f, 10f, 40f));
+    public ArrayList<WakeColor> wakeColors = new ArrayList<>(List.of(
+            new WakeColor(255, 0, 0, 255),
+            new WakeColor(255, 255, 0, 255),
+            new WakeColor(255, 255, 255, 255),
+            new WakeColor(0, 255, 255, 255),
+            new WakeColor(0, 0, 255, 255)
+    ));
+
     // Spawning
     public Map<String, EffectSpawningRule> effectSpawningRules = new HashMap<>(Map.of(
             "boat", EffectSpawningRule.SIMULATION_AND_PLANES,
