@@ -10,3 +10,7 @@ accessible field net/minecraft/client/render/LightmapTextureManager image Lnet/m
 
 accessible method net/minecraft/client/gui/widget/SliderWidget getHandleTexture ()Lnet/minecraft/util/Identifier;
 accessible method net/minecraft/client/gui/widget/SliderWidget getTexture ()Lnet/minecraft/util/Identifier;
+extendable method net/minecraft/client/gui/widget/SliderWidget setValue (D)V
+accessible field net/minecraft/client/gui/widget/SliderWidget HANDLE_TEXTURE Lnet/minecraft/util/Identifier;
+accessible field net/minecraft/client/gui/widget/SliderWidget HANDLE_HIGHLIGHTED_TEXTURE Lnet/minecraft/util/Identifier;
+accessible field net/minecraft/client/gui/screen/Screen textRenderer Lnet/minecraft/client/font/TextRenderer;
