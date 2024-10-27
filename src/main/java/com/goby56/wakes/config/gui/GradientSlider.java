@@ -25,7 +25,7 @@ public class GradientSlider extends SliderWidget {
         for (float val : normalizedValues) {
            this.handles.add(new SliderHandle(val));
         }
-        this.colorPicker = new ColorPicker(screenContext, 10, height / 2 - 100 / 2, 100, 100);
+        this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 100, 100);
         colorPicker.registerListener(this::onColorPicked);
     }
 
@@ -91,7 +91,7 @@ public class GradientSlider extends SliderWidget {
     }
 
     @Override
-    protected void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+    public void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
         Collections.sort(handles);
 
         float value = valueFromMousePos(mouseX);

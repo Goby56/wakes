@@ -13,22 +13,16 @@ import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
-import org.joml.Vector2i;
 
 import java.awt.*;
-import java.util.function.Function;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ColorPicker extends ClickableWidget {
-    private static final Identifier BACKGROUND_TEXTURE = Identifier.ofVanilla("widget/button");
     private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
 
-    private final WakesConfigScreen screenContext;
-    private final TextFieldWidget hexInput;
-    private final GradientSlider hueSlider;
-    private final GradientSlider alphaSlider;
-    private final Vector2i colorPickerPos;
-    private final Vector2i colorPickerDim;
+    private final Map<String, Bounded> widgets = new HashMap<>();
+    private final AABB bounds;
     private PickListener listener;
 
     public interface PickListener {
@@ -38,67 +32,63 @@ public class ColorPicker extends ClickableWidget {
 
     public ColorPicker(WakesConfigScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""));
-        this.screenContext = screenContext;
 
-        var topLeft = globalSpace(new Vector2f(0f, 0f));
-        var bottomRight = globalSpace(new Vector2f(1f, 2f / 3f));
-        this.colorPickerPos = topLeft;
-        this.colorPickerDim = bottomRight.sub(bottomRight);
+        this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
 
-        this.hexInput = new HexInputField(new Vector2f(0f, 5f / 6f), new Vector2f(1f / 3f, 1f), this::globalSpace, screenContext.textRenderer);
-        this.hueSlider = new GradientSlider(new Vector2f(0f, 2f / 3f), new Vector2f(1f, 5f / 6f), this::globalSpace);
-        this.alphaSlider = new GradientSlider(new Vector2f(1f / 3f, 5f / 6f), new Vector2f(1f, 1f), this::globalSpace);
+        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), screenContext.textRenderer));
+        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 2f / 3f, 1f, 5f / 6f, x, y, width, height)));
+        this.widgets.put("gradientSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height)));
 
         screenContext.addWidget(this);
-        screenContext.addWidget(hueSlider);
-        screenContext.addWidget(alphaSlider);
+        for (var widget : this.widgets.values()) {
+            screenContext.addWidget(widget.getWidget());
+        }
     }
 
     public void toggleActive() {
-        boolean active = !this.active;
-        this.active = active;
-        this.hexInput.active = active;
-        this.hueSlider.active = active;
-        this.alphaSlider.active = active;
+        boolean b = !this.active;
+        this.active = this.visible = b;
+        System.out.println(b);
+        for (var widget : this.widgets.values()) {
+            widget.getWidget().active = widget.getWidget().visible = b;
+        }
     }
 
     public void registerListener(PickListener listener) {
         this.listener = listener;
     }
 
-    private Vector2f relativeSpace(Vector2i globalSpace) {
-        return new Vector2f((float) (globalSpace.x - getX()) / width, (float) (globalSpace.y - getY()) / width);
-    }
-
-    private Vector2i globalSpace(Vector2f relativeSpace) {
-        return new Vector2i((int) (relativeSpace.x * width + getX()), (int) (relativeSpace.y * height + getY()));
-    }
-
     @Override
     public void onClick(double mouseX, double mouseY) {
-        System.out.printf("%f, %f\n", (mouseX - getX()) / width, (mouseY - getY()) / height);
+        for (var widget : this.widgets.values()) {
+            if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
+                widget.getWidget().onClick(mouseX, mouseY);
+                return;
+            }
+        }
         super.onClick(mouseX, mouseY);
     }
 
     @Override
-    protected void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+    public void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+        for (var widget : this.widgets.values()) {
+            if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
+                widget.getWidget().onDrag(mouseX, mouseY, deltaX, deltaY);
+                return;
+            }
+        }
         super.onDrag(mouseX, mouseY, deltaX, deltaY);
     }
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
-        int x = getX();
-        int y = getY();
 
-        context.drawGuiTexture(BACKGROUND_TEXTURE, x, y, width, height);
+        int x = bounds.x;
+        int y = bounds.y;
+        int w = bounds.width;
+        int h = bounds.height;
 
-        drawColorPicker(context, colorPickerPos.x, colorPickerPos.y, colorPickerDim.x, colorPickerDim.y);
-    }
-
-    private void drawColorPicker(DrawContext context, int x, int y, int w, int h) {
-        // Color picker
-        context.drawGuiTexture(FRAME_TEXTURE, x - 3, y - 3, w + 6, h + 6);
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
@@ -107,6 +97,7 @@ public class ColorPicker extends ClickableWidget {
         buffer.vertex(matrix, x + w, y + h, 5).color(Color.HSBtoRGB(1, 1, 0));
         buffer.vertex(matrix, x + w, y, 5).color(Color.HSBtoRGB(1, 1, 1));
         BufferRenderer.drawWithGlobalProgram(buffer.end());
+        context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
     }
 
     @Override
@@ -114,30 +105,55 @@ public class ColorPicker extends ClickableWidget {
 
     }
 
-    private class HexInputField extends TextFieldWidget {
+    public interface Bounded {
+        AABB getBounds();
+        ClickableWidget getWidget();
+    }
 
-        public HexInputField(Vector2f topLeft, Vector2f bottomRight, Function<Vector2f, Vector2i> globalSpaceConverter, TextRenderer textRenderer) {
-            super(textRenderer, 0, 0, 0, 0, Text.of(""));
-            Vector2i globalPos = globalSpaceConverter.apply(topLeft);
-            Vector2i dimensions = globalSpaceConverter.apply(bottomRight).sub(globalPos);
-            this.setX(globalPos.x);
-            this.setY(globalPos.y);
-            this.setWidth(dimensions.x);
-            this.setHeight(dimensions.y);
+    public static class AABB {
+        public int x;
+        public int y;
+        public int width;
+        public int height;
+
+        public AABB(float fracX1, float fracY1, float fracX2, float fracY2, int globX, int globY, int totWidth, int totHeight) {
+            this.x = (int) (fracX1 * totWidth) + globX;
+            this.y = (int) (fracY1 * totHeight) + globY;
+            this.width = (int) ((fracX2 - fracX1) * totWidth);
+            this.height = (int) ((fracY2 - fracY1) * totHeight);
+        }
+
+        public boolean contains(int x, int y) {
+            return this.x <= x && x < this.x + this.width &&
+                    this.y <= y && y < this.y + this.height;
         }
     }
 
-    private class GradientSlider extends SliderWidget {
+    private static class HexInputField extends TextFieldWidget implements Bounded {
+        protected AABB bounds;
 
+        public HexInputField(AABB bounds, TextRenderer textRenderer) {
+            super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.of("HEX"));
+            this.bounds = bounds;
+        }
 
-        public GradientSlider(Vector2f topLeft, Vector2f bottomRight, Function<Vector2f, Vector2i> globalSpaceConverter) {
-            super(0, 0, 0, 0, Text.of(""), 1f);
-            Vector2i globalPos = globalSpaceConverter.apply(topLeft);
-            Vector2i dimensions = globalSpaceConverter.apply(bottomRight).sub(globalPos);
-            this.setX(globalPos.x);
-            this.setY(globalPos.y);
-            this.setWidth(dimensions.x);
-            this.setHeight(dimensions.y);
+        @Override
+        public AABB getBounds() {
+            return this.bounds;
+        }
+
+        @Override
+        public ClickableWidget getWidget() {
+            return this;
+        }
+    }
+
+    private static class GradientSlider extends SliderWidget implements Bounded {
+        protected AABB bounds;
+
+        public GradientSlider(AABB bounds) {
+            super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(""), 1f);
+            this.bounds = bounds;
         }
 
         @Override
@@ -153,6 +169,16 @@ public class ColorPicker extends ClickableWidget {
         @Override
         protected void applyValue() {
 
+        }
+
+        @Override
+        public AABB getBounds() {
+            return this.bounds;
+        }
+
+        @Override
+        public ClickableWidget getWidget() {
+            return this;
         }
     }
 }
