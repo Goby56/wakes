@@ -13,6 +13,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -20,10 +21,14 @@ import java.util.Map;
 
 public class ColorPicker extends ClickableWidget {
     private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
+    private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of("wakes", "textures/picker_knob.png");
+    private static final int pickerKnobDim = 7;
 
     private final Map<String, Bounded> widgets = new HashMap<>();
     private final AABB bounds;
     private PickListener listener;
+
+    private Vector2f pickerPos = new Vector2f();
 
     public interface PickListener {
         void onPickedColor(WakeColor color);
@@ -35,9 +40,9 @@ public class ColorPicker extends ClickableWidget {
 
         this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
 
+        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height)));
+        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height)));
         this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), screenContext.textRenderer));
-        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 2f / 3f, 1f, 5f / 6f, x, y, width, height)));
-        this.widgets.put("gradientSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height)));
 
         screenContext.addWidget(this);
         for (var widget : this.widgets.values()) {
@@ -60,23 +65,35 @@ public class ColorPicker extends ClickableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
+        ClickableWidget focusedWidget = null;
         for (var widget : this.widgets.values()) {
+            widget.getWidget().setFocused(false);
             if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
-                widget.getWidget().onClick(mouseX, mouseY);
-                return;
+                focusedWidget = widget.getWidget();
             }
         }
+        if (focusedWidget != null) {
+            focusedWidget.onClick(mouseX, mouseY);
+            focusedWidget.setFocused(true);
+            return;
+        }
+        this.pickerPos.set(mouseX, mouseY);
         super.onClick(mouseX, mouseY);
     }
 
     @Override
     public void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+        mouseX = Math.min(this.getX() + width, Math.max(this.getX(), mouseX));
+        mouseY = Math.min(this.getY() + height, Math.max(this.getY(), mouseY));
         for (var widget : this.widgets.values()) {
-            if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
+            if (widget.getWidget().isFocused()) {
                 widget.getWidget().onDrag(mouseX, mouseY, deltaX, deltaY);
                 return;
             }
         }
+        mouseX = Math.min(this.bounds.x + this.bounds.width, Math.max(this.bounds.x, mouseX));
+        mouseY = Math.min(this.bounds.y + this.bounds.height, Math.max(this.bounds.y, mouseY));
+        this.pickerPos.set(mouseX, mouseY);
         super.onDrag(mouseX, mouseY, deltaX, deltaY);
     }
 
@@ -84,11 +101,11 @@ public class ColorPicker extends ClickableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
 
+        // Draw color spectrum
         int x = bounds.x;
         int y = bounds.y;
         int w = bounds.width;
         int h = bounds.height;
-
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
@@ -97,7 +114,15 @@ public class ColorPicker extends ClickableWidget {
         buffer.vertex(matrix, x + w, y + h, 5).color(Color.HSBtoRGB(1, 1, 0));
         buffer.vertex(matrix, x + w, y, 5).color(Color.HSBtoRGB(1, 1, 1));
         BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        // Draw frame
         context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
+
+        // Draw picker knob
+        int d = pickerKnobDim;
+        int pickerX = (int) Math.min(bounds.x + bounds.width - d, Math.max(bounds.x, pickerPos.x - 3));
+        int pickerY = (int) Math.min(bounds.y + bounds.height - d, Math.max(bounds.y, pickerPos.y - 3));
+        context.drawTexture(PICKER_KNOB_TEXTURE, pickerX, pickerY, 0, 0, d, d, d, d);
     }
 
     @Override
@@ -117,10 +142,10 @@ public class ColorPicker extends ClickableWidget {
         public int height;
 
         public AABB(float fracX1, float fracY1, float fracX2, float fracY2, int globX, int globY, int totWidth, int totHeight) {
-            this.x = (int) (fracX1 * totWidth) + globX;
-            this.y = (int) (fracY1 * totHeight) + globY;
-            this.width = (int) ((fracX2 - fracX1) * totWidth);
-            this.height = (int) ((fracY2 - fracY1) * totHeight);
+            this.x = Math.round(fracX1 * totWidth) + globX + 1;
+            this.y = Math.round(fracY1 * totHeight) + globY + 1;
+            this.width = Math.round((fracX2 - fracX1) * totWidth) - 2;
+            this.height = Math.round((fracY2 - fracY1) * totHeight) - 2;
         }
 
         public boolean contains(int x, int y) {
@@ -134,7 +159,13 @@ public class ColorPicker extends ClickableWidget {
 
         public HexInputField(AABB bounds, TextRenderer textRenderer) {
             super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.of("HEX"));
+            this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
+        }
+
+        @Override
+        public void onClick(double mouseX, double mouseY) {
+            super.onClick(mouseX, mouseY);
         }
 
         @Override
@@ -158,6 +189,7 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+            
             super.renderWidget(context, mouseX, mouseY, delta);
         }
 
