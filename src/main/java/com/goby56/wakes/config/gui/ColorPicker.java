@@ -1,8 +1,10 @@
 package com.goby56.wakes.config.gui;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -12,6 +14,7 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 
@@ -40,9 +43,9 @@ public class ColorPicker extends ClickableWidget {
 
         this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
 
-        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height)));
-        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height)));
-        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), screenContext.textRenderer));
+        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", true));
+        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", false));
+        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), MinecraftClient.getInstance().textRenderer));
 
         screenContext.addWidget(this);
         for (var widget : this.widgets.values()) {
@@ -106,16 +109,20 @@ public class ColorPicker extends ClickableWidget {
         int y = bounds.y;
         int w = bounds.width;
         int h = bounds.height;
+
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
+
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        buffer.vertex(matrix, x, y, 5).color(Color.HSBtoRGB(1, 0, 1));
-        buffer.vertex(matrix, x, y + h, 5).color(Color.HSBtoRGB(1, 0, 0));
-        buffer.vertex(matrix, x + w, y + h, 5).color(Color.HSBtoRGB(1, 1, 0));
-        buffer.vertex(matrix, x + w, y, 5).color(Color.HSBtoRGB(1, 1, 1));
+        buffer.vertex(matrix, x, y, 5).color(Color.HSBtoRGB(hue, 0, 1));
+        buffer.vertex(matrix, x, y + h, 5).color(Color.HSBtoRGB(hue, 0, 0));
+        buffer.vertex(matrix, x + w, y + h, 5).color(Color.HSBtoRGB(hue, 1, 0));
+        buffer.vertex(matrix, x + w, y, 5).color(Color.HSBtoRGB(hue, 1, 1));
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Draw frame
+        // TODO SET FRAME TO PICKED COLOR
         context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
 
         // Draw picker knob
@@ -180,17 +187,69 @@ public class ColorPicker extends ClickableWidget {
     }
 
     private static class GradientSlider extends SliderWidget implements Bounded {
-        protected AABB bounds;
+        private static final Identifier TRANSPARENT_SLIDER_TEXTURE = Identifier.of("wakes", "textures/transparent_slider.png");
+        private static final Identifier BLANK_SLIDER_TEXTURE = Identifier.of("wakes", "textures/blank_slider.png");
 
-        public GradientSlider(AABB bounds) {
-            super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(""), 1f);
+        protected AABB bounds;
+        private final boolean colored;
+
+        public GradientSlider(AABB bounds, String text, boolean colored) {
+            super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(text), 1f);
             this.bounds = bounds;
+            this.colored = colored;
+        }
+
+        public float getValue() {
+            return (float) this.value;
         }
 
         @Override
         public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            
-            super.renderWidget(context, mouseX, mouseY, delta);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.disableDepthTest();
+
+            context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+            int leftCol, rightCol;
+            if (colored) {
+                context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
+                RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+                RenderSystem.setShaderTexture(0, BLANK_SLIDER_TEXTURE);
+
+                // AAHHSSVV
+                leftCol = 0xFF00FFFF;
+                rightCol = 0xFFFFFFFF;
+
+            } else {
+                context.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f);
+                RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+                RenderSystem.setShaderTexture(0, TRANSPARENT_SLIDER_TEXTURE);
+
+                // AARRGGBB
+                leftCol = 0xFFFFFFFF;
+                rightCol = 0x00FFFFFF;
+            }
+
+            int x = bounds.x;
+            int y = bounds.y;
+            int w = bounds.width;
+            int h = bounds.height;
+
+            BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+            Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+
+            buffer.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol);
+            buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol);
+            buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol);
+            buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol);
+
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+
+            context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+            context.drawGuiTexture(this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            int i = this.active ? 0xFFFFFF : 0xA0A0A0;
+            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
         }
 
         @Override

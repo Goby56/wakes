@@ -13,14 +13,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class GradientSlider extends SliderWidget {
-    private final WakesConfigScreen screenContext;
     private ArrayList<SliderHandle> handles;
     private final ColorPicker colorPicker;
     private Integer activeSection = null;
 
     public GradientSlider(WakesConfigScreen screenContext, int x, int y, int width, int height, Text text, ArrayList<Float> normalizedValues) {
         super(x, y, width, height, text, 0f);
-        this.screenContext = screenContext;
         this.handles = new ArrayList<>();
         for (float val : normalizedValues) {
            this.handles.add(new SliderHandle(val));

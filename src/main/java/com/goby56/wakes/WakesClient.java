@@ -37,6 +37,8 @@ public class WakesClient implements ClientModInitializer {
 	public static WakesConfigs CONFIG = ConfigApiJava.registerAndLoadConfig(WakesConfigs::new, RegisterType.CLIENT);
 	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
 			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+	public static final ManagedCoreShader POSITION_TEXTURE_HSV = ShaderEffectManager.getInstance().manageCoreShader(
+			Identifier.of(MOD_ID, "position_tex_hsv"), VertexFormats.POSITION_TEXTURE_COLOR);
 	public static boolean areShadersEnabled = false;
 
 	@Override

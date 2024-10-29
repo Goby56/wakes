@@ -9,5 +9,5 @@ accessible field net/minecraft/client/model/ModelPart$Cuboid sides [Lnet/minecra
 accessible field net/minecraft/client/render/LightmapTextureManager image Lnet/minecraft/client/texture/NativeImage;
 
 accessible method net/minecraft/client/gui/widget/SliderWidget getTexture ()Lnet/minecraft/util/Identifier;
-accessible field net/minecraft/client/gui/screen/Screen textRenderer Lnet/minecraft/client/font/TextRenderer;
+accessible method net/minecraft/client/gui/widget/SliderWidget getHandleTexture ()Lnet/minecraft/util/Identifier;
 accessible method net/minecraft/client/gui/widget/ClickableWidget onDrag (DDDD)V
