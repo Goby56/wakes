@@ -21,6 +21,7 @@ import org.joml.Vector2f;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ColorPicker extends ClickableWidget {
     private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
@@ -29,23 +30,18 @@ public class ColorPicker extends ClickableWidget {
 
     private final Map<String, Bounded> widgets = new HashMap<>();
     private final AABB bounds;
-    private PickListener listener;
+    private Consumer<WakeColor> changedColorListener;
 
-    private Vector2f pickerPos = new Vector2f();
-
-    public interface PickListener {
-        void onPickedColor(WakeColor color);
-    }
-
+    private final Vector2f pickerPos = new Vector2f();
 
     public ColorPicker(WakesConfigScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""));
 
         this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
 
-        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", true));
-        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", false));
-        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), MinecraftClient.getInstance().textRenderer));
+        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", this,true));
+        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, false));
+        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
 
         screenContext.addWidget(this);
         for (var widget : this.widgets.values()) {
@@ -53,17 +49,16 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    public void toggleActive() {
+    public void toggleActive(WakeColor currentColor) {
         boolean b = !this.active;
         this.active = this.visible = b;
-        System.out.println(b);
         for (var widget : this.widgets.values()) {
-            widget.getWidget().active = widget.getWidget().visible = b;
+            widget.toggleActive(currentColor, b);
         }
     }
 
-    public void registerListener(PickListener listener) {
-        this.listener = listener;
+    public void registerListener(Consumer<WakeColor> changedListener) {
+        this.changedColorListener = changedListener;
     }
 
     @Override
@@ -80,7 +75,7 @@ public class ColorPicker extends ClickableWidget {
             focusedWidget.setFocused(true);
             return;
         }
-        this.pickerPos.set(mouseX, mouseY);
+        this.updatePickerPos(mouseX, mouseY);
         super.onClick(mouseX, mouseY);
     }
 
@@ -94,10 +89,23 @@ public class ColorPicker extends ClickableWidget {
                 return;
             }
         }
+        this.updatePickerPos(mouseX, mouseY);
+        super.onDrag(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    public void updatePickerPos(double mouseX, double mouseY) {
         mouseX = Math.min(this.bounds.x + this.bounds.width, Math.max(this.bounds.x, mouseX));
         mouseY = Math.min(this.bounds.y + this.bounds.height, Math.max(this.bounds.y, mouseY));
         this.pickerPos.set(mouseX, mouseY);
-        super.onDrag(mouseX, mouseY, deltaX, deltaY);
+        this.updateColor();
+    }
+
+    public void updateColor() {
+        float hue = ((GradientSlider) this.widgets.get("hueSlider").getWidget()).getValue();
+        float saturation = (pickerPos.x - this.bounds.x) / this.bounds.width;
+        float value = 1f - (pickerPos.y - this.bounds.y) / this.bounds.height;
+        float opacity = ((GradientSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
+        this.changedColorListener.accept(new WakeColor(hue, saturation, value, opacity));
     }
 
     @Override
@@ -110,15 +118,16 @@ public class ColorPicker extends ClickableWidget {
         int w = bounds.width;
         int h = bounds.height;
 
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+        RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
         float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        buffer.vertex(matrix, x, y, 5).color(Color.HSBtoRGB(hue, 0, 1));
-        buffer.vertex(matrix, x, y + h, 5).color(Color.HSBtoRGB(hue, 0, 0));
-        buffer.vertex(matrix, x + w, y + h, 5).color(Color.HSBtoRGB(hue, 1, 0));
-        buffer.vertex(matrix, x + w, y, 5).color(Color.HSBtoRGB(hue, 1, 1));
+        buffer.vertex(matrix, x, y, 5).texture(0, 0).color(hue, 0f, 1f, 1f);
+        buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(hue, 0f, 0f, 1f);
+        buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(hue, 1f, 0f, 1f);
+        buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(hue, 1f, 1f, 1f);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Draw frame
@@ -140,6 +149,8 @@ public class ColorPicker extends ClickableWidget {
     public interface Bounded {
         AABB getBounds();
         ClickableWidget getWidget();
+
+        void toggleActive(WakeColor currentColor, boolean active);
     }
 
     public static class AABB {
@@ -163,11 +174,17 @@ public class ColorPicker extends ClickableWidget {
 
     private static class HexInputField extends TextFieldWidget implements Bounded {
         protected AABB bounds;
+        private final ColorPicker colorPicker;
 
-        public HexInputField(AABB bounds, TextRenderer textRenderer) {
+        public HexInputField(AABB bounds, ColorPicker colorPicker, TextRenderer textRenderer) {
             super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.of("HEX"));
             this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
+            this.colorPicker = colorPicker;
+        }
+
+        public void toggleActive(WakeColor currentColor, boolean active) {
+            this.active = this.visible = active;
         }
 
         @Override
@@ -193,10 +210,22 @@ public class ColorPicker extends ClickableWidget {
         protected AABB bounds;
         private final boolean colored;
 
-        public GradientSlider(AABB bounds, String text, boolean colored) {
+        private final ColorPicker colorPicker;
+
+        public GradientSlider(AABB bounds, String text, ColorPicker colorPicker, boolean colored) {
             super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(text), 1f);
             this.bounds = bounds;
+            this.colorPicker = colorPicker;
             this.colored = colored;
+        }
+
+        public void toggleActive(WakeColor currentColor, boolean active) {
+            if (colored) {
+                this.value = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null)[0];
+            } else {
+                this.value = currentColor.a / 255f;
+            }
+            this.active = this.visible = active;
         }
 
         public float getValue() {
@@ -259,7 +288,7 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         protected void applyValue() {
-
+            colorPicker.updateColor();
         }
 
         @Override

@@ -2,6 +2,9 @@ package com.goby56.wakes.render.enums;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import net.minecraft.util.math.ColorHelper;
+
+import java.awt.*;
 
 public class WakeColor {
     public final int argb;
@@ -31,6 +34,10 @@ public class WakeColor {
         this.g = green;
         this.b = blue;
         this.isHighlight = false;
+    }
+
+    public WakeColor(float hue, float saturation, float value, float opacity) {
+        this(Color.HSBtoRGB(hue, saturation, value));
     }
 
     private static double invertedLogisticCurve(float x) {

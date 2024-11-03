@@ -21,4 +21,16 @@ public class DrawUtils {
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 
+    public static void drawColor(DrawContext context, int x, int y, int w, int h, int color) {
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+
+        buffer.vertex(matrix, x, y, 5).color(color);
+        buffer.vertex(matrix, x, y + h, 5).color(color);
+        buffer.vertex(matrix, x + w, y + h, 5).color(color);
+        buffer.vertex(matrix, x + w, y, 5).color(color);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+    }
+
 }

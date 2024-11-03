@@ -1,14 +1,9 @@
 package com.goby56.wakes.config;
 
-import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.gui.ColorPicker;
-import com.goby56.wakes.config.gui.GradientSlider;
+import com.goby56.wakes.config.gui.ColorIntervalSlider;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -22,7 +17,7 @@ public class WakesConfigScreen extends Screen {
 
     @Override
     protected void init() {
-        this.addDrawableChild(new GradientSlider(
+        this.addDrawableChild(new ColorIntervalSlider(
                 this,
                 (int) (width / 2 - width * 0.8f / 2), 10,
                 (int) (width * 0.8f), 40,

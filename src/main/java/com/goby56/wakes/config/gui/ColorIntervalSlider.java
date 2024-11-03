@@ -5,19 +5,18 @@ import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class GradientSlider extends SliderWidget {
+public class ColorIntervalSlider extends SliderWidget {
     private ArrayList<SliderHandle> handles;
     private final ColorPicker colorPicker;
     private Integer activeSection = null;
 
-    public GradientSlider(WakesConfigScreen screenContext, int x, int y, int width, int height, Text text, ArrayList<Float> normalizedValues) {
+    public ColorIntervalSlider(WakesConfigScreen screenContext, int x, int y, int width, int height, Text text, ArrayList<Float> normalizedValues) {
         super(x, y, width, height, text, 0f);
         this.handles = new ArrayList<>();
         for (float val : normalizedValues) {
@@ -40,7 +39,7 @@ public class GradientSlider extends SliderWidget {
         RenderSystem.enableDepthTest();
 
         context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
+        context.setShaderColor(1.0F, 1.0F, 1.0F, 1f);
 
         this.hovered = context.scissorContains(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
@@ -77,7 +76,7 @@ public class GradientSlider extends SliderWidget {
             handle.focused = true;
         } else {
             activeSection = getActiveSection(value);
-            colorPicker.toggleActive();
+            colorPicker.toggleActive(WakesClient.CONFIG_INSTANCE.wakeColors.get(activeSection));
             // Do color picker
         }
     }
