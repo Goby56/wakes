@@ -39,12 +39,12 @@ public class ColorIntervalSlider extends SliderWidget {
         RenderSystem.enableDepthTest();
 
         context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 1f);
 
         this.hovered = context.scissorContains(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
         int y = this.getY();
 
+        context.setShaderColor(1.0F, 1.0F, 1.0F, 0.5F);
         int prevX = this.getX();
         for (int i = 0; i < n; i++) {
             float value = handles.get(i).value;
@@ -56,6 +56,7 @@ public class ColorIntervalSlider extends SliderWidget {
             prevX = currX;
         }
         context.fill(prevX, y, this.getX() + this.width, y + this.height, WakesClient.CONFIG_INSTANCE.wakeColors.get(n).argb);
+        context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         float hoveredVal = valueFromMousePos(mouseX);
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
@@ -63,7 +64,6 @@ public class ColorIntervalSlider extends SliderWidget {
             boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
             context.drawGuiTexture(handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
         }
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override
@@ -75,9 +75,15 @@ public class ColorIntervalSlider extends SliderWidget {
             // Mouse on handle
             handle.focused = true;
         } else {
-            activeSection = getActiveSection(value);
-            colorPicker.toggleActive(WakesClient.CONFIG_INSTANCE.wakeColors.get(activeSection));
             // Do color picker
+            int clickedSection = getActiveSection(value);
+            if (activeSection == null || clickedSection != activeSection) {
+                colorPicker.setActive(true);
+            } else {
+                colorPicker.setActive(!colorPicker.active);
+            }
+            activeSection = clickedSection;
+            colorPicker.setColor(WakesClient.CONFIG_INSTANCE.wakeColors.get(activeSection));
         }
     }
 
@@ -126,11 +132,11 @@ public class ColorIntervalSlider extends SliderWidget {
 
     private int getActiveSection(float value) {
         for (int i = 0; i < handles.size(); i++) {
-            if (handles.get(i).value <= value) {
-                return i+1;
+            if (handles.get(i).value > value) {
+                return i;
             }
         }
-        return 0;
+        return handles.size();
     }
 
     @Override

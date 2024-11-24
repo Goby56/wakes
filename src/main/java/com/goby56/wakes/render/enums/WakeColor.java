@@ -23,7 +23,7 @@ public class WakeColor {
 
     public WakeColor(int argb) {
         // Minecraft seems to work with argb but OpenGL uses abgr
-        this(argb >> 24 & 0xFF, argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF);
+        this(argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF, argb >> 24 & 0xFF);
     }
 
     public WakeColor(int red, int green, int blue, int alpha) {
@@ -37,7 +37,8 @@ public class WakeColor {
     }
 
     public WakeColor(float hue, float saturation, float value, float opacity) {
-        this(Color.HSBtoRGB(hue, saturation, value));
+        // TODO FIX 0% OPACITY INTERPRETED AS 100%
+        this(((int)(1f - opacity * 255)) << 24 ^ Color.HSBtoRGB(hue, saturation, value));
     }
 
     private static double invertedLogisticCurve(float x) {

@@ -49,11 +49,18 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    public void toggleActive(WakeColor currentColor) {
-        boolean b = !this.active;
-        this.active = this.visible = b;
+    public void setActive(boolean active) {
+        this.active = this.visible = active;
         for (var widget : this.widgets.values()) {
-            widget.toggleActive(currentColor, b);
+            widget.setActive(active);
+        }
+    }
+
+    public void setColor(WakeColor currentColor) {
+        float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
+        this.pickerPos.set(hsv[1], hsv[2]);
+        for (var widget : this.widgets.values()) {
+            widget.setColor(currentColor);
         }
     }
 
@@ -150,7 +157,9 @@ public class ColorPicker extends ClickableWidget {
         AABB getBounds();
         ClickableWidget getWidget();
 
-        void toggleActive(WakeColor currentColor, boolean active);
+        void setActive(boolean active);
+
+        void setColor(WakeColor currentColor);
     }
 
     public static class AABB {
@@ -183,8 +192,13 @@ public class ColorPicker extends ClickableWidget {
             this.colorPicker = colorPicker;
         }
 
-        public void toggleActive(WakeColor currentColor, boolean active) {
+        public void setActive(boolean active) {
             this.active = this.visible = active;
+        }
+
+        @Override
+        public void setColor(WakeColor currentColor) {
+
         }
 
         @Override
@@ -219,13 +233,17 @@ public class ColorPicker extends ClickableWidget {
             this.colored = colored;
         }
 
-        public void toggleActive(WakeColor currentColor, boolean active) {
+        public void setActive(boolean active) {
+            this.active = this.visible = active;
+        }
+
+        @Override
+        public void setColor(WakeColor currentColor) {
             if (colored) {
                 this.value = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null)[0];
             } else {
                 this.value = currentColor.a / 255f;
             }
-            this.active = this.visible = active;
         }
 
         public float getValue() {
