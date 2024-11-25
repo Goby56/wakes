@@ -47,7 +47,7 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void tick() {
-        if (WakesClient.CONFIG.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
+        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
         this.prevPosX = this.x;
@@ -83,7 +83,7 @@ public class SplashPlaneParticle extends Particle {
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         if (this.dead) return;
         if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
-                !WakesClient.CONFIG.firstPersonSplashPlane &&
+                !WakesClient.CONFIG_INSTANCE.firstPersonSplashPlane &&
                 this.owner instanceof ClientPlayerEntity) {
             return;
         }

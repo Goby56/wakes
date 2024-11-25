@@ -19,10 +19,8 @@ public class WakesConfigScreen extends Screen {
     protected void init() {
         this.addDrawableChild(new ColorIntervalSlider(
                 this,
-                (int) (width / 2 - width * 0.8f / 2), 10,
-                (int) (width * 0.8f), 40,
-                Text.literal("Gradient slider"),
-                new ArrayList<>(List.of(0.1f, 0.5f, 0.7f))));
+                (int) (width / 2 - width * 0.8f / 2), 30,
+                (int) (width * 0.8f), 40));
     }
 
     @Override
@@ -33,7 +31,7 @@ public class WakesConfigScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, Text.literal("Resident evil"), width / 2, height / 2, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, Text.literal("Wake color gradient slider"), width / 2, 10, 0xffffff);
     }
 
     public void addWidget(ClickableWidget widget) {

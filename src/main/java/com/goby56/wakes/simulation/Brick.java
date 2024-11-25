@@ -41,7 +41,7 @@ public class Brick {
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        initTexture(WakesClient.CONFIG.wakeResolution.res);
+        initTexture(WakesClient.CONFIG_INSTANCE.wakeResolution.res);
     }
 
     public void initTexture(int res) {
@@ -181,7 +181,7 @@ public class Brick {
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG.wakeOpacity);
+                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)

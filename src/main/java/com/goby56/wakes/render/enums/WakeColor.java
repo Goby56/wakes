@@ -16,11 +16,6 @@ public class WakeColor {
     public boolean isHighlight;
 
 
-    public WakeColor(int argb, boolean isHighlight) {
-       this(argb);
-       this.isHighlight = isHighlight;
-    }
-
     public WakeColor(int argb) {
         // Minecraft seems to work with argb but OpenGL uses abgr
         this(argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF, argb >> 24 & 0xFF);
@@ -41,6 +36,11 @@ public class WakeColor {
         this(((int)(1f - opacity * 255)) << 24 ^ Color.HSBtoRGB(hue, saturation, value));
     }
 
+    public WakeColor isHighlight(boolean b) {
+        this.isHighlight = b;
+        return this;
+    }
+
     private static double invertedLogisticCurve(float x) {
         float k = WakesClient.CONFIG_INSTANCE.shaderLightPassthrough;
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
@@ -48,17 +48,19 @@ public class WakeColor {
 
     public static int sampleColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
         WakeColor tint = new WakeColor(waterColor);
-        double clampedRange = 100 / (1 + Math.exp(-0.1 * waveEqAvg)) - 50;
-        int highlightIndex = WakesClient.CONFIG.customization.highlight.get();
-        int i = 0;
-        for (var colorInterval : WakesClient.CONFIG.customization.colorIntervals.getEntries()) {
-            if (colorInterval.getKey() >= clampedRange) {
-                WakeColor color = new WakeColor(colorInterval.getValue().argb(), i == highlightIndex);
-                return color.blend(tint, lightColor, opacity).abgr;
+        double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
+        4159204
+        var ranges = WakesClient.CONFIG_INSTANCE.wakeGradientRanges;
+        var colors = WakesClient.CONFIG_INSTANCE.wakeColors;
+        int returnIndex = ranges.size();
+        for (int i = 0; i < ranges.size(); i++) {
+            if (clampedRange > ranges.get(i)) {
+                returnIndex = i;
+                break;
             }
-            i++;
         }
-        return 0;
+        WakeColor color = colors.get(returnIndex).isHighlight(returnIndex == WakesClient.CONFIG_INSTANCE.highlightIndex);
+        return color.blend(tint, lightColor, opacity).abgr;
     }
 
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {

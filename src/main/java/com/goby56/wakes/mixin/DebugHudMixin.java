@@ -16,7 +16,7 @@ public abstract class DebugHudMixin {
     @Inject(at = @At("RETURN"), method = "getLeftText")
     protected void getLeftText(CallbackInfoReturnable<List<String>> info) {
         if (WakesClient.CONFIG_INSTANCE.showDebugInfo) {
-            if (WakesClient.CONFIG.disableMod) {
+            if (WakesClient.CONFIG_INSTANCE.disableMod) {
                 info.getReturnValue().add("[Wakes] Mod disabled!");
             } else {
                 WakesDebugInfo.show(info);

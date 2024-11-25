@@ -108,7 +108,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.horizontalNumericalVelocity = vel.horizontalLength();
 		this.verticalNumericalVelocity = vel.y;
 
-		if (WakesClient.CONFIG.disableMod) {
+		if (WakesClient.CONFIG_INSTANCE.disableMod) {
 			return;
 		}
 
@@ -129,7 +129,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
 	private void onSwimmingStart(CallbackInfo ci) {
-		if (WakesClient.CONFIG.disableMod) {
+		if (WakesClient.CONFIG_INSTANCE.disableMod) {
 			return;
 		}
 		Entity thisEntity = ((Entity) (Object) this);

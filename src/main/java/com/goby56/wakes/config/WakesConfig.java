@@ -17,13 +17,14 @@ import java.util.*;
 
 public class WakesConfig {
 
-    public ArrayList<Float> wakeGradientRanges = new ArrayList<>(List.of(-40f, -10f, 10f, 40f));
+    public int highlightIndex = 2;
+    public ArrayList<Float> wakeGradientRanges = new ArrayList<>(List.of(0.1f, 0.3f, 0.6f, 0.8f));
     public ArrayList<WakeColor> wakeColors = new ArrayList<>(List.of(
             new WakeColor(255, 0, 0, 255),
             new WakeColor(255, 255, 0, 255),
             new WakeColor(255, 255, 255, 255),
             new WakeColor(0, 255, 255, 255),
-            new WakeColor(0, 0, 255, 255)
+            new WakeColor(0, 255, 255, 255)
     ));
 
     // Spawning

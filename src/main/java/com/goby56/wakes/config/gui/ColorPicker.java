@@ -47,6 +47,7 @@ public class ColorPicker extends ClickableWidget {
         for (var widget : this.widgets.values()) {
             screenContext.addWidget(widget.getWidget());
         }
+        this.setActive(false);
     }
 
     public void setActive(boolean active) {
@@ -58,7 +59,9 @@ public class ColorPicker extends ClickableWidget {
 
     public void setColor(WakeColor currentColor) {
         float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
-        this.pickerPos.set(hsv[1], hsv[2]);
+        this.pickerPos.set(
+                this.bounds.x + hsv[1] * this.bounds.width,
+                this.bounds.y + (1 - hsv[2]) * this.bounds.height);
         for (var widget : this.widgets.values()) {
             widget.setColor(currentColor);
         }

@@ -15,7 +15,7 @@ import java.util.Random;
 public class PickBoat implements ClientPickBlockGatherCallback {
     @Override
     public ItemStack pick(PlayerEntity player, HitResult result) {
-        if (WakesClient.CONFIG.pickBoat) {
+        if (WakesClient.CONFIG_INSTANCE.pickBoat) {
             if (player.raycast(5, 0, false).getType().equals(HitResult.Type.BLOCK)) return ItemStack.EMPTY;
             if (player.raycast(5, 0, true) instanceof BlockHitResult fluidHit &&
                     fluidHit.getType().equals(HitResult.Type.BLOCK)) {

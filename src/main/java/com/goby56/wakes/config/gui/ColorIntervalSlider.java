@@ -16,10 +16,10 @@ public class ColorIntervalSlider extends SliderWidget {
     private final ColorPicker colorPicker;
     private Integer activeSection = null;
 
-    public ColorIntervalSlider(WakesConfigScreen screenContext, int x, int y, int width, int height, Text text, ArrayList<Float> normalizedValues) {
-        super(x, y, width, height, text, 0f);
+    public ColorIntervalSlider(WakesConfigScreen screenContext, int x, int y, int width, int height) {
+        super(x, y, width, height, Text.of(""), 0f);
         this.handles = new ArrayList<>();
-        for (float val : normalizedValues) {
+        for (float val : WakesClient.CONFIG_INSTANCE.wakeGradientRanges) {
            this.handles.add(new SliderHandle(val));
         }
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 100, 100);
@@ -77,7 +77,7 @@ public class ColorIntervalSlider extends SliderWidget {
         } else {
             // Do color picker
             int clickedSection = getActiveSection(value);
-            if (activeSection == null || clickedSection != activeSection) {
+            if (activeSection != null && clickedSection != activeSection) {
                 colorPicker.setActive(true);
             } else {
                 colorPicker.setActive(!colorPicker.active);
@@ -145,7 +145,9 @@ public class ColorIntervalSlider extends SliderWidget {
 
     @Override
     protected void applyValue() {
-
+        for (int i = 0; i < handles.size(); i++) {
+            WakesClient.CONFIG_INSTANCE.wakeGradientRanges.set(i, handles.get(i).value);
+        }
     }
 
 }

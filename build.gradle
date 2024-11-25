@@ -25,10 +25,10 @@ repositories {
 		name "Xander Maven"
 		url "https://maven.isxander.dev/releases"
 	}
-	maven {
-		name = "FzzyMaven"
-		url = "https://maven.fzzyhmstrs.me/"
-	}
+	// Maven {
+	// 	name = "FzzyMaven"
+	// 	url = "https://maven.fzzyhmstrs.me/"
+	// }
 	maven {
 		name "Ladysnake Mods"
 		url "https://maven.ladysnake.org/releases"
@@ -76,9 +76,7 @@ dependencies {
 		exclude(group: "com.twelvemonkeys.imageio")
 	}
 
-	modImplementation "me.fzzyhmstrs:fzzy_config:${project.fzzy_version}"
-	// modImplementation include ("maven.modrinth:midnightlib:${project.midnightlib_version}")
-
+	modImplementation include ("maven.modrinth:midnightlib:${project.midnightlib_version}")
 
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
 //	modImplementation "maven.modrinth:sodium:${project.sodium_version}"
