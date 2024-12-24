@@ -1,6 +1,7 @@
 package com.goby56.wakes.config;
 
 import com.goby56.wakes.config.gui.ColorIntervalSlider;
+import com.goby56.wakes.render.WakeRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.*;

@@ -17,14 +17,13 @@ import java.util.*;
 
 public class WakesConfig {
 
-    public int highlightIndex = 2;
     public ArrayList<Float> wakeGradientRanges = new ArrayList<>(List.of(0.1f, 0.3f, 0.6f, 0.8f));
     public ArrayList<WakeColor> wakeColors = new ArrayList<>(List.of(
             new WakeColor(255, 0, 0, 255),
-            new WakeColor(255, 255, 0, 255),
-            new WakeColor(255, 255, 255, 255),
-            new WakeColor(0, 255, 255, 255),
-            new WakeColor(0, 255, 255, 255)
+            new WakeColor(255, 0, 0, 255),
+            new WakeColor(255, 0, 0, 255),
+            new WakeColor(255, 0, 0, 255),
+            new WakeColor(255, 0, 0, 255)
     ));
 
     // Spawning
@@ -50,6 +49,7 @@ public class WakesConfig {
     public int ticksBeforeFill = 2;
     public boolean pickBoat = true;
     public RenderType renderType = RenderType.AUTO;
+    public boolean debugColors = false;
     public boolean drawDebugBoxes = false;
     public boolean showDebugInfo = false;
     public float shaderLightPassthrough = 0.5f;
@@ -59,30 +59,6 @@ public class WakesConfig {
     public float wakeOpacity = 1f;
     public boolean firstPersonSplashPlane = false;
 
-    public static class ColorInterval {
-        public WakeColor color;
-        public int lower;
-        public int upper;
-
-        public ColorInterval(WakeColor color, int lower, int upper) {
-            this.color = color;
-            this.lower = lower;
-            this.upper = upper;
-        }
-
-        public void setColor(WakeColor color) {
-            this.color = color;
-        }
-
-        public void setLower(int lower) {
-            this.lower = lower;
-        }
-
-        public void setUpper(int upper) {
-            this.upper = upper;
-        }
-
-    }
 
     // Splash plane
     public float splashPlaneWidth = 2f;

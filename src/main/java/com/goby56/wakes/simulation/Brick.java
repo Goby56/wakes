@@ -191,9 +191,8 @@ public class Brick {
                         int color = 0;
                         if (node != null) {
                             float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
-                            color = WakeColor.sampleColor(avg, waterCol, lightCol, opacity);
+                            color = getPixelColor(avg, waterCol, lightCol, opacity);
                         }
-
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
                     }
@@ -201,5 +200,13 @@ public class Brick {
             }
         }
         hasPopulatedPixels = true;
+    }
+
+    private static int getPixelColor(float waveEqAvg, int waterCol, int lightCol, float opacity) {
+        if (WakesClient.CONFIG_INSTANCE.debugColors) {
+            int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
+            return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).abgr;
+        }
+        return WakeColor.sampleColor(waveEqAvg, waterCol, lightCol, opacity);
     }
 }

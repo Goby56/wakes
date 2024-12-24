@@ -32,8 +32,7 @@ public class WakeColor {
     }
 
     public WakeColor(float hue, float saturation, float value, float opacity) {
-        // TODO FIX 0% OPACITY INTERPRETED AS 100%
-        this(((int)(1f - opacity * 255)) << 24 ^ Color.HSBtoRGB(hue, saturation, value));
+        this(((int)((1f - opacity) * 255)) << 24 ^ Color.HSBtoRGB(hue, saturation, value));
     }
 
     public WakeColor isHighlight(boolean b) {
@@ -53,12 +52,12 @@ public class WakeColor {
         var colors = WakesClient.CONFIG_INSTANCE.wakeColors;
         int returnIndex = ranges.size();
         for (int i = 0; i < ranges.size(); i++) {
-            if (clampedRange > ranges.get(i)) {
+            if (clampedRange < ranges.get(i)) {
                 returnIndex = i;
                 break;
             }
         }
-        WakeColor color = colors.get(returnIndex).isHighlight(returnIndex == WakesClient.CONFIG_INSTANCE.highlightIndex);
+        WakeColor color = colors.get(returnIndex).isHighlight(false); // .isHighlight(returnIndex == WakesClient.CONFIG_INSTANCE.highlightIndex);
         return color.blend(tint, lightColor, opacity).abgr;
     }
 
@@ -67,9 +66,9 @@ public class WakeColor {
         int a = (int) (opacity * 255 * srcA);
         int r = 255, g = 255, b = 255;
         if (!this.isHighlight) {
-            r = (int) ((this.r) * (1 - srcA) + (tint.r) * (srcA));
-            g = (int) ((this.g) * (1 - srcA) + (tint.g) * (srcA));
-            b = (int) ((this.b) * (1 - srcA) + (tint.b) * (srcA));
+            r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
+            g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
+            b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
         }
         r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
