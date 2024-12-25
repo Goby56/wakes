@@ -1,6 +1,7 @@
 package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.utils.WakesUtils;
@@ -108,7 +109,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		this.horizontalNumericalVelocity = vel.horizontalLength();
 		this.verticalNumericalVelocity = vel.y;
 
-		if (WakesClient.CONFIG_INSTANCE.disableMod) {
+		if (WakesConfig.disableMod) {
 			return;
 		}
 
@@ -129,7 +130,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")
 	private void onSwimmingStart(CallbackInfo ci) {
-		if (WakesClient.CONFIG_INSTANCE.disableMod) {
+		if (WakesConfig.disableMod) {
 			return;
 		}
 		Entity thisEntity = ((Entity) (Object) this);

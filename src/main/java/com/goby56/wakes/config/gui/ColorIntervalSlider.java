@@ -1,6 +1,7 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -19,7 +20,7 @@ public class ColorIntervalSlider extends SliderWidget {
     public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""), 0f);
         this.handles = new ArrayList<>();
-        for (float val : WakesClient.CONFIG_INSTANCE.wakeGradientRanges) {
+        for (float val : WakesConfig.wakeGradientRanges) {
            this.handles.add(new SliderHandle(val));
         }
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 100, 100);
@@ -51,11 +52,11 @@ public class ColorIntervalSlider extends SliderWidget {
 
             int currX = this.getX() + (int)(value * (double)(this.width));
 
-            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, WakesClient.CONFIG_INSTANCE.wakeColors.get(i).argb);
+            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, WakesConfig.getWakeColor(i).argb);
 
             prevX = currX;
         }
-        context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1, WakesClient.CONFIG_INSTANCE.wakeColors.get(n).argb);
+        context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1, WakesConfig.getWakeColor(n).argb);
         context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         float hoveredVal = valueFromMousePos(mouseX);
@@ -83,7 +84,7 @@ public class ColorIntervalSlider extends SliderWidget {
                 colorPicker.setActive(!colorPicker.active);
             }
             activeSection = clickedSection;
-            colorPicker.setColor(WakesClient.CONFIG_INSTANCE.wakeColors.get(activeSection));
+            colorPicker.setColor(WakesConfig.getWakeColor(activeSection));
         }
     }
 
@@ -109,7 +110,8 @@ public class ColorIntervalSlider extends SliderWidget {
 
     private void onColorPicked(WakeColor color) {
         if (this.activeSection != null) {
-            WakesClient.CONFIG_INSTANCE.wakeColors.set(this.activeSection, color);
+            WakesConfig.wakeColors.set(this.activeSection, color.toHex());
+            WakesConfig.write(WakesClient.MOD_ID);
         }
     }
 
@@ -146,8 +148,9 @@ public class ColorIntervalSlider extends SliderWidget {
     @Override
     protected void applyValue() {
         for (int i = 0; i < handles.size(); i++) {
-            WakesClient.CONFIG_INSTANCE.wakeGradientRanges.set(i, handles.get(i).value);
+            WakesConfig.wakeGradientRanges.set(i, handles.get(i).value);
         }
+        WakesConfig.write(WakesClient.MOD_ID);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
@@ -41,7 +42,7 @@ public class Brick {
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        initTexture(WakesClient.CONFIG_INSTANCE.wakeResolution.res);
+        initTexture(WakesConfig.wakeResolution.res);
     }
 
     public void initTexture(int res) {
@@ -181,7 +182,7 @@ public class Brick {
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)
@@ -203,7 +204,7 @@ public class Brick {
     }
 
     private static int getPixelColor(float waveEqAvg, int waterCol, int lightCol, float opacity) {
-        if (WakesClient.CONFIG_INSTANCE.debugColors) {
+        if (WakesConfig.debugColors) {
             int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
             return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).abgr;
         }

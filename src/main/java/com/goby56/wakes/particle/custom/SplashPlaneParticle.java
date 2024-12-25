@@ -1,6 +1,7 @@
 package com.goby56.wakes.particle.custom;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
@@ -47,7 +48,7 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void tick() {
-        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
+        if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
         this.prevPosX = this.x;
@@ -74,7 +75,7 @@ public class SplashPlaneParticle extends Particle {
             this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         }
         this.direction = Vec3d.fromPolar(0, -this.yaw);
-        Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesClient.CONFIG_INSTANCE.splashPlaneOffset);
+        Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesConfig.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.producingWaterLevel(), planePos.z);
     }
@@ -83,7 +84,7 @@ public class SplashPlaneParticle extends Particle {
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         if (this.dead) return;
         if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
-                !WakesClient.CONFIG_INSTANCE.firstPersonSplashPlane &&
+                !WakesConfig.firstPersonSplashPlane &&
                 this.owner instanceof ClientPlayerEntity) {
             return;
         }

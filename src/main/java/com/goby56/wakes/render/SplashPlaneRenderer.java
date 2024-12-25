@@ -1,6 +1,7 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.utils.WakesUtils;
@@ -69,7 +70,7 @@ public class SplashPlaneRenderer {
     }
 
     public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
-        if (WakesClient.CONFIG_INSTANCE.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
+        if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
         RenderSystem.setShader(RenderType.getProgram());
@@ -78,8 +79,8 @@ public class SplashPlaneRenderer {
 
         matrices.push();
         float velocity = (float) Math.floor(((ProducesWake) entity).getHorizontalVelocity() * 20) / 20f;
-        float progress = Math.min(1f, velocity / WakesClient.CONFIG_INSTANCE.maxSplashPlaneVelocity);
-        float scalar = (float) (WakesClient.CONFIG_INSTANCE.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);
+        float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
+        float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
@@ -107,7 +108,7 @@ public class SplashPlaneRenderer {
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
-        float opacity = WakesClient.CONFIG_INSTANCE.wakeOpacity;
+        float opacity = WakesConfig.wakeOpacity;
         opacity *= slightlyTransparent ? 0.9f : 1f;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
@@ -115,9 +116,9 @@ public class SplashPlaneRenderer {
                 Vec3d vertex = vertices.get(i);
                 Vec3d normal = normals.get(i);
                 buffer.vertex(matrix,
-                                (float) (s * (vertex.x * WakesClient.CONFIG_INSTANCE.splashPlaneWidth + WakesClient.CONFIG_INSTANCE.splashPlaneGap)),
-                                (float) (vertex.z * WakesClient.CONFIG_INSTANCE.splashPlaneHeight),
-                                (float) (vertex.y * WakesClient.CONFIG_INSTANCE.splashPlaneDepth))
+                                (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
+                                (float) (vertex.z * WakesConfig.splashPlaneHeight),
+                                (float) (vertex.y * WakesConfig.splashPlaneDepth))
                         .color(color.x, color.y, color.z, opacity)
                         .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
@@ -151,7 +152,7 @@ public class SplashPlaneRenderer {
     }
 
     private static void distributePoints() {
-        int res = WakesClient.CONFIG_INSTANCE.splashPlaneResolution;
+        int res = WakesConfig.splashPlaneResolution;
         points = new ArrayList<>();
 
         for (float i = 0; i < res; i++) {

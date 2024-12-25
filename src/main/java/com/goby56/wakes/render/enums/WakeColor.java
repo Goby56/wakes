@@ -2,7 +2,6 @@ package com.goby56.wakes.render.enums;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import net.minecraft.util.math.ColorHelper;
 
 import java.awt.*;
 
@@ -35,21 +34,28 @@ public class WakeColor {
         this(((int)((1f - opacity) * 255)) << 24 ^ Color.HSBtoRGB(hue, saturation, value));
     }
 
+    public WakeColor(String argbHex) {
+        this(Integer.parseUnsignedInt(argbHex.replace("#", ""), 16));
+    }
+
+    public String toHex() {
+        return "#" + Integer.toHexString(a << 24 | r << 16 | g << 8 | b);
+    }
+
     public WakeColor isHighlight(boolean b) {
         this.isHighlight = b;
         return this;
     }
 
     private static double invertedLogisticCurve(float x) {
-        float k = WakesClient.CONFIG_INSTANCE.shaderLightPassthrough;
+        float k = WakesConfig.shaderLightPassthrough;
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
     public static int sampleColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
         WakeColor tint = new WakeColor(waterColor);
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
-        var ranges = WakesClient.CONFIG_INSTANCE.wakeGradientRanges;
-        var colors = WakesClient.CONFIG_INSTANCE.wakeColors;
+        var ranges = WakesConfig.wakeGradientRanges;
         int returnIndex = ranges.size();
         for (int i = 0; i < ranges.size(); i++) {
             if (clampedRange < ranges.get(i)) {
@@ -57,7 +63,7 @@ public class WakeColor {
                 break;
             }
         }
-        WakeColor color = colors.get(returnIndex).isHighlight(false); // .isHighlight(returnIndex == WakesClient.CONFIG_INSTANCE.highlightIndex);
+        WakeColor color = WakesConfig.getWakeColor(returnIndex).isHighlight(false); // .isHighlight(returnIndex == WakesConfig.highlightIndex);
         return color.blend(tint, lightColor, opacity).abgr;
     }
 
