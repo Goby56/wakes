@@ -16,7 +16,7 @@ public class ColorIntervalSlider extends SliderWidget {
     private final ColorPicker colorPicker;
     private Integer activeSection = null;
 
-    public ColorIntervalSlider(WakesConfigScreen screenContext, int x, int y, int width, int height) {
+    public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""), 0f);
         this.handles = new ArrayList<>();
         for (float val : WakesClient.CONFIG_INSTANCE.wakeGradientRanges) {
@@ -51,11 +51,11 @@ public class ColorIntervalSlider extends SliderWidget {
 
             int currX = this.getX() + (int)(value * (double)(this.width));
 
-            context.fill(prevX, y, currX, y + this.height, WakesClient.CONFIG_INSTANCE.wakeColors.get(i).argb);
+            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, WakesClient.CONFIG_INSTANCE.wakeColors.get(i).argb);
 
             prevX = currX;
         }
-        context.fill(prevX, y, this.getX() + this.width, y + this.height, WakesClient.CONFIG_INSTANCE.wakeColors.get(n).argb);
+        context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1, WakesClient.CONFIG_INSTANCE.wakeColors.get(n).argb);
         context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         float hoveredVal = valueFromMousePos(mouseX);

@@ -34,7 +34,7 @@ public class ColorPicker extends ClickableWidget {
 
     private final Vector2f pickerPos = new Vector2f();
 
-    public ColorPicker(WakesConfigScreen screenContext, int x, int y, int width, int height) {
+    public ColorPicker(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""));
 
         this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
@@ -141,7 +141,6 @@ public class ColorPicker extends ClickableWidget {
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Draw frame
-        // TODO SET FRAME TO PICKED COLOR
         context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
 
         // Draw picker knob

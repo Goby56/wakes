@@ -1,5 +1,6 @@
 package com.goby56.wakes;
 
+import com.goby56.wakes.config.WakesMidnightConfig;
 import com.goby56.wakes.debug.DebugCommand;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
@@ -9,6 +10,7 @@ import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -43,6 +45,7 @@ public class WakesClient implements ClientModInitializer {
 
 		// Mod configs
 		CONFIG_INSTANCE = WakesConfig.loadConfig();
+		MidnightConfig.init("wakes", WakesMidnightConfig.class);
 
 		// Particles
 		ModParticles.registerParticles();

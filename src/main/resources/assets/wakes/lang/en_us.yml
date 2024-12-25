@@ -1,8 +1,14 @@
 wakes:
-    yacl_missing:
-        .: Yet Another Config Lib is not in your mods folder
-        message: >
-            If you want to edit the configs you need YACL V3. Do you want to install it?
+    midnightconfig:
+        title: Wakes config
+        category:
+            general: General
+            colors: Colors
+        disableMod: Disable mod
+        pickBoat: Pick block
+        debugColors: Debug colors
+
+
     config:
         title: Wakes config
         category:

@@ -1,41 +1,35 @@
 package com.goby56.wakes.config;
 
-import com.goby56.wakes.config.gui.ColorIntervalSlider;
-import com.goby56.wakes.render.WakeRenderer;
+import com.goby56.wakes.config.gui.ColorPickerScreen;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.text.Text;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class WakesConfigScreen extends Screen {
 
     public WakesConfigScreen() {
-        super(Text.literal("Wakes Config"));
+        super(Text.literal("Wakes config"));
     }
 
     @Override
     protected void init() {
-        this.addDrawableChild(new ColorIntervalSlider(
-                this,
-                (int) (width / 2 - width * 0.8f / 2), 30,
-                (int) (width * 0.8f), 40));
-    }
-
-    @Override
-    protected void applyBlur(float delta) {
-        // No Song 2
+        int y = this.height / 4 + 48;
+        int ySpacing = 24;
+        this.addDrawableChild(ButtonWidget.builder(Text.of("Mod configurations"), (btn) -> {
+            client.setScreen(MidnightConfig.getScreen(this, "wakes"));
+        }).dimensions(this.width / 2 - 100, y + ySpacing, 200, 20).build());
+        this.addDrawableChild(ButtonWidget.builder(Text.of("Configure wake colors"), (btn) -> {
+            client.setScreen(new ColorPickerScreen(this));
+        }).dimensions(this.width / 2 - 100, y, 200, 20).build());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, Text.literal("Wake color gradient slider"), width / 2, 10, 0xffffff);
+        context.drawCenteredTextWithShadow(textRenderer, this.title, width / 2, 10, 0xffffff);
     }
 
-    public void addWidget(ClickableWidget widget) {
-        this.addDrawableChild(widget);
-    }
 }
