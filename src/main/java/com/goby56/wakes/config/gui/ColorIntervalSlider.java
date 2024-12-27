@@ -2,7 +2,6 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
@@ -20,7 +19,7 @@ public class ColorIntervalSlider extends SliderWidget {
     public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""), 0f);
         this.handles = new ArrayList<>();
-        for (float val : WakesConfig.wakeGradientRanges) {
+        for (float val : WakesConfig.wakeColorIntervals) {
            this.handles.add(new SliderHandle(val));
         }
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 100, 100);
@@ -148,7 +147,7 @@ public class ColorIntervalSlider extends SliderWidget {
     @Override
     protected void applyValue() {
         for (int i = 0; i < handles.size(); i++) {
-            WakesConfig.wakeGradientRanges.set(i, handles.get(i).value);
+            WakesConfig.wakeColorIntervals.set(i, handles.get(i).value);
         }
         WakesConfig.write(WakesClient.MOD_ID);
     }

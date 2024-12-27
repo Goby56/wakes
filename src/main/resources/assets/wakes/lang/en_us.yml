@@ -2,11 +2,62 @@ wakes:
     midnightconfig:
         title: Wakes config
         category:
+            appearance: Appearance
             general: General
-            colors: Colors
+            debug: Debug
+
+        spawnParticles: Wake particles
+        firstPersonSplashPlane: First person splash plane
+        wakeOpacity: Wake opacity
+        wakeResolution: Wake resolution
+        shaderLightPassthrough: Shader light passthrough
+        splashPlaneWidth: Width
+        splashPlaneHeight: Height
+        splashPlaneDepth: Depth
+        splashPlaneOffset: Offset
+        splashPlaneGap: Gap
+        splashPlaneResolution: Resolution
+        splashPlaneScale: Scale
+        maxSplashPlaneVelocity: Max velocity
+
         disableMod: Disable mod
-        pickBoat: Pick block
-        debugColors: Debug colors
+        pickBoat: Pick boat
+        boatSpawning: Boats
+        playerSpawning: Player
+        otherPlayersSpawning: Other players
+        mobSpawning: Mobs
+        itemSpawning: Items
+        wavePropagationFactor: Wave propagation factor
+        waveDecayFactor: Wave decay factor
+        initialStrength: Initial wave strength
+        paddleStrength: Paddle strength
+        splashStrength: Splash strength
+        wakeColorIntervals: Wake color intervals
+        wakeColorIntervals.tooltip: Not meant to be edited directly. Use the wake color editor instead.
+        wakeColors: Wake colors
+        wakeColors.tooltip: Not meant to be edited directly. Use the wake color editor instead.
+
+        debugColors: Render wakes with debug colors
+        drawDebugBoxes: Draw debug boxes
+        showDebugInfo: Show debug info in F3
+        floodFillDistance: Flood fill distance
+        floodFillTickDelay: Ticks until flood fill
+        renderType: Render type
+
+        enum:
+            Resolution:
+                '8': 8x8
+                '16': 16x16
+                '32': 32x32
+            EffectSpawningRule:
+                SIMULATION_AND_PLANES: Simulation & planes
+                ONLY_SIMULATION: Only simulation
+                ONLY_PLANES: Only planes
+                DISABLED: Disabled
+
+        splashPlaneDivider: Splash Plane
+        spawningRuleDivider: Effect Spawning Rules
+        wakeBehaviourDivider: Wake Behaviour
 
 
     config:

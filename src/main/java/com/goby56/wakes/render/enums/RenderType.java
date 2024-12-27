@@ -5,6 +5,7 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.util.StringIdentifiable;
 
 import java.util.function.Supplier;
 

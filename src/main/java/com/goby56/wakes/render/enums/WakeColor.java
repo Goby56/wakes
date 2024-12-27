@@ -55,7 +55,7 @@ public class WakeColor {
     public static int sampleColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
         WakeColor tint = new WakeColor(waterColor);
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
-        var ranges = WakesConfig.wakeGradientRanges;
+        var ranges = WakesConfig.wakeColorIntervals;
         int returnIndex = ranges.size();
         for (int i = 0; i < ranges.size(); i++) {
             if (clampedRange < ranges.get(i)) {

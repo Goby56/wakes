@@ -1,16 +1,13 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -141,7 +138,7 @@ public class WakeNode {
     }
 
     public void floodFill(WakeHandler wakeHandler) {
-        if (floodLevel > 0 && this.age > WakesConfig.ticksBeforeFill) {
+        if (floodLevel > 0 && this.age > WakesConfig.floodFillTickDelay) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
             } else {
