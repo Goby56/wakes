@@ -8,9 +8,12 @@ wakes:
 
         spawnParticles: Wake particles
         firstPersonSplashPlane: First person splash plane
+        firstPersonSplashPlane.tooltip: Should the player's splash plane be seen while in first person?
         wakeOpacity: Wake opacity
         wakeResolution: Wake resolution
+        wakeResolution.tooltip: The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
         shaderLightPassthrough: Shader light passthrough
+        shaderLightPassthrough.tooltip: Used to fine tune the appearance of wakes when using shaders. A higher value yields brighter wakes.
         splashPlaneWidth: Width
         splashPlaneHeight: Height
         splashPlaneDepth: Depth
@@ -22,20 +25,25 @@ wakes:
 
         disableMod: Disable mod
         pickBoat: Pick boat
+        pickBoat.tooltip: Enables you to quickly grab a boat when middle clicking water. (Just like pick block)
         boatSpawning: Boats
+        boatSpawning.tooltip: What effect should be visible when a boat moves in water?
         playerSpawning: Player
+        playerSpawning.tooltip: What effect should be visible when you move in water?
         otherPlayersSpawning: Other players
+        otherPlayersSpawning.tooltip: What effect should be visible when other players moves in water?
         mobSpawning: Mobs
+        mobSpawning.tooltip: What effect should be visible when mobs moves in water?
         itemSpawning: Items
+        itemSpawning.tooltip: What effect should be visible when an item moves in water?
         wavePropagationFactor: Wave propagation factor
+        wavePropagationFactor.tooltip: The impact a pixels has on its neighboring pixels inside the wakes
         waveDecayFactor: Wave decay factor
+        waveDecayFactor.tooltip: Specifies how much of a pixels value is left after each tick. (Logarithmic scale)
         initialStrength: Initial wave strength
+        initialStrength.tooltip: The strength a source starts with to produce a wake.
         paddleStrength: Paddle strength
         splashStrength: Splash strength
-        wakeColorIntervals: Wake color intervals
-        wakeColorIntervals.tooltip: Not meant to be edited directly. Use the wake color editor instead.
-        wakeColors: Wake colors
-        wakeColors.tooltip: Not meant to be edited directly. Use the wake color editor instead.
 
         debugColors: Render wakes with debug colors
         drawDebugBoxes: Draw debug boxes
@@ -58,76 +66,3 @@ wakes:
         splashPlaneDivider: Splash Plane
         spawningRuleDivider: Effect Spawning Rules
         wakeBehaviourDivider: Wake Behaviour
-
-
-    config:
-        title: Wakes config
-        category:
-            basic: Basic settings
-            advanced: Advanced settings
-            debug: Debug
-        group:
-            wake_appearance: Wake appearance
-            wake_behaviour: Wake behaviour
-            effect_spawning: Effect spawning
-            splash_plane: Splash plane
-            initial_wave_strengths: Initial wave strengths
-        option:
-            wake_resolution: Wake resolution
-            wake_opacity: Wake opacity
-            shader_light_passthrough: Shader light pass through
-            first_person_splash_plane: First person splash plane
-            splash_plane:
-                scale: Scale
-                offset: Offset
-                width: Width
-                height: Height
-                depth: Depth
-                gap: Gap
-                cap_velocity: Velocity cap
-            interval:
-                lower: Lower
-                upper: Upper
-                color: Color
-            effect_spawning_rules:
-                source:
-                    boat: Boat
-                    player: Player
-                    other_players: Other players
-                    mobs: Mobs
-                    items: Items
-                effect:
-                    simulation_and_planes: Simulation & planes
-                    only_simulation: Only simulation
-                    only_planes: Only planes
-                    disabled: Disabled
-            spawn_particles: Spawn particles
-            wave_propagation_factor: Wave propagation factor
-            wave_decay_factor: Wave decay factor
-            initial_wave_strength:
-                wake: Wake strength
-                paddle: Paddle strength
-                splash: Splash strength
-            render_type: Shader program
-            flood_fill_distance: Flood fill distance
-            ticks_before_fill: Ticks before flood fill
-            draw_debug_boxes: Draw debug boxes
-            show_debug_info: Show debug info
-            pick_boat: Enable picking boats from water
-            disable_mod: Disable mod
-        description:
-            first_person_splash_plane: >
-                Should the player's splash plane be seen while in first person?
-            wave_propagation_factor: >
-                The impact a pixels has on its neighboring pixels inside the wakes
-            wave_decay_factor: >
-                Specifies how much of a pixels value is left after each tick. (Logarithmic scale)
-            initial_wave_strengths: >
-                The strength a source starts with to produce a wake.
-            splash_plane.cap_velocity: >
-                The velocity at which the maximum size of the splash plane is reached
-            effect_spawning_rules: "Specifies which effect(s) a source (player, mob, etc) can produce. \n\nSimulation refers to the simulated waves on the water that acts as wakes. \n\nPlanes refers to the splashes that shoot out on either side."
-            wake_resolution: >
-                The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
-            shader_light_passthrough: >
-                Used to fine tune the appearance of wakes when using shaders. A higher value yields brighter wakes.
