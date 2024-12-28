@@ -40,6 +40,14 @@ public class SliderHandle implements Comparable<SliderHandle> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SliderHandle handle) {
+            return handle.value == this.value;
+        }
+        return false;
+    }
+
+    @Override
     public int compareTo(@NotNull SliderHandle o) {
         return Float.compare(this.value, o.value);
     }

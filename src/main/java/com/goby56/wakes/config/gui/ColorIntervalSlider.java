@@ -5,7 +5,9 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
@@ -69,23 +71,50 @@ public class ColorIntervalSlider extends SliderWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
+        boolean shiftDown = Screen.hasShiftDown();
         float value = valueFromMousePos(mouseX);
         SliderHandle handle = closestHandle(value);
         unfocusHandles();
-        if (handle.inProximity(value, width, 8)) {
+        if (handle != null && handle.inProximity(value, width, 8)) {
             // Mouse on handle
-            handle.focused = true;
-        } else {
-            // Do color picker
-            int clickedSection = getActiveSection(value);
-            if (activeSection != null && clickedSection != activeSection) {
-                colorPicker.setActive(true);
+            if (shiftDown) {
+                // Remove handle if shift is pressed
+                removeHandle(handles.indexOf(handle));
             } else {
-                colorPicker.setActive(!colorPicker.active);
+                // Otherwise focus handle
+                handle.focused = true;
             }
-            activeSection = clickedSection;
-            colorPicker.setColor(WakesConfig.getWakeColor(activeSection));
+        } else {
+            int clickedSection = getActiveSection(value);
+            if (shiftDown) {
+                // Add new handle if shift is pressed
+                addHandle(clickedSection, value);
+            } else {
+                // Otherwise show color picker for this section
+                if (activeSection != null && clickedSection != activeSection) {
+                    colorPicker.setActive(true);
+                } else {
+                    colorPicker.setActive(!colorPicker.active);
+                }
+                activeSection = clickedSection;
+                colorPicker.setColor(WakesConfig.getWakeColor(activeSection));
+            }
         }
+    }
+
+    private void addHandle(int index, float value) {
+        handles.add(index, new SliderHandle(value));
+        WakesConfig.wakeColors.add(index, WakesConfig.getWakeColor(index).toHex());
+        WakesConfig.wakeColorIntervals.add(index, value);
+        WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
+    }
+
+    private void removeHandle(int index) {
+        if (index == -1) return;
+        handles.remove(index);
+        WakesConfig.wakeColors.remove(index);
+        WakesConfig.wakeColorIntervals.remove(index);
+        WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
     }
 
     @Override
