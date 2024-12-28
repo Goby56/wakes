@@ -191,6 +191,7 @@ public class Brick {
                     for (int c = 0; c < texRes; c++) {
                         int color = 0;
                         if (node != null) {
+                            // TODO USE SHADERS TO COLOR THE WAKES?
                             float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
                             color = getPixelColor(avg, waterCol, lightCol, opacity);
                         }

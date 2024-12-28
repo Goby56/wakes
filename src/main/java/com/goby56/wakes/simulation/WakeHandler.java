@@ -73,6 +73,15 @@ public class WakeHandler {
         }
     }
 
+    public void recolorWakes() {
+        for (int i = 0; i < this.maxY - this.minY; i++) {
+            QuadTree tree = this.trees[i];
+            if (tree != null) {
+                tree.recolorWakes();
+            }
+        }
+    }
+
     public void insert(WakeNode node) {
         if (resolutionResetScheduled) return;
         int i = this.getArrayIndex(node.y);

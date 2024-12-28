@@ -3,6 +3,7 @@ package com.goby56.wakes.config.gui;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.SliderWidget;
@@ -111,6 +112,7 @@ public class ColorIntervalSlider extends SliderWidget {
         if (this.activeSection != null) {
             WakesConfig.wakeColors.set(this.activeSection, color.toHex());
             WakesConfig.write(WakesClient.MOD_ID);
+            WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
         }
     }
 
@@ -150,6 +152,7 @@ public class ColorIntervalSlider extends SliderWidget {
             WakesConfig.wakeColorIntervals.set(i, handles.get(i).value);
         }
         WakesConfig.write(WakesClient.MOD_ID);
+        WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
     }
 
 }

@@ -1,12 +1,8 @@
 package com.goby56.wakes.config.gui;
 
-import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.Positioner;
-import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.text.Text;
 
 public class ColorPickerScreen extends Screen {
