@@ -1,6 +1,7 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -40,8 +41,8 @@ public class ColorPicker extends ClickableWidget {
         this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
 
         this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", this,true));
-        this.widgets.put("alphaSlider", new GradientSlider(new AABB(5f / 12f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, false));
-        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 5f / 12f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
+        this.widgets.put("alphaSlider", new GradientSlider(new AABB(3f / 6f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, false));
+        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 3f / 6f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
 
         screenContext.addWidget(this);
         for (var widget : this.widgets.values()) {
@@ -57,7 +58,11 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    public void setColor(WakeColor currentColor) {
+    public void setColor(WakeColor currentColor, boolean onlyHexText) {
+        if (onlyHexText) {
+            this.widgets.get("hexInputField").setColor(currentColor);
+            return;
+        }
         float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
         this.pickerPos.set(
                 this.bounds.x + hsv[1] * this.bounds.width,
@@ -115,7 +120,9 @@ public class ColorPicker extends ClickableWidget {
         float saturation = (pickerPos.x - this.bounds.x) / this.bounds.width;
         float value = 1f - (pickerPos.y - this.bounds.y) / this.bounds.height;
         float opacity = ((GradientSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
-        this.changedColorListener.accept(new WakeColor(hue, saturation, value, opacity));
+        WakeColor newColor = new WakeColor(hue, saturation, value, opacity);
+        this.setColor(newColor, true);
+        this.changedColorListener.accept(newColor);
     }
 
     @Override
@@ -188,10 +195,23 @@ public class ColorPicker extends ClickableWidget {
         private final ColorPicker colorPicker;
 
         public HexInputField(AABB bounds, ColorPicker colorPicker, TextRenderer textRenderer) {
-            super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.of("HEX"));
+            super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.empty());
             this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
             this.colorPicker = colorPicker;
+            //setTextPredicate(HexInputField::validHex);
+        }
+
+        private static boolean validHex(String text) {
+            if (text.charAt(0) != '#' || text.length() == 9) {
+                return false;
+            }
+            for (char c : text.substring(1).toLowerCase().toCharArray()) {
+                if (Character.digit(c, 16) == -1) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void setActive(boolean active) {
@@ -200,13 +220,13 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         public void setColor(WakeColor currentColor) {
-
+            setText(currentColor.toHex());
         }
 
-        @Override
-        public void onClick(double mouseX, double mouseY) {
-            super.onClick(mouseX, mouseY);
-        }
+        // @Override
+        // public void onClick(double mouseX, double mouseY) {
+        //     super.onClick(mouseX, mouseY);
+        // }
 
         @Override
         public AABB getBounds() {

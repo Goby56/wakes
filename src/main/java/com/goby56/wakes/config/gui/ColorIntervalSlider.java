@@ -25,7 +25,7 @@ public class ColorIntervalSlider extends SliderWidget {
         for (float val : WakesConfig.wakeColorIntervals) {
            this.handles.add(new SliderHandle(val));
         }
-        this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 100, 100);
+        this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2 - 64, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
     }
 
@@ -97,7 +97,7 @@ public class ColorIntervalSlider extends SliderWidget {
                     colorPicker.setActive(!colorPicker.active);
                 }
                 activeSection = clickedSection;
-                colorPicker.setColor(WakesConfig.getWakeColor(activeSection));
+                colorPicker.setColor(WakesConfig.getWakeColor(activeSection), false);
             }
         }
     }
