@@ -3,6 +3,7 @@ package com.goby56.wakes.config.gui;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
 public class ColorPickerScreen extends Screen {

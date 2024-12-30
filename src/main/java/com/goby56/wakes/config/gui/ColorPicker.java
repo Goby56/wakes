@@ -1,8 +1,6 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.WakesConfigScreen;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -23,6 +21,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 public class ColorPicker extends ClickableWidget {
     private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
@@ -58,8 +57,8 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    public void setColor(WakeColor currentColor, boolean onlyHexText) {
-        if (onlyHexText) {
+    public void setColor(WakeColor currentColor, WidgetUpdateFlag updateFlag) {
+        if (updateFlag.equals(WidgetUpdateFlag.ONLY_HEX)) {
             this.widgets.get("hexInputField").setColor(currentColor);
             return;
         }
@@ -67,13 +66,35 @@ public class ColorPicker extends ClickableWidget {
         this.pickerPos.set(
                 this.bounds.x + hsv[1] * this.bounds.width,
                 this.bounds.y + (1 - hsv[2]) * this.bounds.height);
-        for (var widget : this.widgets.values()) {
-            widget.setColor(currentColor);
+        for (var widgetKey : this.widgets.keySet()) {
+            if (updateFlag.equals(WidgetUpdateFlag.IGNORE_HEX) && widgetKey.equals("hexInputField")) {
+                this.changedColorListener.accept(currentColor);
+                continue;
+            }
+            widgets.get(widgetKey).setColor(currentColor);
         }
     }
 
     public void registerListener(Consumer<WakeColor> changedListener) {
         this.changedColorListener = changedListener;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        ClickableWidget hexInput = this.widgets.get("hexInputField").getWidget();
+        if (hexInput.isFocused()) {
+            return hexInput.keyPressed(keyCode, scanCode, modifiers);
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        ClickableWidget hexInput = this.widgets.get("hexInputField").getWidget();
+        if (hexInput.isFocused()) {
+            return hexInput.charTyped(chr, modifiers);
+        }
+        return super.charTyped(chr, modifiers);
     }
 
     @Override
@@ -86,8 +107,8 @@ public class ColorPicker extends ClickableWidget {
             }
         }
         if (focusedWidget != null) {
-            focusedWidget.onClick(mouseX, mouseY);
             focusedWidget.setFocused(true);
+            focusedWidget.onClick(mouseX, mouseY);
             return;
         }
         this.updatePickerPos(mouseX, mouseY);
@@ -121,7 +142,7 @@ public class ColorPicker extends ClickableWidget {
         float value = 1f - (pickerPos.y - this.bounds.y) / this.bounds.height;
         float opacity = ((GradientSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
         WakeColor newColor = new WakeColor(hue, saturation, value, opacity);
-        this.setColor(newColor, true);
+        this.setColor(newColor, WidgetUpdateFlag.ONLY_HEX);
         this.changedColorListener.accept(newColor);
     }
 
@@ -193,21 +214,37 @@ public class ColorPicker extends ClickableWidget {
     private static class HexInputField extends TextFieldWidget implements Bounded {
         protected AABB bounds;
         private final ColorPicker colorPicker;
+        private final Pattern hexColorRegex;
+        private boolean autoUpdate = false;
 
         public HexInputField(AABB bounds, ColorPicker colorPicker, TextRenderer textRenderer) {
             super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.empty());
             this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
             this.colorPicker = colorPicker;
-            //setTextPredicate(HexInputField::validHex);
+            this.setTextPredicate(HexInputField::validHex);
+            this.hexColorRegex = Pattern.compile("#[a-f0-9]{7,9}", Pattern.CASE_INSENSITIVE);
+        }
+
+        @Override
+        protected void onChanged(String newText) {
+            if (autoUpdate) {
+                // Ensures color picker doesn't update itself when updating hex string
+                return;
+            }
+            // Only manual edits to the hex field should update the color picker
+            if (hexColorRegex.matcher(newText).find()) {
+                this.colorPicker.setColor(new WakeColor(newText), WidgetUpdateFlag.IGNORE_HEX);
+            }
+            super.onChanged(newText);
         }
 
         private static boolean validHex(String text) {
-            if (text.charAt(0) != '#' || text.length() == 9) {
+            if (text.length() > 9) {
                 return false;
             }
-            for (char c : text.substring(1).toLowerCase().toCharArray()) {
-                if (Character.digit(c, 16) == -1) {
+            for (char c : text.toLowerCase().toCharArray()) {
+                if (Character.digit(c, 16) == -1 && c != '#') {
                     return false;
                 }
             }
@@ -219,14 +256,22 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        public void setColor(WakeColor currentColor) {
-            setText(currentColor.toHex());
+        public boolean charTyped(char chr, int modifiers) {
+            this.autoUpdate = false;
+            return super.charTyped(chr, modifiers);
         }
 
-        // @Override
-        // public void onClick(double mouseX, double mouseY) {
-        //     super.onClick(mouseX, mouseY);
-        // }
+        @Override
+        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+            this.autoUpdate = false;
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+
+        @Override
+        public void setColor(WakeColor currentColor) {
+            this.autoUpdate = true;
+            this.setText(currentColor.toHex());
+        }
 
         @Override
         public AABB getBounds() {
@@ -340,5 +385,11 @@ public class ColorPicker extends ClickableWidget {
         public ClickableWidget getWidget() {
             return this;
         }
+    }
+
+    public enum WidgetUpdateFlag {
+        ALL,
+        ONLY_HEX,
+        IGNORE_HEX
     }
 }

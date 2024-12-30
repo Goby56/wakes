@@ -12,6 +12,9 @@ public class WakeColor {
     public final int g;
     public final int b;
     public final int a;
+    public final float h;
+    public final float s;
+    public final float v;
     public boolean isHighlight;
 
 
@@ -27,6 +30,10 @@ public class WakeColor {
         this.r = red;
         this.g = green;
         this.b = blue;
+        var hsv = Color.RGBtoHSB(red, green, blue, null);
+        this.h = hsv[0];
+        this.s = hsv[1];
+        this.v = hsv[2];
         this.isHighlight = false;
     }
 

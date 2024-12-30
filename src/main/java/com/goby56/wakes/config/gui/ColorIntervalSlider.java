@@ -97,7 +97,7 @@ public class ColorIntervalSlider extends SliderWidget {
                     colorPicker.setActive(!colorPicker.active);
                 }
                 activeSection = clickedSection;
-                colorPicker.setColor(WakesConfig.getWakeColor(activeSection), false);
+                colorPicker.setColor(WakesConfig.getWakeColor(activeSection), ColorPicker.WidgetUpdateFlag.ALL);
             }
         }
     }
