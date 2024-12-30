@@ -1,7 +1,11 @@
 wakes:
-    gui.colorIntervalSlider:
-        title: Color Interval Slider
-        tooltip: '[SHIFT + Left Click] Adds a separator if the cursor is above an empty spot and removes if hovering over existing separator.'
+    gui:
+        title: Wakes config
+        colorIntervalSlider:
+            title: Color Interval Slider
+            tooltip: '[SHIFT + Left Click] Adds a separator if the cursor is above an empty spot and removes if hovering over existing separator.'
+        configButton: Mod configurations
+        colorConfigButton: Configure wake colors
     midnightconfig:
         title: Wakes config
         category:

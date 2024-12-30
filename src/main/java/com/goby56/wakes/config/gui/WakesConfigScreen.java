@@ -1,6 +1,7 @@
-package com.goby56.wakes.config;
+package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.config.gui.ColorPickerScreen;
+import com.goby56.wakes.utils.WakesUtils;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -11,17 +12,17 @@ import net.minecraft.text.Text;
 public class WakesConfigScreen extends Screen {
 
     public WakesConfigScreen() {
-        super(Text.literal("Wakes config"));
+        super(WakesUtils.translatable("gui", "title"));
     }
 
     @Override
     protected void init() {
         int y = this.height / 4 + 48;
         int ySpacing = 24;
-        this.addDrawableChild(ButtonWidget.builder(Text.of("Mod configurations"), (btn) -> {
+        this.addDrawableChild(ButtonWidget.builder(WakesUtils.translatable("gui", "configButton"), (btn) -> {
             client.setScreen(MidnightConfig.getScreen(this, "wakes"));
         }).dimensions(this.width / 2 - 100, y + ySpacing, 200, 20).build());
-        this.addDrawableChild(ButtonWidget.builder(Text.of("Configure wake colors"), (btn) -> {
+        this.addDrawableChild(ButtonWidget.builder(WakesUtils.translatable("gui", "colorConfigButton"), (btn) -> {
             client.setScreen(new ColorPickerScreen(this));
         }).dimensions(this.width / 2 - 100, y, 200, 20).build());
     }

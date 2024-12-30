@@ -1,7 +1,7 @@
 package com.goby56.wakes.event;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfigScreen;
+import com.goby56.wakes.config.gui.WakesConfigScreen;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.debug.WakesDebugInfo;
