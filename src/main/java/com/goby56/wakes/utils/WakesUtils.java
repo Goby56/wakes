@@ -200,8 +200,12 @@ public class WakesUtils {
         return new int[] {(int) (pos >> 32), (int) pos};
     }
 
-    public static MutableText translatable(String category, String field) {
-        return Text.translatable(String.format("%s.%s.%s", WakesClient.MOD_ID, category, field));
+    public static MutableText translatable(String ... subKeys) {
+        String translationKey = WakesClient.MOD_ID;
+        for (String s : subKeys) {
+           translationKey = translationKey + "." + s;
+        }
+        return Text.translatable(translationKey);
     }
 
     public static int[] abgrInt2rgbaArr(int n) {
