@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 public class ColorPicker extends ClickableWidget {
     private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
-    private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of("wakes", "textures/picker_knob.png");
+    private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
     private final Map<String, Bounded> widgets = new HashMap<>();

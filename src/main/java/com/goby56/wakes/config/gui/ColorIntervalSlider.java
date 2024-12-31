@@ -29,7 +29,6 @@ public class ColorIntervalSlider extends SliderWidget {
         }
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2 - 64, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
-        this.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "tooltip")));
     }
 
     private void unfocusHandles() {
