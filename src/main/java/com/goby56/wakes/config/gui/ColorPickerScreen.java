@@ -45,7 +45,7 @@ public class ColorPickerScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffff);
         if (this.showInfoText) {
-            // TODO DYNAMIC TOOLTIP BACKGROUND SIZE
+            // TODO DYNAMIC TOOLTIP BACKGROUND SIZE DEPENDING ON INFO TEXT LENGTH
             TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0);
             context.drawTextWrapped(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "info"), width - 350, height - 60, 325, 0xa8a8a8);
         }
