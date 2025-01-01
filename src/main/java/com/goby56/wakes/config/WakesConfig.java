@@ -64,6 +64,8 @@ public class WakesConfig extends MidnightConfig {
             "#b4c4cad1", // LIGHT GRAY
             "#649ea5b0" // GRAY
     );
+    public static List<Float> defaultWakeColorIntervals = Lists.newArrayList(wakeColorIntervals);
+    public static List<String> defaultWakeColors = Lists.newArrayList(wakeColors);
 
     @Entry(category = DEBUG) public static boolean debugColors = false;
     @Entry(category = DEBUG) public static boolean drawDebugBoxes = false;

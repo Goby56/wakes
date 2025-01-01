@@ -3,11 +3,13 @@ wakes:
         title: Wakes config
         colorIntervalSlider:
             title: Color Interval Slider
-            info: |
+            infoText: |
                 - [Left Click] on a section to edit its color
                 - [Left Drag] a separator to change the extend of that section
                 - [Shift + Left Click] on a section to insert a new separator
                 - [Shift + Left Click] on a separator to remove it
+            infoButton.tooltip: Show/hide info
+            resetButton.tooltip: Reset configuration
         configButton: Mod configurations
         colorConfigButton: Configure wake colors
     midnightconfig:

@@ -1,10 +1,13 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
+import com.google.common.collect.Lists;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.GameModeSelectionScreen;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.text.Text;
@@ -13,26 +16,47 @@ import net.minecraft.util.Identifier;
 public class ColorPickerScreen extends Screen {
     private final Screen parent;
     private boolean showInfoText = false;
+    private ColorIntervalSlider colorIntervalSlider;
+    private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/sprites/icon/info.png");
+    private static final Identifier RESET_ICON_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
         super(Text.of("Configure wake colors"));
         this.parent = parent;
+        this.colorIntervalSlider = null;
     }
 
     @Override
     protected void init() {
-        this.addDrawableChild(new ColorIntervalSlider(
+        this.colorIntervalSlider = new ColorIntervalSlider(
                 this,
                 (int) (width / 2 - width * 0.8f / 2), 24,
-                (int) (width * 0.8f), 40));
-        TextIconButtonWidget infoButton = TextIconButtonWidget.builder(Text.empty(), this::onInfoClick, true)
-                        .texture(Identifier.ofVanilla("icon/info"), 20, 20)
+                (int) (width * 0.8f), 40);
+        this.addDrawableChild(this.colorIntervalSlider);
+
+        TexturedButton infoButton = TexturedButton.builder(this::onInfoClick)
+                        .texture(INFO_ICON_TEXTURE, 20, 20)
                         .dimension(30, 30).build();
         infoButton.setPosition((int) (width / 2 - width * 0.8f / 2 - 35), 29);
+        infoButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "infoButton", "tooltip")));
         this.addDrawableChild(infoButton);
+
+        TexturedButton resetButton = TexturedButton.builder(this::resetConfigurations)
+                .texture(RESET_ICON_TEXTURE, 20, 20)
+                .dimension(30, 30).build();
+        resetButton.setPosition((int) (width / 2 + width * 0.8f / 2 + 5), 29);
+        resetButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "resetButton", "tooltip")));
+        this.addDrawableChild(resetButton);
     }
 
     private void onInfoClick(ButtonWidget button) {
         this.showInfoText = !this.showInfoText;
+    }
+
+    private void resetConfigurations(ButtonWidget button) {
+        WakesConfig.wakeColorIntervals = Lists.newArrayList(WakesConfig.defaultWakeColorIntervals);
+        WakesConfig.wakeColors = Lists.newArrayList(WakesConfig.defaultWakeColors);
+        this.colorIntervalSlider.updateColorPicker();
+        MidnightConfig.write(WakesClient.MOD_ID);
     }
 
     @Override
@@ -47,7 +71,7 @@ public class ColorPickerScreen extends Screen {
         if (this.showInfoText) {
             // TODO DYNAMIC TOOLTIP BACKGROUND SIZE DEPENDING ON INFO TEXT LENGTH
             TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0);
-            context.drawTextWrapped(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "info"), width - 350, height - 60, 325, 0xa8a8a8);
+            context.drawTextWrapped(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xa8a8a8);
         }
     }
 

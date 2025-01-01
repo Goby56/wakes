@@ -4,17 +4,15 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
-import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 
 public class ColorIntervalSlider extends SliderWidget {
     private ArrayList<SliderHandle> handles;
@@ -29,6 +27,14 @@ public class ColorIntervalSlider extends SliderWidget {
         }
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2 - 64, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
+    }
+
+    public void updateColorPicker() {
+        // Updates the color picker to reflect the config
+        if (!colorPicker.active || activeSection == null) {
+            return;
+        }
+        this.colorPicker.setColor(WakesConfig.getWakeColor(activeSection), ColorPicker.WidgetUpdateFlag.ALL);
     }
 
     private void unfocusHandles() {
