@@ -1,6 +1,5 @@
 package com.goby56.wakes.particle.custom;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
@@ -40,7 +39,7 @@ public class SplashPlaneParticle extends Particle {
     @Override
     public void markDead() {
         if (this.owner instanceof ProducesWake wakeOwner) {
-            wakeOwner.setSplashPlane(null);
+            wakeOwner.wakes$setSplashPlane(null);
         }
         this.owner = null;
         super.markDead();
@@ -57,7 +56,7 @@ public class SplashPlaneParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
-            if (this.owner.isRemoved() || !wakeOwner.onWaterSurface() || wakeOwner.getHorizontalVelocity() < 1e-2) {
+            if (this.owner.isRemoved() || !wakeOwner.wakes$onWaterSurface() || wakeOwner.wakes$getHorizontalVelocity() < 1e-2) {
                 this.markDead();
             } else {
                 this.aliveTick(wakeOwner);
@@ -71,13 +70,13 @@ public class SplashPlaneParticle extends Particle {
         if (this.owner instanceof BoatEntity) {
             this.yaw = -this.owner.getYaw();
         } else {
-            Vec3d vel = wakeProducer.getNumericalVelocity();
+            Vec3d vel = wakeProducer.wakes$getNumericalVelocity();
             this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         }
         this.direction = Vec3d.fromPolar(0, -this.yaw);
         Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesConfig.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
-        this.setPos(planePos.x, wakeProducer.producingWaterLevel(), planePos.z);
+        this.setPos(planePos.x, wakeProducer.wakes$producingWaterLevel(), planePos.z);
     }
 
     @Override
@@ -140,7 +139,7 @@ public class SplashPlaneParticle extends Particle {
             if (parameters instanceof WithOwnerParticleType type) {
                 splashPlane.owner = type.owner;
                 splashPlane.yaw = splashPlane.prevYaw = type.owner.getYaw();
-                ((ProducesWake) splashPlane.owner).setSplashPlane(splashPlane);
+                ((ProducesWake) splashPlane.owner).wakes$setSplashPlane(splashPlane);
                 if (type.owner instanceof BoatEntity) {
                     world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, 1, 0 ,0);
                     world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, -1, 0 ,0);

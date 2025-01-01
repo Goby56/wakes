@@ -1,6 +1,5 @@
 package com.goby56.wakes.render;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.render.enums.RenderType;
@@ -10,8 +9,6 @@ import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -78,7 +75,7 @@ public class SplashPlaneRenderer {
         RenderSystem.enableBlend();
 
         matrices.push();
-        float velocity = (float) Math.floor(((ProducesWake) entity).getHorizontalVelocity() * 20) / 20f;
+        float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
         float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);
         matrices.scale(scalar, scalar, scalar);

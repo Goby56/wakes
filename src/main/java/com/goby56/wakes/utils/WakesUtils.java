@@ -17,7 +17,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -29,7 +28,6 @@ import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class WakesUtils {
 
@@ -37,7 +35,7 @@ public class WakesUtils {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null) return;
 
-        for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).producingWaterLevel()))) {
+        for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).wakes$producingWaterLevel()))) {
             wakeHandler.insert(node);
         }
     }
@@ -51,7 +49,7 @@ public class WakesUtils {
                     Vec3d rot = boat.getRotationVec(1.0f);
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).producingWaterLevel(), z);
+                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$producingWaterLevel(), z);
                     world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
@@ -69,8 +67,8 @@ public class WakesUtils {
         if (wakeHandler == null) return;
 
         ProducesWake producer = (ProducesWake) entity;
-        double velocity = producer.getHorizontalVelocity();
-        int y = (int) Math.floor(producer.producingWaterLevel());
+        double velocity = producer.wakes$getHorizontalVelocity();
+        int y = (int) Math.floor(producer.wakes$producingWaterLevel());
 
         if (entity instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
@@ -85,7 +83,7 @@ public class WakesUtils {
         // if (velocity < WakesConfig.minimumProducerVelocity) {
         //     ((ProducesWake) entity).setPrevPos(null);
         // }
-        Vec3d prevPos = producer.getPrevPos();
+        Vec3d prevPos = producer.wakes$getPrevPos();
         if (prevPos == null) {
             return;
         }

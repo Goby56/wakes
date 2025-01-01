@@ -4,18 +4,18 @@ import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import net.minecraft.util.math.Vec3d;
 
 public interface ProducesWake {
-    boolean onWaterSurface();
-    Float producingWaterLevel();
-    void setProducingHeight(float h);
-    Vec3d getPrevPos();
-    void setPrevPos(Vec3d pos);
-    Vec3d getNumericalVelocity();
-    double getHorizontalVelocity();
-    double getVerticalVelocity();
-    void setSplashPlane(SplashPlaneParticle particle);
+    boolean wakes$onWaterSurface();
+    Float wakes$producingWaterLevel();
+    void wakes$setProducingHeight(float h);
+    Vec3d wakes$getPrevPos();
+    void wakes$setPrevPos(Vec3d pos);
+    Vec3d wakes$getNumericalVelocity();
+    double wakes$getHorizontalVelocity();
+    double wakes$getVerticalVelocity();
+    void wakes$setSplashPlane(SplashPlaneParticle particle);
 
     void setRecentlyTeleported(boolean b);
 
-    SplashPlaneParticle getSplashPlane();
+    SplashPlaneParticle wakes$getSplashPlane();
 
 }

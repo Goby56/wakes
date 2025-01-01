@@ -1,6 +1,5 @@
 package com.goby56.wakes.mixin;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
@@ -8,6 +7,9 @@ import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,6 +32,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Shadow public abstract float getYaw();
 
+	@Shadow public abstract double getX();
+
+	@Shadow public abstract Box getBoundingBox();
+
+	@Shadow public abstract double getZ();
+
 	@Unique private boolean onWaterSurface = false;
 	@Unique private Vec3d prevPosOnSurface = null;
 	@Unique private Vec3d numericalVelocity = Vec3d.ZERO;
@@ -40,56 +48,55 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Unique private boolean hasRecentlyTeleported = false;
 
 	@Override
-	public boolean onWaterSurface() {
+	public boolean wakes$onWaterSurface() {
 		return this.onWaterSurface;
 	}
 
 	@Override
-	public Vec3d getNumericalVelocity() {
+	public Vec3d wakes$getNumericalVelocity() {
 		return this.numericalVelocity;
 	}
 	@Override
-	public double getHorizontalVelocity() {
+	public double wakes$getHorizontalVelocity() {
 		return this.horizontalNumericalVelocity;
 	}
 
 	@Override
-	public double getVerticalVelocity() {
+	public double wakes$getVerticalVelocity() {
 		return this.verticalNumericalVelocity;
 	}
 
 	@Override
-	public Vec3d getPrevPos() {
+	public Vec3d wakes$getPrevPos() {
 		return this.prevPosOnSurface;
 	}
 
 	@Override
-	public void setPrevPos(Vec3d pos) {
+	public void wakes$setPrevPos(Vec3d pos) {
 		this.prevPosOnSurface = pos;
 	}
 
 	@Override
-	public Float producingWaterLevel() {
+	public Float wakes$producingWaterLevel() {
 		return this.producingWaterLevel;
 	}
 
 	@Override
-	public void setProducingHeight(float h) {
+	public void wakes$setProducingHeight(float h) {
 		this.producingWaterLevel = h;
 	}
 
 	@Override
-	public void setSplashPlane(SplashPlaneParticle particle) {
+	public void wakes$setSplashPlane(SplashPlaneParticle particle) {
 		this.splashPlane = particle;
 	}
 
-	@Override
-	public void setRecentlyTeleported(boolean b) {
+	public void wakes$setRecentlyTeleported(boolean b) {
 		this.hasRecentlyTeleported = b;
 	}
 
 	@Override
-	public SplashPlaneParticle getSplashPlane() {
+	public SplashPlaneParticle wakes$getSplashPlane() {
 		return this.splashPlane;
 	}
 
@@ -100,9 +107,17 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 //		System.out.printf("%s wants to teleport\n", this);
 //	}
 
+	private boolean onFluidSurface() {
+		double hitboxMaxY = this.getBoundingBox().maxY;
+		BlockPos blockPos = BlockPos.ofFloored(this.getX(), hitboxMaxY, this.getZ());
+		FluidState fluidState = this.world.getFluidState(blockPos);
+		double fluidHeight = (float)blockPos.getY() + fluidState.getHeight(this.world, blockPos);
+		return this.isTouchingWater() && hitboxMaxY > fluidHeight;
+	}
+
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
-		this.onWaterSurface = this.isTouchingWater() && !this.isSubmergedInWater();
+		this.onWaterSurface = onFluidSurface();
 		Entity thisEntity = ((Entity) (Object) this);
 		Vec3d vel = this.calculateVelocity(thisEntity);
 		this.numericalVelocity = vel;
@@ -120,12 +135,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 			this.spawnEffects(thisEntity);
 
-			this.setPrevPos(currPos);
+			this.wakes$setPrevPos(currPos);
 		} else {
 			this.producingWaterLevel = null;
 			this.prevPosOnSurface = null;
 		}
-		this.setRecentlyTeleported(false);
+		this.wakes$setRecentlyTeleported(false);
 	}
 
 	@Inject(at = @At("TAIL"), method = "onSwimmingStart")

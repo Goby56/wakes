@@ -43,7 +43,7 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
         }
         
         if (this.owner instanceof ProducesWake wake) {
-            SplashPlaneParticle splashPlane = wake.getSplashPlane();
+            SplashPlaneParticle splashPlane = wake.wakes$getSplashPlane();
             if (splashPlane == null) {
                 this.markDead();
                 return;
