@@ -22,23 +22,9 @@ repositories {
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.terraformersmc.com/releases/" }
 	maven {
-		name "Xander Maven"
-		url "https://maven.isxander.dev/releases"
-	}
-	maven {
 		name "Ladysnake Mods"
 		url "https://maven.ladysnake.org/releases"
-//		content {
-//			includeGroup 'io.github.ladysnake'
-//			includeGroup 'org.ladysnake'
-//			includeGroupByRegex 'dev\\.onyxstudios.*'
-//		}
 	}
-
-//	maven {
-//		name "YACL weird depend"
-//		url "https://oss.sonatype.org/content/repositories/snapshots"
-//	}
 
 	exclusiveContent {
 		forRepository {
@@ -65,17 +51,10 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-	modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}") {
-		exclude(group: "com.twelvemonkeys.common")
-		exclude(group: "com.twelvemonkeys.imageio")
-	}
+	modImplementation include ("maven.modrinth:midnightlib:${project.midnightlib_version}")
 
 	modCompileOnly "maven.modrinth:iris:${project.iris_version}"
-//	modImplementation "maven.modrinth:sodium:${project.sodium_version}"
-//	modImplementation "org.anarres:jcpp:1.4.14"
-//	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
 
 	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 

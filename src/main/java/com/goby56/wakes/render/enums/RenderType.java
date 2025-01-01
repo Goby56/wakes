@@ -2,8 +2,10 @@ package com.goby56.wakes.render.enums;
 
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.util.StringIdentifiable;
 
 import java.util.function.Supplier;
 
@@ -29,13 +31,13 @@ public enum RenderType {
     }
 
     public static Supplier<ShaderProgram> getProgram() {
-        if (WakesClient.CONFIG_INSTANCE.renderType == RenderType.AUTO) {
+        if (WakesConfig.renderType == RenderType.AUTO) {
             if (WakesClient.areShadersEnabled) {
                 return ENTITY_TRANSLUCENT_CULL.program;
             } else {
                 return CUSTOM.program;
             }
         }
-        return WakesClient.CONFIG_INSTANCE.renderType.program;
+        return WakesConfig.renderType.program;
     }
 }

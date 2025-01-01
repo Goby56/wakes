@@ -1,22 +1,20 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.*;
 
 public class WakeNode {
-    public static int res = WakesClient.CONFIG_INSTANCE.wakeResolution.res;
+    public static int res = WakesConfig.wakeResolution.res;
 
     private static float alpha;
     private static float beta;
@@ -54,7 +52,7 @@ public class WakeNode {
                 this.u[0][sz+1+z][sx+1+x] = initialStrength;
             }
         }
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     private WakeNode(int x, int y, int z, int floodLevel) {
@@ -71,7 +69,7 @@ public class WakeNode {
         this.x = xz[0];
         this.y = y;
         this.z = xz[1];
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
     }
 
     private void initValues() {
@@ -94,13 +92,13 @@ public class WakeNode {
     public static void calculateWaveDevelopmentFactors() {
         float time = 20f; // ticks
         // TODO CHANGE "16" TO ACTUAL RES? MAYBE?
-        WakeNode.alpha = (float) Math.pow(WakesClient.CONFIG_INSTANCE.wavePropagationFactor * 16f / time, 2);
-        WakeNode.beta = (float) (Math.log(10 * WakesClient.CONFIG_INSTANCE.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
+        WakeNode.alpha = (float) Math.pow(WakesConfig.wavePropagationFactor * 16f / time, 2);
+        WakeNode.beta = (float) (Math.log(10 * WakesConfig.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
     }
 
     public boolean tick(WakeHandler wakeHandler) {
         if (this.isDead()) return false;
-        if (this.age++ >= WakeNode.maxAge || res != WakesClient.CONFIG_INSTANCE.wakeResolution.res) {
+        if (this.age++ >= WakeNode.maxAge || res != WakesConfig.wakeResolution.res) {
             this.markDead();
             return false;
         }
@@ -140,7 +138,7 @@ public class WakeNode {
     }
 
     public void floodFill(WakeHandler wakeHandler) {
-        if (floodLevel > 0 && this.age > WakesClient.CONFIG_INSTANCE.ticksBeforeFill) {
+        if (floodLevel > 0 && this.age > WakesConfig.floodFillTickDelay) {
             if (this.NORTH == null) {
                 wakeHandler.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
             } else {
@@ -210,7 +208,7 @@ public class WakeNode {
 
     public void revive(WakeNode node) {
         this.age = 0;
-        this.floodLevel = WakesClient.CONFIG_INSTANCE.floodFillDistance;
+        this.floodLevel = WakesConfig.floodFillDistance;
         this.initialValues = node.initialValues;
     }
 
@@ -258,7 +256,7 @@ public class WakeNode {
                     }
                 }
             }
-            return pixelsToNodes(pixelsAffected, y, WakesClient.CONFIG_INSTANCE.splashStrength, Math.abs(entity.getVelocity().y));
+            return pixelsToNodes(pixelsAffected, y, WakesConfig.splashStrength, Math.abs(entity.getVelocity().y));
         }
 
         public static Set<WakeNode> rowingNodes(BoatEntity boat, int y) {
@@ -275,7 +273,7 @@ public class WakeNode {
                         Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
                         Vec3d from = paddlePos;
                         Vec3d to = paddlePos.add(dir.multiply(2));
-                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesClient.CONFIG_INSTANCE.paddleStrength, velocity));
+                        nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesConfig.paddleStrength, velocity));
                     }
                 }
             }

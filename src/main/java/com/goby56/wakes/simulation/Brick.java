@@ -1,14 +1,12 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.RunArgs;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
@@ -44,7 +42,7 @@ public class Brick {
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        initTexture(WakesClient.CONFIG_INSTANCE.wakeResolution.res);
+        initTexture(WakesConfig.wakeResolution.res);
     }
 
     public void initTexture(int res) {
@@ -184,7 +182,7 @@ public class Brick {
                             LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
                     );
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesClient.CONFIG_INSTANCE.wakeOpacity);
+                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)
@@ -193,10 +191,10 @@ public class Brick {
                     for (int c = 0; c < texRes; c++) {
                         int color = 0;
                         if (node != null) {
+                            // TODO USE SHADERS TO COLOR THE WAKES?
                             float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
-                            color = WakeColor.getColor(avg, waterCol, lightCol, opacity);
+                            color = getPixelColor(avg, waterCol, lightCol, opacity);
                         }
-
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
                     }
@@ -204,5 +202,13 @@ public class Brick {
             }
         }
         hasPopulatedPixels = true;
+    }
+
+    private static int getPixelColor(float waveEqAvg, int waterCol, int lightCol, float opacity) {
+        if (WakesConfig.debugColors) {
+            int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
+            return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).abgr;
+        }
+        return WakeColor.sampleColor(waveEqAvg, waterCol, lightCol, opacity);
     }
 }

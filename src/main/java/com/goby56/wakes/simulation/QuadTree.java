@@ -92,6 +92,16 @@ public class QuadTree {
         return false;
     }
 
+    public void recolorWakes() {
+        if (hasLeaf()) {
+            brick.populatePixels();
+        }
+        if (children == null) return;
+        for (var tree : children) {
+            tree.recolorWakes();
+        }
+    }
+
     public <T> void query(Frustum frustum, ArrayList<T> output, Class<T> type) {
         if (!frustum.isVisible(this.bounds.toBox((int) yLevel))) {
             return;

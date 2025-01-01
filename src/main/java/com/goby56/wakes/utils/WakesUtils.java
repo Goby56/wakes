@@ -1,6 +1,7 @@
 package com.goby56.wakes.utils;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
@@ -75,53 +76,52 @@ public class WakesUtils {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
                 wakeHandler.insert(node);
             }
-            if (WakesClient.CONFIG_INSTANCE.spawnParticles) {
+            if (WakesConfig.spawnParticles) {
                 WakesUtils.spawnPaddleSplashCloudParticle(entity.getWorld(), boat);
             }
         }
       
         // TODO FIX ENTERING BOAT CREATES LONG WAKE
-        // if (velocity < WakesClient.CONFIG_INSTANCE.minimumProducerVelocity) {
+        // if (velocity < WakesConfig.minimumProducerVelocity) {
         //     ((ProducesWake) entity).setPrevPos(null);
         // }
         Vec3d prevPos = producer.getPrevPos();
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesClient.CONFIG_INSTANCE.initialStrength, velocity, entity.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesConfig.initialStrength, velocity, entity.getWidth())) {
             wakeHandler.insert(node);
         }
     }
 
     public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
-        Map<String, EffectSpawningRule> effectRule = WakesClient.CONFIG_INSTANCE.effectSpawningRules;
         if (source instanceof BoatEntity boat) {
             List<Entity> passengers = boat.getPassengerList();
             if (passengers.contains(MinecraftClient.getInstance().player)) {
-                return effectRule.get("boat");
+                return WakesConfig.boatSpawning;
             }
             if (passengers.stream().anyMatch(Entity::isPlayer)) {
-                return effectRule.get("boat").mask(effectRule.get("other_players"));
+                return WakesConfig.boatSpawning.mask(WakesConfig.otherPlayersSpawning);
             }
-            return effectRule.get("boat");
+            return WakesConfig.boatSpawning;
         }
         if (source instanceof PlayerEntity player) {
             if (player.isSpectator()) {
                 return EffectSpawningRule.DISABLED;
             }
             if (player instanceof ClientPlayerEntity) {
-                return effectRule.get("player");
+                return WakesConfig.playerSpawning;
             }
             if (player instanceof OtherClientPlayerEntity) {
-                return effectRule.get("other_players");
+                return WakesConfig.otherPlayersSpawning;
             }
             return EffectSpawningRule.DISABLED;
         }
         if (source instanceof LivingEntity) {
-            return effectRule.get("mobs");
+            return WakesConfig.mobSpawning;
         }
         if (source instanceof ItemEntity) {
-            return effectRule.get("items");
+            return WakesConfig.itemSpawning;
         }
         return EffectSpawningRule.DISABLED;
     }
@@ -200,8 +200,12 @@ public class WakesUtils {
         return new int[] {(int) (pos >> 32), (int) pos};
     }
 
-    public static MutableText translatable(String category, String field) {
-        return Text.translatable(String.format("%s.%s.%s", WakesClient.MOD_ID, category, field));
+    public static MutableText translatable(String ... subKeys) {
+        String translationKey = WakesClient.MOD_ID;
+        for (String s : subKeys) {
+           translationKey = translationKey + "." + s;
+        }
+        return Text.translatable(translationKey);
     }
 
     public static int[] abgrInt2rgbaArr(int n) {

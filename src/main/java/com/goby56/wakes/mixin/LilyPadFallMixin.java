@@ -1,6 +1,7 @@
 package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.simulation.WakeNode;
@@ -24,7 +25,7 @@ public class LilyPadFallMixin {
     @Inject(at = @At("TAIL"), method = "onLandedUpon")
     public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, float fallDistance, CallbackInfo ci) {
         if (!world.getBlockState(pos.up()).isOf(Blocks.LILY_PAD)) return;
-        if (WakesClient.CONFIG_INSTANCE.disableMod) return;
+        if (WakesConfig.disableMod) return;
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);
         ProducesWake wakeProducer = (ProducesWake) entity;
         if (rule.simulateWakes) {
