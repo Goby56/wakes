@@ -107,17 +107,10 @@ public class WakeHandler {
     }
 
     private int getArrayIndex(int y) {
-        if (y < this.minY || y > this.maxY) {
+        if (y < this.minY || y >= this.maxY) {
             return -1;
         }
         return y - this.minY;
-    }
-
-    private int getYLevel(int i) {
-        if (i < 0 || i > this.maxY - this.minY) {
-            throw new IndexOutOfBoundsException();
-        }
-        return i + this.minY;
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {

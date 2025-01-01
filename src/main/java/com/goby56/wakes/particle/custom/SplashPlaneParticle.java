@@ -56,7 +56,7 @@ public class SplashPlaneParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
-            if (this.owner.isRemoved() || !wakeOwner.wakes$onWaterSurface() || wakeOwner.wakes$getHorizontalVelocity() < 1e-2) {
+            if (this.owner.isRemoved() || !wakeOwner.wakes$onFluidSurface() || wakeOwner.wakes$getHorizontalVelocity() < 1e-2) {
                 this.markDead();
             } else {
                 this.aliveTick(wakeOwner);
@@ -76,7 +76,7 @@ public class SplashPlaneParticle extends Particle {
         this.direction = Vec3d.fromPolar(0, -this.yaw);
         Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesConfig.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
-        this.setPos(planePos.x, wakeProducer.wakes$producingWaterLevel(), planePos.z);
+        this.setPos(planePos.x, wakeProducer.wakes$wakeHeight(), planePos.z);
     }
 
     @Override

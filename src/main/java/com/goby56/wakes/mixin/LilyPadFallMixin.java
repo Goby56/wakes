@@ -26,7 +26,7 @@ public class LilyPadFallMixin {
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);
         ProducesWake wakeProducer = (ProducesWake) entity;
         if (rule.simulateWakes) {
-            wakeProducer.wakes$setProducingHeight(pos.getY() + WakeNode.WATER_OFFSET);
+            wakeProducer.wakes$setWakeHeight(pos.getY() + WakeNode.WATER_OFFSET);
             WakesUtils.placeFallSplash(entity);
         }
     }

@@ -35,7 +35,7 @@ public class WakesUtils {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null) return;
 
-        for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).wakes$producingWaterLevel()))) {
+        for (WakeNode node : WakeNode.Factory.splashNodes(entity, (int) Math.floor(((ProducesWake) entity).wakes$wakeHeight()))) {
             wakeHandler.insert(node);
         }
     }
@@ -49,7 +49,7 @@ public class WakesUtils {
                     Vec3d rot = boat.getRotationVec(1.0f);
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$producingWaterLevel(), z);
+                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
                     world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
@@ -68,7 +68,7 @@ public class WakesUtils {
 
         ProducesWake producer = (ProducesWake) entity;
         double velocity = producer.wakes$getHorizontalVelocity();
-        int y = (int) Math.floor(producer.wakes$producingWaterLevel());
+        int y = (int) Math.floor(producer.wakes$wakeHeight());
 
         if (entity instanceof BoatEntity boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
@@ -226,9 +226,13 @@ public class WakesUtils {
         return n;
     }
 
-    public static float getWaterLevel(World world, Entity entityInWater) {
-        Box box = entityInWater.getBoundingBox();
-        return getWaterLevel(world,
+    // public static float getFluidColor() {
+    //     return
+    // }
+
+    public static float getFluidLevel(World world, Entity entityInFluid) {
+        Box box = entityInFluid.getBoundingBox();
+        return getFluidLevel(world,
                 MathHelper.floor(box.minX), MathHelper.ceil(box.maxX),
                 MathHelper.floor(box.minY), MathHelper.ceil(box.maxY),
                 MathHelper.floor(box.minZ), MathHelper.ceil(box.maxZ));
@@ -241,10 +245,9 @@ public class WakesUtils {
 //                (int) cuboidInWater.minZ, (int) cuboidInWater.maxZ);
 //    }
 
-    private static float getWaterLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
-        // Taken from BoatEntity$getWaterLevelBelow
+    private static float getFluidLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+        // Taken from BoatEntity$getWaterHeightBelow
         BlockPos.Mutable blockPos = new BlockPos.Mutable();
-
         yLoop:
         for (int y = minY; y < maxY; ++y) {
             float f = 0.0f;
@@ -252,7 +255,7 @@ public class WakesUtils {
                 for (int z = minZ; z < maxZ; ++z) {
                     blockPos.set(x, y, z);
                     FluidState fluidState = world.getFluidState(blockPos);
-                    if (fluidState.isIn(FluidTags.WATER)) {
+                    if (fluidState.isStill()) {
                         f = Math.max(f, fluidState.getHeight(world, blockPos));
                     }
                     if (f >= 1.0f) continue yLoop;

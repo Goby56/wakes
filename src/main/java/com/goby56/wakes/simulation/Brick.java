@@ -1,6 +1,5 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
@@ -172,10 +171,10 @@ public class Brick {
             for (int x = 0; x < dim; x++) {
                 WakeNode node = this.get(x, z);
                 int lightCol = LightmapTextureManager.MAX_LIGHT_COORDINATE;
-                int waterCol = 0;
+                int fluidColor = 0;
                 float opacity = 0;
                 if (node != null) {
-                    waterCol = BiomeColors.getWaterColor(world, node.blockPos());
+                    fluidColor = BiomeColors.getWaterColor(world, node.blockPos());
                     int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, node.blockPos());
                     lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
                             LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
@@ -193,7 +192,7 @@ public class Brick {
                         if (node != null) {
                             // TODO USE SHADERS TO COLOR THE WAKES?
                             float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
-                            color = getPixelColor(avg, waterCol, lightCol, opacity);
+                            color = getPixelColor(avg, fluidColor, lightCol, opacity);
                         }
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
@@ -204,11 +203,11 @@ public class Brick {
         hasPopulatedPixels = true;
     }
 
-    private static int getPixelColor(float waveEqAvg, int waterCol, int lightCol, float opacity) {
+    private static int getPixelColor(float waveEqAvg, int fluidCol, int lightCol, float opacity) {
         if (WakesConfig.debugColors) {
             int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
             return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).abgr;
         }
-        return WakeColor.sampleColor(waveEqAvg, waterCol, lightCol, opacity);
+        return WakeColor.sampleColor(waveEqAvg, fluidCol, lightCol, opacity);
     }
 }

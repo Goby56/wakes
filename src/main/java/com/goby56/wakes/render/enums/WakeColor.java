@@ -15,7 +15,6 @@ public class WakeColor {
     public final float h;
     public final float s;
     public final float v;
-    public boolean isHighlight;
 
 
     public WakeColor(int argb) {
@@ -34,7 +33,6 @@ public class WakeColor {
         this.h = hsv[0];
         this.s = hsv[1];
         this.v = hsv[2];
-        this.isHighlight = false;
     }
 
     public WakeColor(float hue, float saturation, float value, float opacity) {
@@ -49,18 +47,13 @@ public class WakeColor {
         return "#" + Integer.toHexString(a << 24 | r << 16 | g << 8 | b);
     }
 
-    public WakeColor isHighlight(boolean b) {
-        this.isHighlight = b;
-        return this;
-    }
-
     private static double invertedLogisticCurve(float x) {
         float k = WakesConfig.shaderLightPassthrough;
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
-    public static int sampleColor(float waveEqAvg, int waterColor, int lightColor, float opacity) {
-        WakeColor tint = new WakeColor(waterColor);
+    public static int sampleColor(float waveEqAvg, int fluidCol, int lightColor, float opacity) {
+        WakeColor tint = new WakeColor(fluidCol);
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
         var ranges = WakesConfig.wakeColorIntervals;
         int returnIndex = ranges.size();
@@ -70,19 +63,17 @@ public class WakeColor {
                 break;
             }
         }
-        WakeColor color = WakesConfig.getWakeColor(returnIndex).isHighlight(false); // .isHighlight(returnIndex == WakesConfig.highlightIndex);
+        WakeColor color = WakesConfig.getWakeColor(returnIndex);
         return color.blend(tint, lightColor, opacity).abgr;
     }
 
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
         float srcA = this.a / 255f;
         int a = (int) (opacity * 255 * srcA);
-        int r = 255, g = 255, b = 255;
-        if (!this.isHighlight) {
-            r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
-            g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
-            b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
-        }
+        int r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
+        int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
+        int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
+
         r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
         b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));

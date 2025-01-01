@@ -52,13 +52,17 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = APPEARANCE) public static float maxSplashPlaneVelocity = 0.5f;
     @Entry(category = APPEARANCE) public static float splashPlaneScale = 0.8f;
 
-    @Hidden @Entry(category = APPEARANCE) public static List<Float> wakeColorIntervals = Lists.newArrayList(0.1f, 0.4f, 0.6f, 0.8f);
+    @Hidden @Entry(category = APPEARANCE) public static List<Float> wakeColorIntervals = Lists.newArrayList(0.05f, 0.15f, 0.2f, 0.35f, 0.52f, 0.6f, 0.7f, 0.9f);
     @Hidden @Entry(selectionMode = 1, category = APPEARANCE, isColor = true) public static List<String> wakeColors = Lists.newArrayList(
-            "#ffff00ff",
-            "#ffff00ff",
-            "#ffff00ff",
-            "#ffff00ff",
-            "#ffff00ff"
+            "#00000000", // TRANSPARENT
+            "#289399a6", // DARK GRAY
+            "#649ea5b0", // GRAY
+            "#b4c4cad1", // LIGHT GRAY
+            "#00000000", // TRANSPARENT
+            "#b4c4cad1", // LIGHT GRAY
+            "#ffffffff", // WHITE
+            "#b4c4cad1", // LIGHT GRAY
+            "#649ea5b0" // GRAY
     );
 
     @Entry(category = DEBUG) public static boolean debugColors = false;
