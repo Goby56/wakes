@@ -6,8 +6,14 @@ import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.render.enums.WakeColor;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
+import net.minecraft.block.Blocks;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WakesConfig extends MidnightConfig {
     public static final String GENERAL = "general";
@@ -52,8 +58,9 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = APPEARANCE) public static float maxSplashPlaneVelocity = 0.5f;
     @Entry(category = APPEARANCE) public static float splashPlaneScale = 0.8f;
 
-    @Hidden @Entry(category = APPEARANCE) public static List<Float> wakeColorIntervals = Lists.newArrayList(0.05f, 0.15f, 0.2f, 0.35f, 0.52f, 0.6f, 0.7f, 0.9f);
-    @Hidden @Entry(selectionMode = 1, category = APPEARANCE, isColor = true) public static List<String> wakeColors = Lists.newArrayList(
+    @Hidden @Entry(category = APPEARANCE) public static Map<Identifier, List<Float>> wakeColorIntervals = Map.of(Identifier.ofVanilla("water"), Lists.newArrayList(0.05f, 0.15f, 0.2f, 0.35f, 0.52f, 0.6f, 0.7f, 0.9f));
+
+    @Hidden @Entry(selectionMode = 1, category = APPEARANCE, isColor = true) public static Map<Identifier, List<String>> wakeColors = Map.of(Identifier.ofVanilla("water"), Lists.newArrayList(
             "#00000000", // TRANSPARENT
             "#289399a6", // DARK GRAY
             "#649ea5b0", // GRAY
@@ -63,7 +70,7 @@ public class WakesConfig extends MidnightConfig {
             "#ffffffff", // WHITE
             "#b4c4cad1", // LIGHT GRAY
             "#649ea5b0" // GRAY
-    );
+    ));
     public static List<Float> defaultWakeColorIntervals = Lists.newArrayList(wakeColorIntervals);
     public static List<String> defaultWakeColors = Lists.newArrayList(wakeColors);
 
@@ -74,7 +81,7 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = DEBUG, isSlider = true, min = 1, max = 20) public static int floodFillTickDelay = 2;
     @Entry(category = DEBUG) public static RenderType renderType = RenderType.AUTO;
 
-    public static WakeColor getWakeColor(int i) {
+    public static WakeColor getWakeColor(Identifier medium, int i) {
         return new WakeColor(wakeColors.get(i));
     }
 }
