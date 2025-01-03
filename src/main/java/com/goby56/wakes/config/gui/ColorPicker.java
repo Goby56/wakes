@@ -1,7 +1,7 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.render.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;

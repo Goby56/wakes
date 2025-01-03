@@ -1,7 +1,6 @@
 package com.goby56.wakes.config.gui;
 
-import com.goby56.wakes.render.enums.WakeColor;
-import net.minecraft.client.gui.DrawContext;
+import com.goby56.wakes.render.WakeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;

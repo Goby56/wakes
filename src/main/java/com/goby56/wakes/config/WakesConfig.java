@@ -3,7 +3,7 @@ package com.goby56.wakes.config;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.render.enums.RenderType;
-import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.render.WakeColor;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
 

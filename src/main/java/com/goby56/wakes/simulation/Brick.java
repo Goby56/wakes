@@ -1,7 +1,7 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.render.enums.WakeColor;
+import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;

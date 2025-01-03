@@ -1,4 +1,4 @@
-package com.goby56.wakes.render.enums;
+package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
@@ -68,8 +68,9 @@ public class WakeColor {
     }
 
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
-        float srcA = this.a / 255f;
-        int a = (int) (opacity * 255 * srcA);
+        double srcA = Math.pow(this.a / 255f, 3);
+        // Pow to make tint color have a larger influence
+
         int r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
         int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
         int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
@@ -78,6 +79,6 @@ public class WakeColor {
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
         b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
 
-        return new WakeColor(r, g, b, a);
+        return new WakeColor(r, g, b, (int) (this.a * opacity));
     }
 }

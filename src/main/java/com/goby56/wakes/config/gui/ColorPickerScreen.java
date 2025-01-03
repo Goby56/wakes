@@ -2,6 +2,7 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
@@ -17,6 +18,7 @@ public class ColorPickerScreen extends Screen {
     private final Screen parent;
     private boolean showInfoText = false;
     private ColorIntervalSlider colorIntervalSlider;
+    private SliderWidget opacitySlider;
     private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/sprites/icon/info.png");
     private static final Identifier RESET_ICON_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
@@ -32,6 +34,9 @@ public class ColorPickerScreen extends Screen {
                 (int) (width / 2 - width * 0.8f / 2), 24,
                 (int) (width * 0.8f), 40);
         this.addDrawableChild(this.colorIntervalSlider);
+
+        this.opacitySlider = new OpacitySlider(width / 2 - 100, 69, 200, 30);
+        this.addDrawableChild(opacitySlider);
 
         TexturedButton infoButton = TexturedButton.builder(this::onInfoClick)
                         .texture(INFO_ICON_TEXTURE, 20, 20)
@@ -56,6 +61,7 @@ public class ColorPickerScreen extends Screen {
         WakesConfig.wakeColorIntervals = Lists.newArrayList(WakesConfig.defaultWakeColorIntervals);
         WakesConfig.wakeColors = Lists.newArrayList(WakesConfig.defaultWakeColors);
         this.colorIntervalSlider.updateColorPicker();
+        WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
         MidnightConfig.write(WakesClient.MOD_ID);
     }
 

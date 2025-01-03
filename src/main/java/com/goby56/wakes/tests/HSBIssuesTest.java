@@ -1,6 +1,5 @@
 package com.goby56.wakes.tests;
 
-import com.goby56.wakes.render.enums.WakeColor;
 import org.junit.jupiter.api.Test;
 
 import java.awt.*;
