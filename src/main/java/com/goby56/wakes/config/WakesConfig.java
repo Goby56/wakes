@@ -37,7 +37,7 @@ public class WakesConfig extends MidnightConfig {
 
     @Entry(category = APPEARANCE) public static Resolution wakeResolution = Resolution.SIXTEEN;
     @Entry(category = APPEARANCE, isSlider = true, min = 0, max = 1) public static float wakeOpacity = 1f;
-    @Entry(category = APPEARANCE, isSlider = true, min = 0, max = 1) public static float blendStrength = 0.3f;
+    @Entry(category = APPEARANCE, isSlider = true, min = 0, max = 1) public static float blendStrength = 0.5f;
     @Entry(category = APPEARANCE) public static boolean firstPersonSplashPlane = false;
     @Entry(category = APPEARANCE) public static boolean spawnParticles = true;
     @Entry(category = APPEARANCE, isSlider = true, min = 0, max = 1) public static float shaderLightPassthrough = 0.5f;

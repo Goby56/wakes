@@ -199,11 +199,11 @@ public class WakesUtils {
     }
 
     public static MutableText translatable(String ... subKeys) {
-        String translationKey = WakesClient.MOD_ID;
+        StringBuilder translationKey = new StringBuilder(WakesClient.MOD_ID);
         for (String s : subKeys) {
-           translationKey = translationKey + "." + s;
+           translationKey.append(".").append(s);
         }
-        return Text.translatable(translationKey);
+        return Text.translatable(translationKey.toString());
     }
 
     public static int[] abgrInt2rgbaArr(int n) {
