@@ -23,6 +23,7 @@ wakes:
         firstPersonSplashPlane: First person splash plane
         firstPersonSplashPlane.tooltip: Should the player's splash plane be seen while in first person?
         wakeOpacity: Wake opacity
+        blendStrength: Blend strength
         wakeResolution: Wake resolution
         wakeResolution.tooltip: The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
         shaderLightPassthrough: Shader light passthrough
