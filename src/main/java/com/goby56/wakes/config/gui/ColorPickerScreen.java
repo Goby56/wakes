@@ -64,6 +64,7 @@ public class ColorPickerScreen extends Screen {
         this.colorIntervalSlider.updateColorPicker();
         WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
         MidnightConfig.write(WakesClient.MOD_ID);
+        // TODO RESET OPACITY AND BLEND STRENGTH TOO
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.world.World;
@@ -19,12 +20,14 @@ public class WakeHandler {
     private QueueSet<WakeNode>[] toBeInserted;
     private final int minY;
     private final int maxY;
+    private ArrayList<SplashPlaneParticle> splashPlanes;
+
+    public static Resolution resolution = WakesConfig.wakeResolution;
 
     public static boolean resolutionResetScheduled = false;
 
     private WakeHandler(World world) {
         this.world = world;
-        WakeNode.calculateWaveDevelopmentFactors();
         this.minY = world.getBottomY();
         this.maxY = world.getTopY();
         int worldHeight = this.maxY - this.minY;
@@ -33,6 +36,7 @@ public class WakeHandler {
         for (int i = 0; i < worldHeight; i++) {
             toBeInserted[i] = new QueueSet<>();
         }
+        this.splashPlanes = new ArrayList<>();
     }
 
     public static Optional<WakeHandler> getInstance() {
@@ -54,6 +58,9 @@ public class WakeHandler {
     }
 
     public void tick() {
+        if (WakesConfig.wakeResolution.res != WakeHandler.resolution.res) {
+            scheduleResolutionChange(WakesConfig.wakeResolution);
+        }
         for (int i = 0; i < this.maxY - this.minY; i++) {
             Queue<WakeNode> pendingNodes = this.toBeInserted[i];
             if (resolutionResetScheduled) {
@@ -68,6 +75,11 @@ public class WakeHandler {
                 }
             }
         }
+        for (int i = this.splashPlanes.size() - 1; i >= 0; i--) {
+            if (!this.splashPlanes.get(i).isAlive()) {
+                this.splashPlanes.remove(i);
+            }
+        }
         if (resolutionResetScheduled) {
             this.changeResolution();
         }
@@ -80,6 +92,15 @@ public class WakeHandler {
                 tree.recolorWakes();
             }
         }
+        for (var splashPlane : this.splashPlanes) {
+            if (splashPlane != null) {
+                splashPlane.populatePixels();
+            }
+        }
+    }
+
+    public void registerSplashPlane(SplashPlaneParticle splashPlane) {
+        this.splashPlanes.add(splashPlane);
     }
 
     public void insert(WakeNode node) {
@@ -114,13 +135,12 @@ public class WakeHandler {
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {
-        WakesConfig.wakeResolution = newRes;
         resolutionResetScheduled = true;
     }
 
     private void changeResolution() {
         this.reset();
-        WakeNode.res = WakesConfig.wakeResolution.res;
+        WakeHandler.resolution = WakesConfig.wakeResolution;
         resolutionResetScheduled = false;
     }
 

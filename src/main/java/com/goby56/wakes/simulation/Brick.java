@@ -3,6 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
+import com.goby56.wakes.render.WakeTexture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
@@ -41,7 +42,8 @@ public class Brick {
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
         this.pos = new Vec3d(x, y, z);
-        initTexture(WakesConfig.wakeResolution.res);
+
+        initTexture(WakeHandler.resolution.res);
     }
 
     public void initTexture(int res) {
@@ -191,8 +193,7 @@ public class Brick {
                         int color = 0;
                         if (node != null) {
                             // TODO USE SHADERS TO COLOR THE WAKES?
-                            float avg = (node.u[0][r + 1][c + 1] + node.u[1][r + 1][c + 1] + node.u[2][r + 1][c + 1]) / 3;
-                            color = getPixelColor(avg, fluidColor, lightCol, opacity);
+                            color = node.simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity);
                         }
                         long pixelOffset = 4L * (((long) r * dim * texRes) + c);
                         MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
@@ -201,13 +202,5 @@ public class Brick {
             }
         }
         hasPopulatedPixels = true;
-    }
-
-    private static int getPixelColor(float waveEqAvg, int fluidCol, int lightCol, float opacity) {
-        if (WakesConfig.debugColors) {
-            int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
-            return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).abgr;
-        }
-        return WakeColor.sampleColor(waveEqAvg, fluidCol, lightCol, opacity);
     }
 }

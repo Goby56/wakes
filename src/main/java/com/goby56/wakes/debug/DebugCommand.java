@@ -27,28 +27,7 @@ public class DebugCommand {
                         .then(ClientCommandManager.literal("light")
                                 .executes(DebugCommand::lightCoordinate))
                         .then(ClientCommandManager.literal("color")
-                                .executes(DebugCommand::waterColor))
-                        .then(ClientCommandManager.literal("spawn")
-                                .then(ClientCommandManager.literal("node")
-                                        .then(ClientCommandManager.argument("flood_level", IntegerArgumentType.integer(0, 5))
-                                                .executes(DebugCommand::spawnWakeNode)))))
-                .then(ClientCommandManager.literal("config")
-                        .executes(DebugCommand::openConfig)));
-    }
-
-    public static int openConfig(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {
-        WakeWorldTicker.openConfigScreenNextTick = true;
-        return 1;
-    }
-
-    public static int spawnWakeNode(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {
-        HitResult result = cmdCtx.getSource().getPlayer().raycast(10, 0, true);
-        if (!result.getType().equals(HitResult.Type.BLOCK)) return 0;
-        WakeNode node = new WakeNode(result.getPos(), 100);
-        node.floodLevel = cmdCtx.getArgument("flood_level", Integer.class);
-        Optional<WakeHandler> wh = WakeHandler.getInstance();
-        wh.ifPresent(wakeHandler -> wakeHandler.insert(node));
-        return 1;
+                                .executes(DebugCommand::waterColor))));
     }
 
     public static int lightCoordinate(CommandContext<FabricClientCommandSource> cmdCtx) throws CommandSyntaxException {

@@ -1,26 +1,27 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.duck.ProducesWake;
+import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.render.enums.RenderType;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
-import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SplashPlaneRenderer {
 
@@ -28,45 +29,22 @@ public class SplashPlaneRenderer {
     private static List<Triangle2D> triangles;
     private static ArrayList<Vec3d> vertices;
     private static ArrayList<Vec3d> normals;
-    private static final Texture tex = new Texture("textures/splash_plane_animation.png", 16, 2, 8);
 
-    private static int ticks = 0;
-    private static int animationFrame = 0;
+    public static Map<Resolution, WakeTexture> wakeTextures = null;
+
+    private static void initTextures() {
+        wakeTextures = Map.of(
+                Resolution.EIGHT, new WakeTexture(Resolution.EIGHT.res, false),
+                Resolution.SIXTEEN, new WakeTexture(Resolution.SIXTEEN.res, false),
+                Resolution.THIRTYTWO, new WakeTexture(Resolution.THIRTYTWO.res, false)
+        );
+    }
 
     private static final double SQRT_8 = Math.sqrt(8);
 
-    private static class Texture {
-        public final int res;
-        public final int width;
-        public final int height;
-        public final int outlineOffset;
 
-        public final Identifier id;
-        public Vec2f uvOffset = new Vec2f(0f, 0f);
-
-        public Texture(String path, int resolution, int frames, int stages) {
-            this.id = Identifier.of("wakes", path);
-            this.res = resolution;
-            this.width = frames;
-            this.height = stages * 2;
-            this.outlineOffset = stages;
-        }
-
-        public void offsetPixels(int x, int y) {
-            this.uvOffset = new Vec2f(x / (float) (width * res), y / (float) (height * res));
-        }
-    }
-
-    public static void tick() {
-        ticks++;
-        if (ticks > 10) {
-            animationFrame++;
-            animationFrame %= 2;
-            ticks = 0;
-        }
-    }
-
-    public static <T extends Entity> void render(T entity, float yaw, float tickDelta, MatrixStack matrices, int light) {
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, float yaw, float tickDelta, MatrixStack matrices, int light) {
+        if (wakeTextures == null) initTextures();
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
@@ -81,32 +59,21 @@ public class SplashPlaneRenderer {
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        // TODO MAKE SPLASH PLANE LOOK MORE LIKE WAKES (SIMULATE AND COLOR EACH PIXEL)
-        Vector3f color = new Vector3f();
-        int waterCol = BiomeColors.getWaterColor(entity.getWorld(), entity.getBlockPos());
-        color.x = (float) (waterCol >> 16 & 0xFF) / 255f;
-        color.y = (float) (waterCol >> 8 & 0xFF) / 255f;
-        color.z = (float) (waterCol & 0xFF) / 255f;
-
-        RenderSystem.setShaderTexture(0, tex.id);
-        tex.offsetPixels(animationFrame * tex.res, (int) (progress * (tex.outlineOffset - 1)) * tex.res);
-        renderSurface(matrix, color, light, true);
-
-        color.set(1f, 1f, 1f);
-        tex.offsetPixels(animationFrame * tex.res, ((int) (progress * (tex.outlineOffset - 1)) + tex.outlineOffset) * tex.res);
-        renderSurface(matrix, color, light, false);
+        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr);
+        //RenderSystem.setShaderTexture(0, Identifier.of("minecraft", "textures/block/bricks.png"));
+        renderSurface(matrix);
 
         matrices.pop();
     }
 
-    private static void renderSurface(Matrix4f matrix, Vector3f color, int light, boolean slightlyTransparent) {
+    private static void renderSurface(Matrix4f matrix) {
+        int res = WakeHandler.resolution.res;
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
-        float opacity = WakesConfig.wakeOpacity;
-        opacity *= slightlyTransparent ? 0.9f : 1f;
+        int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
             for (int i = 0; i < vertices.size(); i++) {
@@ -116,8 +83,8 @@ public class SplashPlaneRenderer {
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
-                        .color(color.x, color.y, color.z, opacity)
-                        .texture((float) (vertex.x / tex.width + tex.uvOffset.x), (float) (vertex.y / tex.height + tex.uvOffset.y))
+                        .color(1f, 1f, 1f, 1f)
+                        .texture((float) (vertex.x), (float) (vertex.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)
                         .normal((float) normal.x, (float) normal.y, (float) normal.z);

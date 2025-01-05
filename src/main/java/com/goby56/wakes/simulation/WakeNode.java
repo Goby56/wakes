@@ -14,12 +14,7 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class WakeNode {
-    public static int res = WakesConfig.wakeResolution.res;
-
-    private static float alpha;
-    private static float beta;
-    public float[][][] u;
-    public float[][] initialValues;
+    public final SimulationNode simulationNode;
 
     public final int x;
     public final int y;
@@ -39,24 +34,8 @@ public class WakeNode {
     public float t = 0;
     public int floodLevel;
 
-    //TODO MORE GENERALIZED CONSTRUCTOR
-    public WakeNode(Vec3d position, int initialStrength) {
-        this.initValues();
-        this.x = (int) Math.floor(position.x);
-        this.y = (int) Math.floor(position.y);
-        this.z = (int) Math.floor(position.z);
-        int sx = (int) Math.floor(res * (position.x - this.x));
-        int sz = (int) Math.floor(res * (position.z - this.z));
-        for (int z = -1; z < 2; z++) {
-            for (int x = -1; x < 2; x++) {
-                this.u[0][sz+1+z][sx+1+x] = initialStrength;
-            }
-        }
-        this.floodLevel = WakesConfig.floodFillDistance;
-    }
-
     private WakeNode(int x, int y, int z, int floodLevel) {
-        this.initValues();
+        this.simulationNode = new SimulationNode();
         this.x = x;
         this.y = y;
         this.z = z;
@@ -64,7 +43,7 @@ public class WakeNode {
     }
 
     private WakeNode(long pos, int y) {
-        this.initValues();
+        this.simulationNode = new SimulationNode();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
         this.y = y;
@@ -72,67 +51,26 @@ public class WakeNode {
         this.floodLevel = WakesConfig.floodFillDistance;
     }
 
-    private void initValues() {
-         this.u = new float[3][res+2][res+2];
-         this.initialValues = new float[res+2][res+2];
-    }
-
-    public void setInitialValue(long pos, int val) {
-        float resFactor = res / 16f;
-        int[] xz = WakesUtils.longAsPos(pos);
-        if (xz[0] < 0) xz[0] += res;
-        if (xz[1] < 0) xz[1] += res;
-        for (int i = -1; i < 2; i++) {
-            for (int j = -1; j < 2; j++) {
-                this.initialValues[xz[1]+i+1][xz[0]+j+1] = val * resFactor;
-            }
-        }
-    }
-
-    public static void calculateWaveDevelopmentFactors() {
-        float time = 20f; // ticks
-        // TODO CHANGE "16" TO ACTUAL RES? MAYBE?
-        WakeNode.alpha = (float) Math.pow(WakesConfig.wavePropagationFactor * 16f / time, 2);
-        WakeNode.beta = (float) (Math.log(10 * WakesConfig.waveDecayFactor + 10) / Math.log(20)); // Logarithmic scale
+    public SimulationNode getSimulationNode(WakeNode neighboringNode) {
+        if (neighboringNode == null) return null;
+        return neighboringNode.simulationNode;
     }
 
     public boolean tick(WakeHandler wakeHandler) {
         if (this.isDead()) return false;
-        if (this.age++ >= WakeNode.maxAge || res != WakesConfig.wakeResolution.res) {
+        if (this.age++ >= WakeNode.maxAge) {
             this.markDead();
             return false;
         }
         this.t = this.age / (float) WakeNode.maxAge;
 
-        for (int i = 2; i >= 1; i--) {
-            if (this.NORTH != null) this.u[i][0] = this.NORTH.u[i][res];
-            if (this.SOUTH != null) this.u[i][res+1] = this.SOUTH.u[i][1];
-            for (int z = 0; z < res+2; z++) {
-                if (this.EAST == null && this.WEST == null) break;
-                if (this.EAST != null) this.u[i][z][res+1] = this.EAST.u[i][z][1];
-                if (this.WEST != null) this.u[i][z][0] = this.WEST.u[i][z][res];
-            }
-        }
+        this.simulationNode.tick(
+                getSimulationNode(this.NORTH),
+                getSimulationNode(this.SOUTH),
+                getSimulationNode(this.EAST),
+                getSimulationNode(this.WEST)
+        );
 
-        for (int z = 1; z < res+1; z++) {
-            for (int x = 1; x < res+1; x++) {
-                this.u[0][z][x] += this.initialValues[z][x];
-                this.initialValues[z][x] = 0;
-
-                this.u[2][z][x] = this.u[1][z][x];
-                this.u[1][z][x] = this.u[0][z][x];
-            }
-        }
-
-        for (int z = 1; z < res+1; z++) {
-            for (int x = 1; x < res+1; x++) {
-                this.u[0][z][x] = (float) (alpha * (0.5*u[1][z-1][x] + 0.25*u[1][z-1][x+1] + 0.5*u[1][z][x+1]
-                        + 0.25*u[1][z+1][x+1] + 0.5*u[1][z+1][x] + 0.25*u[1][z+1][x-1]
-                        + 0.5*u[1][z][x-1] + 0.25*u[1][z-1][x-1] - 3*u[1][z][x])
-                        + 2*u[1][z][x] - u[2][z][x]);
-                this.u[0][z][x] *= beta;
-            }
-        }
         floodFill(wakeHandler);
         return true;
     }
@@ -209,7 +147,7 @@ public class WakeNode {
     public void revive(WakeNode node) {
         this.age = 0;
         this.floodLevel = WakesConfig.floodFillDistance;
-        this.initialValues = node.initialValues;
+        this.simulationNode.initialValues = node.simulationNode.initialValues;
     }
 
     public void markDead() {
@@ -243,7 +181,7 @@ public class WakeNode {
     }
     public static class Factory {
         public static Set<WakeNode> splashNodes(Entity entity, int y) {
-            int res = WakeNode.res;
+            int res = WakeHandler.resolution.res;
             int w = (int) (0.8 * entity.getWidth() * res / 2);
             int x = (int) (entity.getX() * res);
             int z = (int) (entity.getZ() * res);
@@ -281,7 +219,7 @@ public class WakeNode {
         }
 
         public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity) {
-            int res = WakeNode.res;
+            int res = WakeHandler.resolution.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -293,7 +231,7 @@ public class WakeNode {
         }
 
         public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity, float width) {
-            int res = WakeNode.res;
+            int res = WakeHandler.resolution.res;
             int x1 = (int) (fromX * res);
             int z1 = (int) (fromZ * res);
             int x2 = (int) (toX * res);
@@ -312,7 +250,7 @@ public class WakeNode {
         }
 
         public static Set<WakeNode> nodeLine(double x, int y, double z, float waveStrength, Vec3d velocity, float width) {
-            int res = WakeNode.res;
+            int res = WakeHandler.resolution.res;
             Vec3d dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
@@ -329,7 +267,7 @@ public class WakeNode {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, int y, float waveStrength, double velocity) {
-            int res = WakeNode.res;
+            int res = WakeHandler.resolution.res;
             int power = (int) (Math.log(res) / Math.log(2));
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
@@ -350,7 +288,7 @@ public class WakeNode {
             for (Long nodePos : pixelsInNodes.keySet()) {
                 WakeNode node = new WakeNode(nodePos, y);
                 for (Long subPos : pixelsInNodes.get(nodePos)) {
-                    node.setInitialValue(subPos, (int) (waveStrength * velocity));
+                    node.simulationNode.setInitialValue(subPos, (int) (waveStrength * velocity));
                 }
                 nodesAffected.add(node);
             }

@@ -5,17 +5,22 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.SplashPlaneRenderer;
+import com.goby56.wakes.simulation.SimulationNode;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleFactory;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.particle.SpriteProvider;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -23,6 +28,7 @@ import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.system.MemoryUtil;
 
 public class SplashPlaneParticle extends Particle {
     Entity owner;
@@ -31,9 +37,17 @@ public class SplashPlaneParticle extends Particle {
 
     Vec3d direction = Vec3d.ZERO;
 
+    private final SimulationNode simulationNode = new SimulationNode();
+
+    public long imgPtr = -1;
+    public int texRes;
+    public boolean hasPopulatedPixels = false;
+
 
     protected SplashPlaneParticle(ClientWorld world, double x, double y, double z) {
         super(world, x, y, z);
+        initTexture(WakesConfig.wakeResolution.res);
+        WakeHandler.getInstance().ifPresent(wakeHandler -> wakeHandler.registerSplashPlane(this));
     }
 
     @Override
@@ -42,6 +56,7 @@ public class SplashPlaneParticle extends Particle {
             wakeOwner.wakes$setSplashPlane(null);
         }
         this.owner = null;
+        this.deallocTexture();
         super.markDead();
     }
 
@@ -77,6 +92,56 @@ public class SplashPlaneParticle extends Particle {
         Vec3d planeOffset = direction.multiply(this.owner.getWidth() + WakesConfig.splashPlaneOffset);
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.wakes$wakeHeight(), planePos.z);
+
+        this.setWave();
+        this.simulationNode.tick(null, null, null, null);
+
+        populatePixels();
+    }
+
+    private void setWave() {
+        float velocity = (float) Math.floor(((ProducesWake) this.owner).wakes$getHorizontalVelocity() * 20) / 20f;
+        for (int r = 0; r < 16; r++) {
+           for (int c = 0; c < 16; c++) {
+               if (Math.sqrt(Math.pow(r - 16, 2) + Math.pow(c, 2)) < 8) {
+                   this.simulationNode.setInitialValue((long) c << 32 | r, (int) (5 * velocity));
+               }
+           }
+        }
+    }
+
+    public void initTexture(int res) {
+        long size = 4L * res * res;
+        if (imgPtr == -1) {
+            imgPtr = MemoryUtil.nmemAlloc(size);
+        } else {
+            imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
+        }
+
+        this.texRes = res;
+        this.hasPopulatedPixels = false;
+    }
+
+    public void deallocTexture() {
+        MemoryUtil.nmemFree(imgPtr);
+    }
+
+    public void populatePixels() {
+        int fluidColor = BiomeColors.getWaterColor(world, this.owner.getBlockPos());
+        int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, this.owner.getBlockPos());
+        int lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
+                LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
+                LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
+        );
+        float opacity = WakesConfig.wakeOpacity * 0.9f;
+        int res = WakeHandler.resolution.res;
+        for (int r = 0; r < res; r++) {
+            for (int c = 0; c < res; c++) {
+                long pixelOffset = 4L * (((long) r * res) + c);
+                MemoryUtil.memPutInt(imgPtr + pixelOffset, simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity));
+            }
+        }
+        this.hasPopulatedPixels = true;
     }
 
     @Override
@@ -101,7 +166,7 @@ public class SplashPlaneParticle extends Particle {
         float yawLerp = (this.prevYaw + diff * tickDelta) % 360f;
 
         modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180f));
-        SplashPlaneRenderer.render(this.owner, yawLerp, tickDelta, modelMatrix, light);
+        SplashPlaneRenderer.render(this.owner, this, yawLerp, tickDelta, modelMatrix, light);
     }
 
     private MatrixStack getMatrixStackFromCamera(Camera camera, float tickDelta) {

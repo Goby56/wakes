@@ -13,18 +13,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
 public class WakeWorldTicker implements ClientTickEvents.EndWorldTick, ServerEntityWorldChangeEvents.AfterPlayerChange {
-    public static boolean openConfigScreenNextTick = false;
 
     @Override
     public void onEndTick(ClientWorld world) {
         WakesClient.areShadersEnabled = WakesClient.areShadersEnabled();
         WakesDebugInfo.reset();
-        SplashPlaneRenderer.tick();
         WakeHandler.getInstance().ifPresent(WakeHandler::tick);
-        if (openConfigScreenNextTick) {
-            MinecraftClient.getInstance().setScreenAndRender(new WakesConfigScreen());
-            openConfigScreenNextTick = false;
-        }
     }
 
     @Override
