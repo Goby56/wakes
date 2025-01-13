@@ -20,12 +20,16 @@ public class ColorIntervalSlider extends SliderWidget {
 
     public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""), 0f);
-        this.handles = new ArrayList<>();
-        for (float val : WakesConfig.wakeColorIntervals) {
-           this.handles.add(new SliderHandle(val));
-        }
+        this.initHandles();
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2 - 64, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
+    }
+
+    public void initHandles() {
+        this.handles = new ArrayList<>();
+        for (float val : WakesConfig.wakeColorIntervals) {
+            this.handles.add(new SliderHandle(val));
+        }
     }
 
     public void updateColorPicker() {

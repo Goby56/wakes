@@ -18,6 +18,8 @@ public class ColorPickerScreen extends Screen {
     private final Screen parent;
     private boolean showInfoText = false;
     private ColorIntervalSlider colorIntervalSlider;
+    private WakeAffectingSlider wakeOpacitySlider;
+    private WakeAffectingSlider blendStrengthSlider;
     private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/sprites/icon/info.png");
     private static final Identifier RESET_ICON_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
@@ -33,11 +35,12 @@ public class ColorPickerScreen extends Screen {
                 (int) (width / 2 - width * 0.8f / 2), 24,
                 (int) (width * 0.8f), 40);
         this.addDrawableChild(this.colorIntervalSlider);
-
-        this.addDrawableChild(new WakeAffectingSlider(width / 2 - 160, 69, 150, 20, WakesUtils.translatable("midnightconfig", "wakeOpacity"),
-                () -> (double) WakesConfig.wakeOpacity, (val) -> WakesConfig.wakeOpacity = val.floatValue()));
-        this.addDrawableChild(new WakeAffectingSlider(width / 2 + 10, 69, 150, 20, WakesUtils.translatable("midnightconfig", "blendStrength"),
-                () -> (double) WakesConfig.blendStrength, (val) -> WakesConfig.blendStrength = val.floatValue()));
+        this.wakeOpacitySlider = new WakeAffectingSlider(width / 2 - 160, 69, 150, 20, "wakeOpacity",
+                () -> (double) WakesConfig.wakeOpacity, (val) -> WakesConfig.wakeOpacity = val.floatValue());
+        this.addDrawableChild(this.wakeOpacitySlider);
+        this.blendStrengthSlider = new WakeAffectingSlider(width / 2 + 10, 69, 150, 20, "blendStrength",
+                () -> (double) WakesConfig.blendStrength, (val) -> WakesConfig.blendStrength = val.floatValue());
+        this.addDrawableChild(this.blendStrengthSlider);
 
         TexturedButton infoButton = TexturedButton.builder(this::onInfoClick)
                         .texture(INFO_ICON_TEXTURE, 20, 20)
@@ -61,10 +64,13 @@ public class ColorPickerScreen extends Screen {
     private void resetConfigurations(ButtonWidget button) {
         WakesConfig.wakeColorIntervals = Lists.newArrayList(WakesConfig.defaultWakeColorIntervals);
         WakesConfig.wakeColors = Lists.newArrayList(WakesConfig.defaultWakeColors);
+        this.colorIntervalSlider.initHandles();
         this.colorIntervalSlider.updateColorPicker();
+        this.wakeOpacitySlider.resetValue();
+        this.blendStrengthSlider.resetValue();
+
         WakeHandler.getInstance().ifPresent(WakeHandler::recolorWakes);
         MidnightConfig.write(WakesClient.MOD_ID);
-        // TODO RESET OPACITY AND BLEND STRENGTH TOO
     }
 
     @Override
