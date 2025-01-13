@@ -10,6 +10,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
 
 public class SplashPlaneParticle extends Particle {
-    Entity owner;
+    public Entity owner;
     float yaw;
     float prevYaw;
 
@@ -42,6 +43,9 @@ public class SplashPlaneParticle extends Particle {
     public long imgPtr = -1;
     public int texRes;
     public boolean hasPopulatedPixels = false;
+
+    public boolean isRenderReady = false;
+    public float lerpedYaw = 0;
 
 
     protected SplashPlaneParticle(ClientWorld world, double x, double y, double z) {
@@ -146,15 +150,13 @@ public class SplashPlaneParticle extends Particle {
 
     @Override
     public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
+        this.isRenderReady = false;
         if (this.dead) return;
         if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&
                 !WakesConfig.firstPersonSplashPlane &&
                 this.owner instanceof ClientPlayerEntity) {
             return;
         }
-
-        MatrixStack modelMatrix = getMatrixStackFromCamera(camera, tickDelta);
-        int light = this.getBrightness(tickDelta);
 
         float diff = this.yaw - this.prevYaw;
         if (diff > 180f) {
@@ -163,23 +165,18 @@ public class SplashPlaneParticle extends Particle {
             diff += 360;
         }
 
-        float yawLerp = (this.prevYaw + diff * tickDelta) % 360f;
-
-        modelMatrix.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawLerp + 180f));
-        SplashPlaneRenderer.render(this.owner, this, yawLerp, tickDelta, modelMatrix, light);
+        this.lerpedYaw = (this.prevYaw + diff * tickDelta) % 360f;
+        this.isRenderReady = true;
     }
 
-    private MatrixStack getMatrixStackFromCamera(Camera camera, float tickDelta) {
-        // Think it moves the matrix context smoothly to the camera
-        // https://github.com/Ladysnake/Effective/blob/main/src/main/java/ladysnake/effective/particle/SplashParticle.java
-        Vec3d cameraPos = camera.getPos();
+    public void translateMatrix(WorldRenderContext context, MatrixStack matrices) {
+        Vec3d cameraPos = context.camera().getPos();
+        float tickDelta = context.tickCounter().getTickDelta(true);
         float x = (float) (MathHelper.lerp(tickDelta, this.prevPosX, this.x) - cameraPos.getX());
         float y = (float) (MathHelper.lerp(tickDelta, this.prevPosY, this.y) - cameraPos.getY());
         float z = (float) (MathHelper.lerp(tickDelta, this.prevPosZ, this.z) - cameraPos.getZ());
 
-        MatrixStack matrixStack = new MatrixStack();
-        matrixStack.translate(x, y, z);
-        return matrixStack;
+        matrices.translate(x, y, z);
     }
 
     public Vec3d getPos() {

@@ -12,10 +12,12 @@ import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SplashPlaneRenderer {
+public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
@@ -42,8 +44,21 @@ public class SplashPlaneRenderer {
 
     private static final double SQRT_8 = Math.sqrt(8);
 
+    @Override
+    public void afterTranslucent(WorldRenderContext context) {
+        if (WakeHandler.getInstance().isEmpty()) {
+            return;
+        }
+        WakeHandler wakeHandler = WakeHandler.getInstance().get();
+        for (SplashPlaneParticle particle : wakeHandler.getVisible(context.frustum(), SplashPlaneParticle.class)) {
+            if (particle.isRenderReady) {
+                SplashPlaneRenderer.render(particle.owner, particle, context, context.matrixStack());
+            }
+        }
+    }
 
-    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, float yaw, float tickDelta, MatrixStack matrices, int light) {
+
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, WorldRenderContext context, MatrixStack matrices) {
         if (wakeTextures == null) initTextures();
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
@@ -53,6 +68,8 @@ public class SplashPlaneRenderer {
         RenderSystem.enableBlend();
 
         matrices.push();
+        splashPlane.translateMatrix(context, matrices);
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(splashPlane.lerpedYaw + 180f));
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
         float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);

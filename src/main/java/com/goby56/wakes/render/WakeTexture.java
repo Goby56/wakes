@@ -53,5 +53,6 @@ public class WakeTexture {
         RenderSystem.setShaderTexture(0, glTexId);
         RenderSystem.setShader(RenderType.getProgram());
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
+        RenderSystem.disableCull();
     }
 }

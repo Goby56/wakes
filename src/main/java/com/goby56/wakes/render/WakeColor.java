@@ -2,6 +2,7 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import net.minecraft.client.MinecraftClient;
 
 import java.awt.*;
 
@@ -70,7 +71,7 @@ public class WakeColor {
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
         double srcA = Math.pow(this.a / 255f, WakesConfig.blendStrength * 10);
         // Pow to make tint color have a larger influence
-
+        
         int r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
         int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
         int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));

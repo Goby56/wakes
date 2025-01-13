@@ -118,13 +118,21 @@ public class WakeHandler {
     }
 
     public <T> ArrayList<T> getVisible(Frustum frustum, Class<T> type) {
-        ArrayList<T> visibleQuads = new ArrayList<>();
-        for (int i = 0; i < this.maxY - this.minY; i++) {
-            if (this.trees[i] != null) {
-                this.trees[i].query(frustum, visibleQuads, type);
+        ArrayList<T> visibleObjects = new ArrayList<>();
+        if (type.equals(SplashPlaneParticle.class)) {
+            for (SplashPlaneParticle particle : splashPlanes) {
+                if (frustum.isVisible(particle.getBoundingBox())) {
+                    visibleObjects.add(type.cast(particle));
+                }
+            }
+        } else {
+            for (int i = 0; i < this.maxY - this.minY; i++) {
+                if (this.trees[i] != null) {
+                    this.trees[i].query(frustum, visibleObjects, type);
+                }
             }
         }
-        return visibleQuads;
+        return visibleObjects;
     }
 
     private int getArrayIndex(int y) {
