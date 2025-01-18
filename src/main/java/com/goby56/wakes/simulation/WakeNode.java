@@ -35,7 +35,7 @@ public class WakeNode {
     public int floodLevel;
 
     private WakeNode(int x, int y, int z, int floodLevel) {
-        this.simulationNode = new SimulationNode();
+        this.simulationNode = new SimulationNode.WakeSimulation();
         this.x = x;
         this.y = y;
         this.z = z;
@@ -43,7 +43,7 @@ public class WakeNode {
     }
 
     private WakeNode(long pos, int y) {
-        this.simulationNode = new SimulationNode();
+        this.simulationNode = new SimulationNode.WakeSimulation();
         int[] xz = WakesUtils.longAsPos(pos);
         this.x = xz[0];
         this.y = y;
@@ -65,6 +65,7 @@ public class WakeNode {
         this.t = this.age / (float) WakeNode.maxAge;
 
         this.simulationNode.tick(
+                null,
                 getSimulationNode(this.NORTH),
                 getSimulationNode(this.SOUTH),
                 getSimulationNode(this.EAST),

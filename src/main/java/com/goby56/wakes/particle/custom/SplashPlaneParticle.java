@@ -38,7 +38,7 @@ public class SplashPlaneParticle extends Particle {
 
     Vec3d direction = Vec3d.ZERO;
 
-    private final SimulationNode simulationNode = new SimulationNode();
+    private final SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
 
     public long imgPtr = -1;
     public int texRes;
@@ -97,21 +97,9 @@ public class SplashPlaneParticle extends Particle {
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.wakes$wakeHeight(), planePos.z);
 
-        this.setWave();
-        this.simulationNode.tick(null, null, null, null);
+        this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);
 
         populatePixels();
-    }
-
-    private void setWave() {
-        float velocity = (float) Math.floor(((ProducesWake) this.owner).wakes$getHorizontalVelocity() * 20) / 20f;
-        for (int r = 0; r < 16; r++) {
-           for (int c = 0; c < 16; c++) {
-               if (Math.sqrt(Math.pow(r - 16, 2) + Math.pow(c, 2)) < 8) {
-                   this.simulationNode.setInitialValue((long) c << 32 | r, (int) (5 * velocity));
-               }
-           }
-        }
     }
 
     public void initTexture(int res) {
