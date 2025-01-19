@@ -44,14 +44,14 @@ public class WakesConfig extends MidnightConfig {
 
     // Splash plane
     @Comment(category = APPEARANCE, centered = true) public static Comment splashPlaneDivider;
-    @Entry(category = APPEARANCE) public static float splashPlaneWidth = 2f;
-    @Entry(category = APPEARANCE) public static float splashPlaneHeight = 1.5f;
-    @Entry(category = APPEARANCE) public static float splashPlaneDepth = 3f;
-    @Entry(category = APPEARANCE) public static float splashPlaneOffset = -0.2f;
-    @Entry(category = APPEARANCE) public static float splashPlaneGap = 1f;
-    @Entry(category = APPEARANCE) public static int splashPlaneResolution = 5;
-    @Entry(category = APPEARANCE) public static float maxSplashPlaneVelocity = 0.5f;
-    @Entry(category = APPEARANCE) public static float splashPlaneScale = 0.8f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneWidth = 2f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneHeight = 1.5f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneDepth = 3f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneOffset = 0f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneGap = 1f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static int splashPlaneResolution = 5;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float maxSplashPlaneVelocity = 0.5f;
+    @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneScale = 0.8f;
 
     @Hidden @Entry(category = APPEARANCE) public static List<Float> wakeColorIntervals = Lists.newArrayList(0.05f, 0.15f, 0.2f, 0.35f, 0.52f, 0.6f, 0.7f, 0.9f);
     @Hidden @Entry(selectionMode = 1, category = APPEARANCE, isColor = true) public static List<String> wakeColors = Lists.newArrayList(

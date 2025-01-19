@@ -77,14 +77,12 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
         wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr);
-        //RenderSystem.setShaderTexture(0, Identifier.of("minecraft", "textures/block/bricks.png"));
         renderSurface(matrix);
 
         matrices.pop();
     }
 
     private static void renderSurface(Matrix4f matrix) {
-        int res = WakeHandler.resolution.res;
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT

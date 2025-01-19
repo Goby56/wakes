@@ -14,10 +14,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleFactory;
-import net.minecraft.client.particle.ParticleTextureSheet;
-import net.minecraft.client.particle.SpriteProvider;
+import net.minecraft.client.particle.*;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.VertexConsumer;
@@ -26,10 +23,13 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
+
+import java.util.Random;
 
 public class SplashPlaneParticle extends Particle {
     public Entity owner;
@@ -86,10 +86,11 @@ public class SplashPlaneParticle extends Particle {
     }
 
     private void aliveTick(ProducesWake wakeProducer) {
+        // Vec3d vel = wakeProducer.wakes$getNumericalVelocity(); UNCOMMENT IF WEIRD SPLASH BEHAVIOR
+        Vec3d vel = this.owner.getVelocity();
         if (this.owner instanceof BoatEntity) {
             this.yaw = -this.owner.getYaw();
         } else {
-            Vec3d vel = wakeProducer.wakes$getNumericalVelocity();
             this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));
         }
         this.direction = Vec3d.fromPolar(0, -this.yaw);
@@ -97,8 +98,18 @@ public class SplashPlaneParticle extends Particle {
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.wakes$wakeHeight(), planePos.z);
 
-        this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);
 
+        if (vel.length() / WakesConfig.maxSplashPlaneVelocity > 0.3f && WakesConfig.spawnParticles) {
+            Random random = new Random();
+            Vec3d particleOffset = new Vec3d(-direction.z, 0, direction.x).multiply(this.owner.getWidth() / 4);
+            Vec3d particlePos = this.owner.getPos().add(direction.multiply(this.owner.getWidth() - 0.3));
+            Vec3d particleVelocity = Vec3d.fromPolar((float) (45 * random.nextDouble()), (float) (-this.yaw + 30 * (random.nextDouble() - 0.5f))).multiply(1.5 * vel.length());
+
+            this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+            this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+        }
+
+        this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);
         populatePixels();
     }
 

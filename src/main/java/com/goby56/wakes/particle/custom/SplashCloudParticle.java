@@ -5,10 +5,14 @@ import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Random;
 
 public class SplashCloudParticle extends SpriteBillboardParticle {
     Entity owner;
@@ -17,12 +21,15 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
 
     public SplashCloudParticle(ClientWorld world, double x, double y, double z, SpriteProvider sprites, double velocityX, double velocityY, double velocityZ) {
         super(world, x, y, z, velocityX, velocityY, velocityZ);
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.velocityZ = velocityZ;
 
         this.prevPosX = x;
         this.prevPosY = y;
         this.prevPosZ = z;
 
-        this.maxAge = WakeNode.maxAge;
+        this.maxAge = (int) (WakeNode.maxAge * 1.5);
         this.setSprite(sprites.getSprite(world.random));
 
         this.offset = velocityX;
@@ -32,31 +39,43 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
 
     @Override
     public void tick() {
-        if (this.owner == null || (this.isFromPaddles && this.age > maxAge)) {
-            this.markDead();
-            return;
-        }
-        this.alpha = 1f - (float) this.age / this.maxAge;
+        this.age++;
         if (this.isFromPaddles) {
-            this.age++;
-            return;
-        }
-        
-        if (this.owner instanceof ProducesWake wake) {
-            SplashPlaneParticle splashPlane = wake.wakes$getSplashPlane();
-            if (splashPlane == null) {
+            if (this.age > maxAge) {
                 this.markDead();
                 return;
             }
-
-            this.prevPosX = this.x;
-            this.prevPosY = this.y;
-            this.prevPosZ = this.z;
-
-            Vec3d particleOffset = new Vec3d(-splashPlane.direction.z, 0f, splashPlane.direction.x).multiply(this.offset * this.owner.getWidth() / 2f);
-            Vec3d pos = splashPlane.getPos().add(particleOffset).add(splashPlane.direction.multiply(-0.2f));
-            this.setPos(pos.x, pos.y, pos.z);
+            this.alpha = 1f - (float) this.age / this.maxAge;
+            return;
+        } else {
+            if (this.age > maxAge / 3) {
+                this.markDead();
+                return;
+            }
+            this.alpha = 1f - (float) this.age / (this.maxAge / 3f);
         }
+
+        this.prevPosX = this.x;
+        this.prevPosY = this.y;
+        this.prevPosZ = this.z;
+
+        if (world.getFluidState(new BlockPos((int) this.x, (int) this.y, (int) this.z)).isOf(Fluids.WATER)) {
+            this.velocityY = 0.1;
+            this.velocityX *= 0.92;
+            this.velocityY *= 0.92;
+            this.velocityZ *= 0.92;
+        } else {
+            this.velocityY -= 0.05;
+
+            this.velocityX *= 0.95;
+            this.velocityY *= 0.95;
+            this.velocityZ *= 0.95;
+        }
+
+        this.x += velocityX;
+        this.y += velocityY;
+        this.z += velocityZ;
+        this.setPos(this.x, this.y, this.z);
     }
 
     @Override
