@@ -42,7 +42,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
-        context.lightmapTextureManager().enable();
+        context.gameRenderer().getLightmapTextureManager().enable();
 
         Resolution resolution = WakeHandler.resolution;
         int n = 0;

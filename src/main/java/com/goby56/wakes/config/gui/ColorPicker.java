@@ -2,9 +2,11 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeColor;
+import com.goby56.wakes.render.enums.RenderType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -156,7 +158,7 @@ public class ColorPicker extends ClickableWidget {
         int w = bounds.width;
         int h = bounds.height;
 
-        RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+        RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV.getProgram());
         RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
         float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
 
@@ -169,13 +171,13 @@ public class ColorPicker extends ClickableWidget {
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Draw frame
-        context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, FRAME_TEXTURE, x, y, w, h);
 
         // Draw picker knob
         int d = pickerKnobDim;
         int pickerX = (int) Math.min(bounds.x + bounds.width - d, Math.max(bounds.x, pickerPos.x - 3));
         int pickerY = (int) Math.min(bounds.y + bounds.height - d, Math.max(bounds.y, pickerPos.y - 3));
-        context.drawTexture(PICKER_KNOB_TEXTURE, pickerX, pickerY, 0, 0, d, d, d, d);
+        context.drawTexture(RenderLayer::getGuiTextured, PICKER_KNOB_TEXTURE, pickerX, pickerY, 0, 0, d, d, d, d);
     }
 
     @Override
@@ -323,24 +325,22 @@ public class ColorPicker extends ClickableWidget {
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableDepthTest();
 
-            context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
             int leftCol, rightCol;
             if (colored) {
-                context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
-                RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+                RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV.getProgram());
                 RenderSystem.setShaderTexture(0, BLANK_SLIDER_TEXTURE);
 
                 // AAHHSSVV
-                leftCol = 0xFF00FFFF;
-                rightCol = 0xFFFFFFFF;
+                leftCol = 0x8000FFFF;
+                rightCol = 0x80FFFFFF;
 
             } else {
-                context.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f);
-                RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+                RenderSystem.setShader(RenderType.toProgram(ShaderProgramKeys.POSITION_TEX_COLOR));
                 RenderSystem.setShaderTexture(0, TRANSPARENT_SLIDER_TEXTURE);
 
                 // AARRGGBB
-                leftCol = 0xFFFFFFFF;
+                leftCol = 0x99FFFFFF;
                 rightCol = 0x00FFFFFF;
             }
 
@@ -360,8 +360,7 @@ public class ColorPicker extends ClickableWidget {
             BufferRenderer.drawWithGlobalProgram(buffer.end());
 
 
-            context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            context.drawGuiTexture(this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
             this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
         }

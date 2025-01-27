@@ -8,9 +8,13 @@ import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -226,9 +230,15 @@ public class WakesUtils {
         return n;
     }
 
-    // public static float getFluidColor() {
-    //     return
-    // }
+    public static int getLightColor(LightmapTextureManager lightmapTextureManager, World world, BlockPos blockPos) {
+        int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, blockPos);
+        int x = LightmapTextureManager.getBlockLightCoordinates(lightCoordinate);
+        int y = LightmapTextureManager.getSkyLightCoordinates(lightCoordinate);
+        lightmapTextureManager.lightmapFramebuffer.beginRead();
+        int out = 0;
+        GlStateManager._readPixels(x, y, 16, 16, GlConst.GL_BGR, GlConst.GL_UNSIGNED_INT, out);
+        return out;
+    }
 
     public static float getFluidLevel(World world, Entity entityInFluid) {
         Box box = entityInFluid.getBoundingBox();

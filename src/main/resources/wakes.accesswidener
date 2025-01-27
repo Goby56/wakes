@@ -1,12 +1,12 @@
 accessWidener v1 named
 
-accessible field net/minecraft/entity/vehicle/BoatEntity paddlePhases [F
+accessible field net/minecraft/entity/vehicle/AbstractBoatEntity paddlePhases [F
 
-accessible field net/minecraft/entity/vehicle/BoatEntity NEXT_PADDLE_PHASE F
+accessible field net/minecraft/entity/vehicle/AbstractBoatEntity NEXT_PADDLE_PHASE F
 
 accessible field net/minecraft/client/model/ModelPart$Cuboid sides [Lnet/minecraft/client/model/ModelPart$Quad;
 
-accessible field net/minecraft/client/render/LightmapTextureManager image Lnet/minecraft/client/texture/NativeImage;
+accessible field net/minecraft/client/render/LightmapTextureManager lightmapFramebuffer Lnet/minecraft/client/gl/SimpleFramebuffer;
 
 accessible method net/minecraft/client/gui/widget/SliderWidget getTexture ()Lnet/minecraft/util/Identifier;
 accessible method net/minecraft/client/gui/widget/SliderWidget getHandleTexture ()Lnet/minecraft/util/Identifier;
