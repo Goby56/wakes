@@ -86,7 +86,7 @@ public class SplashPlaneParticle extends Particle {
     }
 
     private void aliveTick(ProducesWake wakeProducer) {
-        // Vec3d vel = wakeProducer.wakes$getNumericalVelocity(); UNCOMMENT IF WEIRD SPLASH BEHAVIOR
+        // Vec3d vel = wakeProducer.wakes$getNumericalVelocity(); // UNCOMMENT IF WEIRD SPLASH BEHAVIOR
         Vec3d vel = this.owner.getVelocity();
         if (this.owner instanceof BoatEntity) {
             this.yaw = -this.owner.getYaw();
@@ -98,13 +98,11 @@ public class SplashPlaneParticle extends Particle {
         Vec3d planePos = this.owner.getPos().add(planeOffset);
         this.setPos(planePos.x, wakeProducer.wakes$wakeHeight(), planePos.z);
 
-
         if (vel.length() / WakesConfig.maxSplashPlaneVelocity > 0.3f && WakesConfig.spawnParticles) {
             Random random = new Random();
-            Vec3d particleOffset = new Vec3d(-direction.z, 0, direction.x).multiply(this.owner.getWidth() / 4);
+            Vec3d particleOffset = new Vec3d(-direction.z, 0, direction.x).multiply(random.nextDouble() * this.owner.getWidth() / 4);
             Vec3d particlePos = this.owner.getPos().add(direction.multiply(this.owner.getWidth() - 0.3));
             Vec3d particleVelocity = Vec3d.fromPolar((float) (45 * random.nextDouble()), (float) (-this.yaw + 30 * (random.nextDouble() - 0.5f))).multiply(1.5 * vel.length());
-
             this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
             this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
         }
@@ -201,10 +199,6 @@ public class SplashPlaneParticle extends Particle {
                 splashPlane.owner = type.owner;
                 splashPlane.yaw = splashPlane.prevYaw = type.owner.getYaw();
                 ((ProducesWake) splashPlane.owner).wakes$setSplashPlane(splashPlane);
-                if (type.owner instanceof BoatEntity) {
-                    world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, 1, 0 ,0);
-                    world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(type.owner), x, y, z, -1, 0 ,0);
-                }
             }
             return splashPlane;
         }

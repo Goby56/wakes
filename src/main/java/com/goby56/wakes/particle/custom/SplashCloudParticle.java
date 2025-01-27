@@ -54,7 +54,6 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
             }
             this.alpha = 1f - (float) this.age / (this.maxAge / 3f);
         }
-
         this.prevPosX = this.x;
         this.prevPosY = this.y;
         this.prevPosZ = this.z;
