@@ -135,7 +135,7 @@ public class WakeNode {
     public boolean validPos(World world) {
         FluidState fluidState = world.getFluidState(this.blockPos());
         FluidState fluidStateAbove = world.getFluidState(this.blockPos().up());
-        if (fluidState.isStill() && fluidStateAbove.isEmpty()) {
+        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
             return fluidState.isStill();
         }
         return false;
