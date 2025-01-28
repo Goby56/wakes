@@ -2,7 +2,6 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import net.minecraft.client.MinecraftClient;
 
 import java.awt.*;
 

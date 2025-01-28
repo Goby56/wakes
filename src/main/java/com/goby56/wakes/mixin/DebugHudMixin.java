@@ -1,6 +1,5 @@
 package com.goby56.wakes.mixin;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.minecraft.client.gui.hud.DebugHud;

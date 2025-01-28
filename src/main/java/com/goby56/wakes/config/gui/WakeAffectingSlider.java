@@ -39,10 +39,17 @@ public class WakeAffectingSlider extends SliderWidget {
     }
 
     public void resetValue() {
-        Float val = (Float) MidnightConfig.getDefaultValue(WakesClient.MOD_ID, configEntryName);
-        if (val != null) {
-            this.value = val;
+        try {
+            var config = MidnightConfig.configClass.get(WakesClient.MOD_ID);
+            this.value = config.getField(configEntryName).getFloat(config);
             configOptionSetter.accept(this.value);
+
+        } catch (NoSuchFieldException e) {
+            System.out.println("Could not find field");
+            return;
+        } catch (IllegalAccessException e) {
+            System.out.println("Could not retrieve float");
+            return;
         }
         this.updateMessage();
     }

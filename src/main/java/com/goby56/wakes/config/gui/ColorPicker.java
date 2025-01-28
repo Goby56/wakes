@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class ColorPicker extends ClickableWidget {
-    private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
+    private static final Identifier FRAME_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/slot_frame.png");
     private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
@@ -147,7 +147,7 @@ public class ColorPicker extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
 
         // Draw color spectrum
@@ -160,16 +160,17 @@ public class ColorPicker extends ClickableWidget {
         RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
         float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        BufferBuilder builder = Tessellator.getInstance().getBuffer();
+        builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        buffer.vertex(matrix, x, y, 5).texture(0, 0).color(hue, 0f, 1f, 1f);
-        buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(hue, 0f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(hue, 1f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(hue, 1f, 1f, 1f);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        builder.vertex(matrix, x, y, 5).texture(0, 0).color(hue, 0f, 1f, 1f).next();
+        builder.vertex(matrix, x, y + h, 5).texture(0, 1).color(hue, 0f, 0f, 1f).next();
+        builder.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(hue, 1f, 0f, 1f).next();
+        builder.vertex(matrix, x + w, y, 5).texture(1, 0).color(hue, 1f, 1f, 1f).next();
+        Tessellator.getInstance().draw();
 
         // Draw frame
-        context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
+        context.drawTexture(FRAME_TEXTURE, x, y, 0, 0, w, h);
 
         // Draw picker knob
         int d = pickerKnobDim;
@@ -227,7 +228,7 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        protected void onChanged(String newText) {
+        public void onChanged(String newText) {
             if (autoUpdate) {
                 // Ensures color picker doesn't update itself when updating hex string
                 return;
@@ -318,12 +319,12 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableDepthTest();
 
-            context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+            context.drawNineSlicedTexture(TEXTURE, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getYImage());
             int leftCol, rightCol;
             if (colored) {
                 context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
@@ -349,19 +350,19 @@ public class ColorPicker extends ClickableWidget {
             int w = bounds.width;
             int h = bounds.height;
 
-            BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+            BufferBuilder builder = Tessellator.getInstance().getBuffer();
+            builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
             Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
 
-            buffer.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol);
-            buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol);
-            buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol);
-            buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol);
+            builder.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol).next();
+            builder.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol).next();
+            builder.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol).next();
+            builder.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol).next();
 
-            BufferRenderer.drawWithGlobalProgram(buffer.end());
-
+            Tessellator.getInstance().draw();
 
             context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            context.drawGuiTexture(this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            context.drawNineSlicedTexture(TEXTURE, this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, 20, 20, 4, 200, 20, 0, this.getTextureV());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
             this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
         }

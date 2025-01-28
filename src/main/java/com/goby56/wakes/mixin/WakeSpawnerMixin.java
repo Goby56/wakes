@@ -32,7 +32,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Shadow public abstract double getZ();
 
-	@Shadow public abstract boolean isInFluid();
+	@Shadow public abstract boolean isTouchingWater();
 
 	@Unique private boolean onFluidSurface = false;
 	@Unique private Vec3d prevPosOnSurface = null;
@@ -104,7 +104,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 		BlockPos blockPos = BlockPos.ofFloored(this.getX(), hitboxMaxY, this.getZ());
 		FluidState fluidState = this.world.getFluidState(blockPos);
 		double fluidHeight = (float)blockPos.getY() + fluidState.getHeight(this.world, blockPos);
-		return this.isInFluid() && hitboxMaxY > fluidHeight;
+		return this.isTouchingWater() && hitboxMaxY > fluidHeight;
 	}
 
 	@Inject(at = @At("TAIL"), method = "tick")

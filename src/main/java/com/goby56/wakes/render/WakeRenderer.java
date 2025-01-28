@@ -59,35 +59,40 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         if (!brick.hasPopulatedPixels) return;
         texture.loadTexture(brick.imgPtr);
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder builder = Tessellator.getInstance().getBuffer();
+        builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 
         Vector3f pos = brick.pos.add(camera.getPos().negate()).toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
         int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
-        buffer.vertex(matrix, pos.x, pos.y, pos.z)
+        builder.vertex(matrix, pos.x, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
                 .texture(0, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x, pos.y, pos.z + brick.dim)
+                .normal(0f, 1f, 0f)
+                .next();
+        builder.vertex(matrix, pos.x, pos.y, pos.z + brick.dim)
                 .color(1f, 1f, 1f, 1f)
                 .texture(0, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z + brick.dim)
+                .normal(0f, 1f, 0f)
+                .next();
+        builder.vertex(matrix, pos.x + brick.dim, pos.y, pos.z + brick.dim)
                 .color(1f, 1f, 1f, 1f)
                 .texture(1, 1)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(0f, 1f, 0f);
-        buffer.vertex(matrix, pos.x + brick.dim, pos.y, pos.z)
+                .normal(0f, 1f, 0f)
+                .next();
+        builder.vertex(matrix, pos.x + brick.dim, pos.y, pos.z)
                 .color(1f, 1f, 1f, 1f)
                 .texture(1, 0)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)
-                .normal(0f, 1f, 0f);
+                .normal(0f, 1f, 0f)
+                .next();
 
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        Tessellator.getInstance().draw();
     }
 }

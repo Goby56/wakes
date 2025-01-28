@@ -47,14 +47,13 @@ public class ColorIntervalSlider extends SliderWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
 
-        context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-
-        this.hovered = context.scissorContains(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
+        context.drawNineSlicedTexture(TEXTURE, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getYImage());
+        this.hovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
         int y = this.getY();
 
@@ -75,9 +74,15 @@ public class ColorIntervalSlider extends SliderWidget {
         float hoveredVal = valueFromMousePos(mouseX);
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
         for (SliderHandle handle : handles) {
-            boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
-            context.drawGuiTexture(handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
+            context.drawNineSlicedTexture(TEXTURE, this.getX() + (int)(handle.value * (double)(this.width - 8)), this.getY(), 8, 20, 20, 4, 200, 20, 0, getHandleTextureV(handle, hoveredVal, correctY));
         }
+    }
+
+    private int getHandleTextureV(SliderHandle handle, float hoveredVal, boolean correctY) {
+        // V part of texture UV for slider handle depending on hovered or not
+        boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
+        int i = isHovered || this.isFocused() ? 3 : 2;
+        return i * 20;
     }
 
     @Override

@@ -54,7 +54,7 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = APPEARANCE, isSlider = true, min = -5f, max = 5f) public static float splashPlaneScale = 0.8f;
 
     @Hidden @Entry(category = APPEARANCE) public static List<Float> wakeColorIntervals = Lists.newArrayList(0.05f, 0.15f, 0.2f, 0.35f, 0.52f, 0.6f, 0.7f, 0.9f);
-    @Hidden @Entry(selectionMode = 1, category = APPEARANCE, isColor = true) public static List<String> wakeColors = Lists.newArrayList(
+    @Hidden @Entry(category = APPEARANCE, isColor = true) public static List<String> wakeColors = Lists.newArrayList(
             "#00000000", // TRANSPARENT
             "#289399a6", // DARK GRAY
             "#649ea5b0", // GRAY

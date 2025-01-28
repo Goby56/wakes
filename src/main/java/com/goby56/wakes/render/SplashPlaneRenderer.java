@@ -83,7 +83,8 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
     }
 
     private static void renderSurface(Matrix4f matrix) {
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder builder = Tessellator.getInstance().getBuffer();
+        builder.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -94,7 +95,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
             for (int i = 0; i < vertices.size(); i++) {
                 Vec3d vertex = vertices.get(i);
                 Vec3d normal = normals.get(i);
-                buffer.vertex(matrix,
+                builder.vertex(matrix,
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
@@ -102,13 +103,14 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
                         .texture((float) (vertex.x), (float) (vertex.y))
                         .overlay(OverlayTexture.DEFAULT_UV)
                         .light(light)
-                        .normal((float) normal.x, (float) normal.y, (float) normal.z);
+                        .normal((float) normal.x, (float) normal.y, (float) normal.z)
+                        .next();
             }
         }
 
         RenderSystem.disableCull();
         RenderSystem.enableDepthTest();
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        Tessellator.getInstance().draw();
         RenderSystem.enableCull();
     }
 

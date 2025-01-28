@@ -7,9 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class SliderHandle implements Comparable<SliderHandle> {
 
-    private static final Identifier HANDLE_TEXTURE = Identifier.ofVanilla("widget/slider_handle");
-    private static final Identifier HANDLE_HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("widget/slider_handle_highlighted");
-
     protected WakeColor color;
     protected float value;
     protected boolean focused;
@@ -29,13 +26,6 @@ public class SliderHandle implements Comparable<SliderHandle> {
 
     public boolean inProximity(float value, int sliderWidth, int handleWidth) {
         return (Math.abs(value - this.value) < (float) handleWidth / (2 * sliderWidth));
-    }
-
-    public Identifier getHandleTexture(boolean isHovered) {
-        if (focused || isHovered) {
-            return HANDLE_HIGHLIGHTED_TEXTURE;
-        }
-        return HANDLE_TEXTURE;
     }
 
     @Override

@@ -16,13 +16,13 @@ public class TexturedButton extends ButtonWidget {
         this.textureHeight = texHeight;
     }
 
-    public static Builder builder(ButtonWidget.PressAction onPress) {
-        return new Builder(onPress);
+    public static com.goby56.wakes.config.gui.TexturedButton.Builder builder(ButtonWidget.PressAction onPress) {
+        return new com.goby56.wakes.config.gui.TexturedButton.Builder(onPress);
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.renderWidget(context, mouseX, mouseY, delta);
+    protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.renderButton(context, mouseX, mouseY, delta);
         int tw = this.textureWidth;
         int th = this.textureHeight;
         int x = this.getX() + this.getWidth() / 2 - this.textureWidth / 2;
@@ -42,13 +42,13 @@ public class TexturedButton extends ButtonWidget {
             this.onPress = onPress;
         }
 
-        public Builder dimension(int width, int height) {
+        public com.goby56.wakes.config.gui.TexturedButton.Builder dimension(int width, int height) {
             this.width = width;
             this.height = height;
             return this;
         }
 
-        public Builder texture(Identifier texture, int width, int height) {
+        public com.goby56.wakes.config.gui.TexturedButton.Builder texture(Identifier texture, int width, int height) {
             this.texture = texture;
             this.textureWidth = width;
             this.textureHeight = height;

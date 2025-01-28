@@ -20,7 +20,7 @@ public class ColorPickerScreen extends Screen {
     private ColorIntervalSlider colorIntervalSlider;
     private WakeAffectingSlider wakeOpacitySlider;
     private WakeAffectingSlider blendStrengthSlider;
-    private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/sprites/icon/info.png");
+    private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/info_icon.png");
     private static final Identifier RESET_ICON_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
         super(Text.of("Configure wake colors"));
@@ -90,7 +90,7 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    protected void applyBlur(float delta) {
+    protected void blur() {
         // No Song 2
     }
 
