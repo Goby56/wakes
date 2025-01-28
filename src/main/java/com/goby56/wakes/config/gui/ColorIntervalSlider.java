@@ -74,14 +74,14 @@ public class ColorIntervalSlider extends SliderWidget {
         float hoveredVal = valueFromMousePos(mouseX);
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
         for (SliderHandle handle : handles) {
-            context.drawNineSlicedTexture(TEXTURE, this.getX() + (int)(handle.value * (double)(this.width - 8)), this.getY(), 8, 20, 20, 4, 200, 20, 0, getHandleTextureV(handle, hoveredVal, correctY));
+            context.drawNineSlicedTexture(TEXTURE, this.getX() + (int)(handle.value * (double)(this.width - 8)), this.getY(), 8, this.height, 20, 4, 200, 20, 0, getHandleTextureV(handle, hoveredVal, correctY));
         }
     }
 
     private int getHandleTextureV(SliderHandle handle, float hoveredVal, boolean correctY) {
         // V part of texture UV for slider handle depending on hovered or not
         boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
-        int i = isHovered || this.isFocused() ? 3 : 2;
+        int i = isHovered && this.isFocused() ? 3 : 2;
         return i * 20;
     }
 
