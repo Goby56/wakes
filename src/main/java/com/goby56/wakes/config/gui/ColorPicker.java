@@ -162,10 +162,10 @@ public class ColorPicker extends ClickableWidget {
 
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        buffer.vertex(matrix, x, y, 5).texture(0, 0).color(hue, 0f, 1f, 1f);
-        buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(hue, 0f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(hue, 1f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(hue, 1f, 1f, 1f);
+        buffer.vertex(matrix, x, y, 0).texture(0, 0).color(hue, 0f, 1f, 1f);
+        buffer.vertex(matrix, x, y + h, 0).texture(0, 1).color(hue, 0f, 0f, 1f);
+        buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(hue, 1f, 0f, 1f);
+        buffer.vertex(matrix, x + w, y, 0).texture(1, 0).color(hue, 1f, 1f, 1f);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
 
         // Draw frame
