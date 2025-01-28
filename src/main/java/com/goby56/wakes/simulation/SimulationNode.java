@@ -10,15 +10,15 @@ import java.util.Random;
 public abstract class SimulationNode {
     public float[][][] u;
     public float[][] initialValues;
+    public final int res;
 
     public SimulationNode() {
-        int res = WakeHandler.resolution.res;
+        this.res = WakeHandler.resolution.res;
         this.u = new float[3][res+2][res+2];
         this.initialValues = new float[res+2][res+2];
     }
 
     public void setInitialValue(long pos, int val) {
-        int res = WakeHandler.resolution.res;
         float resFactor = res / 16f;
         int[] xz = WakesUtils.longAsPos(pos);
         if (xz[0] < 0) xz[0] += res;
@@ -45,7 +45,6 @@ public abstract class SimulationNode {
 
         @Override
         public void tick(@Nullable Float velocity, @Nullable SimulationNode NORTH, @Nullable SimulationNode SOUTH, @Nullable SimulationNode EAST, @Nullable SimulationNode WEST) {
-            int res = WakeHandler.resolution.res;
             float time = 20f; // ticks
             // TODO CHANGE "16" TO ACTUAL RES? MAYBE?
             float alpha = (float) Math.pow(WakesConfig.wavePropagationFactor * 16f / time, 2);
@@ -90,7 +89,6 @@ public abstract class SimulationNode {
             double t = System.currentTimeMillis() / (double) 1000;
             if (velocity == null) return;
             int p = (int) (14 * Math.min(1f, 2 * velocity / WakesConfig.maxSplashPlaneVelocity));
-            int res = WakeHandler.resolution.res;
             for (int z = 1; z < res+1; z++) {
                 for (int x = 1; x < res+1; x++) {
                     this.u[0][z][x] = 0;
