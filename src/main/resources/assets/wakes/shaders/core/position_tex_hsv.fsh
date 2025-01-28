@@ -17,7 +17,7 @@ vec3 hsv2rgb(vec3 c) {
 
 void main() {
     vec3 rgb = hsv2rgb(vertexColor.xyz);
-    vec4 color = texture(Sampler0, texCoord0) * vec4(rgb, 1.0);
+    vec4 color = texture(Sampler0, texCoord0) * vec4(rgb, vertexColor.w);
     if (color.a < 0.1) {
         discard;
     }

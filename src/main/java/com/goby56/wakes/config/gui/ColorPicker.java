@@ -163,14 +163,14 @@ public class ColorPicker extends ClickableWidget {
         BufferBuilder builder = Tessellator.getInstance().getBuffer();
         builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
         Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        builder.vertex(matrix, x, y, 5).texture(0, 0).color(hue, 0f, 1f, 1f).next();
-        builder.vertex(matrix, x, y + h, 5).texture(0, 1).color(hue, 0f, 0f, 1f).next();
-        builder.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(hue, 1f, 0f, 1f).next();
-        builder.vertex(matrix, x + w, y, 5).texture(1, 0).color(hue, 1f, 1f, 1f).next();
+        builder.vertex(matrix, x, y, 0).texture(0, 0).color(hue, 0f, 1f, 1f).next();
+        builder.vertex(matrix, x, y + h, 0).texture(0, 1).color(hue, 0f, 0f, 1f).next();
+        builder.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(hue, 1f, 0f, 1f).next();
+        builder.vertex(matrix, x + w, y, 0).texture(1, 0).color(hue, 1f, 1f, 1f).next();
         Tessellator.getInstance().draw();
 
         // Draw frame
-        context.drawTexture(FRAME_TEXTURE, x, y, 0, 0, w, h);
+        context.drawTexture(FRAME_TEXTURE, x, y, 0, 0, w, h, w, h);
 
         // Draw picker knob
         int d = pickerKnobDim;
@@ -286,8 +286,8 @@ public class ColorPicker extends ClickableWidget {
     }
 
     private static class GradientSlider extends SliderWidget implements Bounded {
-        private static final Identifier TRANSPARENT_SLIDER_TEXTURE = Identifier.of("wakes", "textures/transparent_slider.png");
-        private static final Identifier BLANK_SLIDER_TEXTURE = Identifier.of("wakes", "textures/blank_slider.png");
+        private static final Identifier TRANSPARENT_SLIDER_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/transparent_slider.png");
+        private static final Identifier BLANK_SLIDER_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/blank_slider.png");
 
         protected AABB bounds;
         private final boolean colored;
@@ -322,7 +322,8 @@ public class ColorPicker extends ClickableWidget {
         public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
+
+            // RenderSystem.disableDepthTest();
 
             context.drawNineSlicedTexture(TEXTURE, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getYImage());
             int leftCol, rightCol;
@@ -354,10 +355,10 @@ public class ColorPicker extends ClickableWidget {
             builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
             Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
 
-            builder.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol).next();
-            builder.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol).next();
-            builder.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol).next();
-            builder.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol).next();
+            builder.vertex(matrix, x, y, 0).texture(0, 0).color(leftCol).next();
+            builder.vertex(matrix, x, y + h, 0).texture(0, 1).color(leftCol).next();
+            builder.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(rightCol).next();
+            builder.vertex(matrix, x + w, y, 0).texture(1, 0).color(rightCol).next();
 
             Tessellator.getInstance().draw();
 
