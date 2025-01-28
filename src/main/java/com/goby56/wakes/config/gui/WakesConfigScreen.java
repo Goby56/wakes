@@ -29,6 +29,7 @@ public class WakesConfigScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, this.title, width / 2, 10, 0xffffff);
     }

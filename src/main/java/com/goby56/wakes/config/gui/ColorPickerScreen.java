@@ -80,6 +80,7 @@ public class ColorPickerScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffff);
         if (this.showInfoText) {
@@ -87,11 +88,6 @@ public class ColorPickerScreen extends Screen {
             TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0);
             context.drawTextWrapped(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xa8a8a8);
         }
-    }
-
-    @Override
-    protected void blur() {
-        // No Song 2
     }
 
     public void addWidget(ClickableWidget widget) {
