@@ -92,7 +92,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
                 .light(light)
                 .normal(0f, 1f, 0f)
                 .next();
-
+        RenderSystem.enableBlend();
         Tessellator.getInstance().draw();
     }
 }
