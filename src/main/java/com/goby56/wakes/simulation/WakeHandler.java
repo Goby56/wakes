@@ -4,11 +4,14 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
+import com.goby56.wakes.render.WakeTexture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
+import net.minecraft.util.Pair;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -133,6 +136,14 @@ public class WakeHandler {
             }
         }
         return visibleObjects;
+    }
+
+    public long tempTextureGetter() {
+        try {
+            return splashPlanes.get(0).imgPtr;
+        } catch (IndexOutOfBoundsException e) {
+            return -1;
+        }
     }
 
     private int getArrayIndex(int y) {

@@ -7,6 +7,7 @@ import com.goby56.wakes.event.WakeClientTicker;
 import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
+import com.goby56.wakes.render.WakePostEffect;
 import com.goby56.wakes.render.WakeRenderer;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
@@ -32,12 +33,12 @@ public class WakesClient implements ClientModInitializer {
 			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
 	public static final ManagedCoreShader POSITION_TEXTURE_HSV = ShaderEffectManager.getInstance().manageCoreShader(
 			Identifier.of(MOD_ID, "position_tex_hsv"), VertexFormats.POSITION_TEXTURE_COLOR);
+	public static final WakePostEffect WAKE_POST_EFFECT = new WakePostEffect();
 	public static boolean areShadersEnabled = false;
 
 	@Override
 	public void onInitializeClient() {
 		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
-
 		// Mod configs
 		MidnightConfig.init(WakesClient.MOD_ID, WakesConfig.class);
 
@@ -55,6 +56,8 @@ public class WakesClient implements ClientModInitializer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new SplashPlaneRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
+
+		WakePostEffect.register(WAKE_POST_EFFECT);
 
 		SplashPlaneRenderer.initSplashPlane();
 	}
