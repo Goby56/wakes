@@ -16,10 +16,6 @@ import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.Identifier;
-import org.ladysnake.satin.api.managed.ManagedCoreShader;
-import org.ladysnake.satin.api.managed.ShaderEffectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +24,6 @@ public class WakesClient implements ClientModInitializer {
 	public static final String MOD_ID = "wakes";
 	public static ModMetadata METADATA;
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final ManagedCoreShader TRANSLUCENT_NO_LIGHT_DIRECTION_PROGRAM = ShaderEffectManager.getInstance().manageCoreShader(
-			Identifier.of(MOD_ID, "translucent_no_light_direction"), VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
-	public static final ManagedCoreShader POSITION_TEXTURE_HSV = ShaderEffectManager.getInstance().manageCoreShader(
-			Identifier.of(MOD_ID, "position_tex_hsv"), VertexFormats.POSITION_TEXTURE_COLOR);
 	public static boolean areShadersEnabled = false;
 
 	@Override

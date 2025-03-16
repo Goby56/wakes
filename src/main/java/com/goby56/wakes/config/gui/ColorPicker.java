@@ -156,17 +156,19 @@ public class ColorPicker extends ClickableWidget {
         int w = bounds.width;
         int h = bounds.height;
 
-        RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
-        RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
-        float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
+        // RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+        // RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
+        // float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        buffer.vertex(matrix, x, y, 0).texture(0, 0).color(hue, 0f, 1f, 1f);
-        buffer.vertex(matrix, x, y + h, 0).texture(0, 1).color(hue, 0f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(hue, 1f, 0f, 1f);
-        buffer.vertex(matrix, x + w, y, 0).texture(1, 0).color(hue, 1f, 1f, 1f);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        // BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        // Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+        // buffer.vertex(matrix, x, y, 0).texture(0, 0).color(hue, 0f, 1f, 1f);
+        // buffer.vertex(matrix, x, y + h, 0).texture(0, 1).color(hue, 0f, 0f, 1f);
+        // buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(hue, 1f, 0f, 1f);
+        // buffer.vertex(matrix, x + w, y, 0).texture(1, 0).color(hue, 1f, 1f, 1f);
+        // BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        drawHSVCircle();
 
         // Draw frame
         context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
@@ -176,6 +178,27 @@ public class ColorPicker extends ClickableWidget {
         int pickerX = (int) Math.min(bounds.x + bounds.width - d, Math.max(bounds.x, pickerPos.x - 3));
         int pickerY = (int) Math.min(bounds.y + bounds.height - d, Math.max(bounds.y, pickerPos.y - 3));
         context.drawTexture(PICKER_KNOB_TEXTURE, pickerX, pickerY, 0, 0, d, d, d, d);
+    }
+
+    private void drawHSVCircle() {
+        BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+        int offset = 50;
+        int x = bounds.x + offset + 20;
+        int y = bounds.y + offset + 20;
+        int segments = 32;
+
+        builder.vertex(x, y, 0F).color(0xffffffff);
+
+        for (int i = 0; i <= segments; i ++)
+        {
+            double a = i / (double) segments * Math.PI * 2 - Math.PI / 2;
+            float hue = i / (float) segments;
+            int color = MathHelper.hsvToRgb(MathHelper.clamp(hue, 0F, 0.999F), 1F, 1F) | 0xff000000;
+
+            builder.vertex((int) (x - Math.cos(a) * offset), (int) (y + Math.sin(a) * offset), 0F).color(color);
+        }
+
+        BufferRenderer.drawWithGlobalProgram(builder.end());
     }
 
     @Override
@@ -325,39 +348,39 @@ public class ColorPicker extends ClickableWidget {
 
             context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
             int leftCol, rightCol;
-            if (colored) {
-                context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
-                RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
-                RenderSystem.setShaderTexture(0, BLANK_SLIDER_TEXTURE);
-
-                // AAHHSSVV
-                leftCol = 0xFF00FFFF;
-                rightCol = 0xFFFFFFFF;
-
-            } else {
-                context.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f);
-                RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
-                RenderSystem.setShaderTexture(0, TRANSPARENT_SLIDER_TEXTURE);
-
-                // AARRGGBB
-                leftCol = 0xFFFFFFFF;
-                rightCol = 0x00FFFFFF;
-            }
+            // if (colored) {
+            //     context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
+            //     RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
+            //     RenderSystem.setShaderTexture(0, BLANK_SLIDER_TEXTURE);
+            //
+            //     // AAHHSSVV
+            //     leftCol = 0xFF00FFFF;
+            //     rightCol = 0xFFFFFFFF;
+            //
+            // } else {
+            //     context.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f);
+            //     RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+            //     RenderSystem.setShaderTexture(0, TRANSPARENT_SLIDER_TEXTURE);
+            //
+            //     // AARRGGBB
+            //     leftCol = 0xFFFFFFFF;
+            //     rightCol = 0x00FFFFFF;
+            // }
 
             int x = bounds.x;
             int y = bounds.y;
             int w = bounds.width;
             int h = bounds.height;
 
-            BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-            Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+            // BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+            // Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
 
-            buffer.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol);
-            buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol);
-            buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol);
-            buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol);
+            // buffer.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol);
+            // buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol);
+            // buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol);
+            // buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol);
 
-            BufferRenderer.drawWithGlobalProgram(buffer.end());
+            // BufferRenderer.drawWithGlobalProgram(buffer.end());
 
 
             context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);

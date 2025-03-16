@@ -1,20 +1,14 @@
 package com.goby56.wakes.render;
 
-import com.goby56.wakes.render.enums.RenderType;
-import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.QuadTree;
 import com.goby56.wakes.simulation.WakeHandler;
-import com.goby56.wakes.simulation.WakeNode;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
-import org.lwjgl.system.MemoryUtil;
 
 public class WakeTexture {
     public int res;
@@ -51,7 +45,7 @@ public class WakeTexture {
         GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0,0,0,dim, dim, GlConst.GL_RGBA, GlConst.GL_UNSIGNED_BYTE, imgPtr);
 
         RenderSystem.setShaderTexture(0, glTexId);
-        RenderSystem.setShader(RenderType.getProgram());
+        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
         RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
         RenderSystem.disableCull();
     }

@@ -4,7 +4,6 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
-import com.goby56.wakes.render.enums.RenderType;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -63,7 +62,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
-        RenderSystem.setShader(RenderType.getProgram());
+        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
 
@@ -83,7 +82,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
     }
 
     private static void renderSurface(Matrix4f matrix) {
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -98,10 +97,8 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
-                        .color(1f, 1f, 1f, 1f)
                         .texture((float) (vertex.x), (float) (vertex.y))
-                        .overlay(OverlayTexture.DEFAULT_UV)
-                        .light(light)
+                        .color(1f, 1f, 1f, 1f)
                         .normal((float) normal.x, (float) normal.y, (float) normal.z);
             }
         }
