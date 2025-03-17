@@ -14,7 +14,6 @@ import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import org.joml.Matrix4f;
 import org.joml.Vector2f;
 
 import java.awt.*;
@@ -24,23 +23,29 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class ColorPicker extends ClickableWidget {
-    private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("widget/slot_frame");
+    private static final Identifier PICKER_BG_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_background.png");
+    private static final Identifier PICKER_RIM_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_rim.png");
     private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
     private final Map<String, Bounded> widgets = new HashMap<>();
-    private final AABB bounds;
+    private final AABB colorPickerBounds;
     private Consumer<WakeColor> changedColorListener;
 
     private final Vector2f pickerPos = new Vector2f();
+    private final Vector2f pickerCenter = new Vector2f();
+    private final float pickerRadius;
 
     public ColorPicker(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""));
 
-        this.bounds = new AABB(0, 0, 1f, 2f / 3f, x, y, width, height);
+        this.colorPickerBounds = new AABB(1/6f, 0, 5/6f, 2f / 3f, x, y, width, height);
+        this.pickerCenter.x = this.colorPickerBounds.x + this.colorPickerBounds.width / 2f;
+        this.pickerCenter.y = this.colorPickerBounds.y + this.colorPickerBounds.height / 2f;
+        this.pickerRadius = this.colorPickerBounds.width / 2f;
 
-        this.widgets.put("hueSlider", new GradientSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", this,true));
-        this.widgets.put("alphaSlider", new GradientSlider(new AABB(3f / 6f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, false));
+        this.widgets.put("valueSlider", new ColorPickerSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Brightness", this, SliderUpdateType.VALUE));
+        this.widgets.put("alphaSlider", new ColorPickerSlider(new AABB(3f / 6f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, SliderUpdateType.OPACITY));
         this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 3f / 6f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
 
         screenContext.addWidget(this);
@@ -63,9 +68,10 @@ public class ColorPicker extends ClickableWidget {
             return;
         }
         float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
-        this.pickerPos.set(
-                this.bounds.x + hsv[1] * this.bounds.width,
-                this.bounds.y + (1 - hsv[2]) * this.bounds.height);
+        System.out.println(hsv[1]);
+        float x = (float) (this.pickerCenter.x + hsv[1] * this.pickerRadius * Math.cos(hsv[0]));
+        float y = (float) (this.pickerCenter.y + hsv[1] * this.pickerRadius * Math.sin(hsv[0]));
+        this.pickerPos.set(x, y);
         for (var widgetKey : this.widgets.keySet()) {
             if (updateFlag.equals(WidgetUpdateFlag.IGNORE_HEX) && widgetKey.equals("hexInputField")) {
                 this.changedColorListener.accept(currentColor);
@@ -129,18 +135,26 @@ public class ColorPicker extends ClickableWidget {
         super.onDrag(mouseX, mouseY, deltaX, deltaY);
     }
 
+    public Vector2f getPolarPos(double mouseX, double mouseY) {
+        double x = mouseX - this.pickerCenter.x;
+        double y = mouseY - this.pickerCenter.y;
+        float r = (float) Math.min(Math.sqrt(x*x + y*y), this.pickerRadius * 0.90f);
+        float v = (float) Math.atan2(y, x);
+        return new Vector2f(r, v);
+    }
+
     public void updatePickerPos(double mouseX, double mouseY) {
-        mouseX = Math.min(this.bounds.x + this.bounds.width, Math.max(this.bounds.x, mouseX));
-        mouseY = Math.min(this.bounds.y + this.bounds.height, Math.max(this.bounds.y, mouseY));
-        this.pickerPos.set(mouseX, mouseY);
+        Vector2f rv = getPolarPos(mouseX, mouseY);
+        this.pickerPos.set(this.pickerCenter.x + rv.x * Math.cos(rv.y), this.pickerCenter.y + rv.x * Math.sin(rv.y));
         this.updateColor();
     }
 
     public void updateColor() {
-        float hue = ((GradientSlider) this.widgets.get("hueSlider").getWidget()).getValue();
-        float saturation = (pickerPos.x - this.bounds.x) / this.bounds.width;
-        float value = 1f - (pickerPos.y - this.bounds.y) / this.bounds.height;
-        float opacity = ((GradientSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
+        Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
+        float hue = (float) (1 - (rv.y + Math.PI / 2) / (2f * Math.PI));
+        float saturation = rv.x / pickerRadius;
+        float value = ((ColorPickerSlider) this.widgets.get("valueSlider").getWidget()).getValue();
+        float opacity = ((ColorPickerSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
         WakeColor newColor = new WakeColor(hue, saturation, value, opacity);
         this.setColor(newColor, WidgetUpdateFlag.ONLY_HEX);
         this.changedColorListener.accept(newColor);
@@ -150,55 +164,42 @@ public class ColorPicker extends ClickableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
 
-        // Draw color spectrum
-        int x = bounds.x;
-        int y = bounds.y;
-        int w = bounds.width;
-        int h = bounds.height;
-
-        // RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
-        // RenderSystem.setShaderTexture(0, GradientSlider.BLANK_SLIDER_TEXTURE);
-        // float hue = ((GradientSlider) widgets.get("hueSlider").getWidget()).getValue();
-
-        // BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        // Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-        // buffer.vertex(matrix, x, y, 0).texture(0, 0).color(hue, 0f, 1f, 1f);
-        // buffer.vertex(matrix, x, y + h, 0).texture(0, 1).color(hue, 0f, 0f, 1f);
-        // buffer.vertex(matrix, x + w, y + h, 0).texture(1, 1).color(hue, 1f, 0f, 1f);
-        // buffer.vertex(matrix, x + w, y, 0).texture(1, 0).color(hue, 1f, 1f, 1f);
-        // BufferRenderer.drawWithGlobalProgram(buffer.end());
-
+        context.drawTexture(PICKER_BG_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
         drawHSVCircle();
-
-        // Draw frame
-        context.drawGuiTexture(FRAME_TEXTURE, x, y, w, h);
-
+        context.drawTexture(PICKER_RIM_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
         // Draw picker knob
         int d = pickerKnobDim;
-        int pickerX = (int) Math.min(bounds.x + bounds.width - d, Math.max(bounds.x, pickerPos.x - 3));
-        int pickerY = (int) Math.min(bounds.y + bounds.height - d, Math.max(bounds.y, pickerPos.y - 3));
-        context.drawTexture(PICKER_KNOB_TEXTURE, pickerX, pickerY, 0, 0, d, d, d, d);
+        Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
+        this.pickerPos.set(this.pickerCenter.x + rv.x * Math.cos(rv.y), this.pickerCenter.y + rv.x * Math.sin(rv.y));
+        int pickerX = (int) (this.pickerCenter.x + rv.x * Math.cos(rv.y));
+        int pickerY = (int) (this.pickerCenter.y + rv.x * Math.sin(rv.y));
+        context.drawTexture(PICKER_KNOB_TEXTURE, pickerX - 3, pickerY - 3, 0, 0, d, d, d, d);
     }
 
     private void drawHSVCircle() {
-        BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-        int offset = 50;
-        int x = bounds.x + offset + 20;
-        int y = bounds.y + offset + 20;
-        int segments = 32;
+        // Credit goes to @mchorse on the Fabric Discord server
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.enableBlend();
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+        int radius = colorPickerBounds.width / 2;
+        int x = colorPickerBounds.x + radius;
+        int y = colorPickerBounds.y + radius;
+        int segments = 24;
+        float value = ((ColorPickerSlider) this.widgets.get("valueSlider").getWidget()).getValue();
+        float opacity = ((ColorPickerSlider) this.widgets.get("alphaSlider").getWidget()).getValue() * 0.5f;
 
-        builder.vertex(x, y, 0F).color(0xffffffff);
+        WakeColor middleColor = new WakeColor(0, 0, value, opacity);
+        buffer.vertex(x, y, 0F).color(middleColor.argb);
 
-        for (int i = 0; i <= segments; i ++)
-        {
+        for (int i = 0; i <= segments; i ++) {
             double a = i / (double) segments * Math.PI * 2 - Math.PI / 2;
             float hue = i / (float) segments;
-            int color = MathHelper.hsvToRgb(MathHelper.clamp(hue, 0F, 0.999F), 1F, 1F) | 0xff000000;
+            int color = new WakeColor(hue, 1f, value, opacity).argb;
 
-            builder.vertex((int) (x - Math.cos(a) * offset), (int) (y + Math.sin(a) * offset), 0F).color(color);
+            buffer.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0F).color(color);
         }
 
-        BufferRenderer.drawWithGlobalProgram(builder.end());
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 
     @Override
@@ -307,20 +308,17 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    private static class GradientSlider extends SliderWidget implements Bounded {
-        private static final Identifier TRANSPARENT_SLIDER_TEXTURE = Identifier.of("wakes", "textures/transparent_slider.png");
-        private static final Identifier BLANK_SLIDER_TEXTURE = Identifier.of("wakes", "textures/blank_slider.png");
-
+    private static class ColorPickerSlider extends SliderWidget implements Bounded {
         protected AABB bounds;
-        private final boolean colored;
+        private final SliderUpdateType type;
 
         private final ColorPicker colorPicker;
 
-        public GradientSlider(AABB bounds, String text, ColorPicker colorPicker, boolean colored) {
+        public ColorPickerSlider(AABB bounds, String text, ColorPicker colorPicker, SliderUpdateType type) {
             super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(text), 1f);
             this.bounds = bounds;
             this.colorPicker = colorPicker;
-            this.colored = colored;
+            this.type = type;
         }
 
         public void setActive(boolean active) {
@@ -329,8 +327,14 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         public void setColor(WakeColor currentColor) {
-            if (colored) {
+            if (type.equals(SliderUpdateType.HUE)) {
                 this.value = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null)[0];
+            } else
+            if (type.equals(SliderUpdateType.SATURATION)) {
+                this.value = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null)[1];
+            } else
+            if (type.equals(SliderUpdateType.VALUE)) {
+                this.value = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null)[2];
             } else {
                 this.value = currentColor.a / 255f;
             }
@@ -347,41 +351,6 @@ public class ColorPicker extends ClickableWidget {
             RenderSystem.disableDepthTest();
 
             context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-            int leftCol, rightCol;
-            // if (colored) {
-            //     context.setShaderColor(1.0F, 1.0F, 1.0F, 0.3f);
-            //     RenderSystem.setShader(WakesClient.POSITION_TEXTURE_HSV::getProgram);
-            //     RenderSystem.setShaderTexture(0, BLANK_SLIDER_TEXTURE);
-            //
-            //     // AAHHSSVV
-            //     leftCol = 0xFF00FFFF;
-            //     rightCol = 0xFFFFFFFF;
-            //
-            // } else {
-            //     context.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f);
-            //     RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
-            //     RenderSystem.setShaderTexture(0, TRANSPARENT_SLIDER_TEXTURE);
-            //
-            //     // AARRGGBB
-            //     leftCol = 0xFFFFFFFF;
-            //     rightCol = 0x00FFFFFF;
-            // }
-
-            int x = bounds.x;
-            int y = bounds.y;
-            int w = bounds.width;
-            int h = bounds.height;
-
-            // BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-            // Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
-
-            // buffer.vertex(matrix, x, y, 5).texture(0, 0).color(leftCol);
-            // buffer.vertex(matrix, x, y + h, 5).texture(0, 1).color(leftCol);
-            // buffer.vertex(matrix, x + w, y + h, 5).texture(1, 1).color(rightCol);
-            // buffer.vertex(matrix, x + w, y, 5).texture(1, 0).color(rightCol);
-
-            // BufferRenderer.drawWithGlobalProgram(buffer.end());
-
 
             context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             context.drawGuiTexture(this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
@@ -408,6 +377,13 @@ public class ColorPicker extends ClickableWidget {
         public ClickableWidget getWidget() {
             return this;
         }
+    }
+
+    public enum SliderUpdateType {
+        HUE,
+        SATURATION,
+        VALUE,
+        OPACITY
     }
 
     public enum WidgetUpdateFlag {
