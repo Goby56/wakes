@@ -68,7 +68,6 @@ public class ColorPicker extends ClickableWidget {
             return;
         }
         float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
-        System.out.println(hsv[1]);
         float x = (float) (this.pickerCenter.x + hsv[1] * this.pickerRadius * Math.cos(hsv[0]));
         float y = (float) (this.pickerCenter.y + hsv[1] * this.pickerRadius * Math.sin(hsv[0]));
         this.pickerPos.set(x, y);

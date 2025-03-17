@@ -45,14 +45,14 @@ public class ColorPickerScreen extends Screen {
         TexturedButton infoButton = TexturedButton.builder(this::onInfoClick)
                         .texture(INFO_ICON_TEXTURE, 20, 20)
                         .dimension(30, 30).build();
-        infoButton.setPosition((int) (width / 2 - width * 0.8f / 2 - 35), 29);
+        infoButton.setPosition((int) (width / 2f - width * 0.8f / 2 - 35), 29);
         infoButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "infoButton", "tooltip")));
         this.addDrawableChild(infoButton);
 
         TexturedButton resetButton = TexturedButton.builder(this::resetConfigurations)
                 .texture(RESET_ICON_TEXTURE, 20, 20)
                 .dimension(30, 30).build();
-        resetButton.setPosition((int) (width / 2 + width * 0.8f / 2 + 5), 29);
+        resetButton.setPosition((int) (width / 2f + width * 0.8f / 2 + 5), 29);
         resetButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "resetButton", "tooltip")));
         this.addDrawableChild(resetButton);
     }
