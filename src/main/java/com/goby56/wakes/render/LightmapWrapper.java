@@ -2,12 +2,17 @@ package com.goby56.wakes.render;
 
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class LightmapWrapper {
+    private static final Logger log = LoggerFactory.getLogger(LightmapWrapper.class);
     public static long imgPtr = -1;
     public static WakeTexture texture;
 
@@ -20,9 +25,8 @@ public class LightmapWrapper {
         if (imgPtr == -1) {
             initTexture();
         }
-        lightmapTextureManager.lightmapFramebuffer.beginRead();
-        GlStateManager._readPixels(0, 0, 16, 16, GlConst.GL_BGR, GlConst.GL_UNSIGNED_BYTE, imgPtr);
-        lightmapTextureManager.lightmapFramebuffer.endRead();
+        RenderSystem.bindTexture(lightmapTextureManager.lightmapFramebuffer.getColorAttachment());
+        GlStateManager._getTexImage(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_BGR, GlConst.GL_UNSIGNED_BYTE, imgPtr);
     }
 
     public static int readPixel(int block, int sky) {
@@ -35,23 +39,23 @@ public class LightmapWrapper {
     }
 
     public static void render(Matrix4f matrix) {
-            texture.loadTexture(imgPtr, GlConst.GL_BGR);
+        texture.loadTexture(imgPtr, GlConst.GL_BGR);
 
-            BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        int middleX = MinecraftClient.getInstance().getWindow().getScaledWidth() / 2;
+        buffer.vertex(matrix, middleX - 50, 0, 0)
+                .texture(0, 0)
+                .color(1f, 1f, 1f, 1f);
+        buffer.vertex(matrix,  middleX + 50, 0, 0)
+                .texture(0, 1)
+                .color(1f, 1f, 1f, 1f);
+        buffer.vertex(matrix, middleX + 50, 100, 0)
+                .texture(1, 1)
+                .color(1f, 1f, 1f, 1f);
+        buffer.vertex(matrix, middleX - 50, 100, 0)
+                .texture(1, 0)
+                .color(1f, 1f, 1f, 1f);
 
-            buffer.vertex(matrix, 0, 0, 0)
-                    .texture(0, 0)
-                    .color(1f, 1f, 1f, 1f);
-            buffer.vertex(matrix, 100, 0, 0)
-                    .texture(0, 1)
-                    .color(1f, 1f, 1f, 1f);
-            buffer.vertex(matrix, 100, 100, 0)
-                    .texture(1, 1)
-                    .color(1f, 1f, 1f, 1f);
-            buffer.vertex(matrix, 0, 100, 0)
-                    .texture(1, 0)
-                    .color(1f, 1f, 1f, 1f);
-
-            BufferRenderer.drawWithGlobalProgram(buffer.end());
+BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 }

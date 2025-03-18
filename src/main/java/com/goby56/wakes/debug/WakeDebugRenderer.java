@@ -7,6 +7,7 @@ import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.debug.DebugRenderer;
@@ -51,7 +52,9 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
     }
 
     public static void renderOnHUD(DrawContext context, RenderTickCounter tickCounter) {
-        LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
+        if (WakesConfig.showDebugInfo && MinecraftClient.getInstance().getDebugHud().shouldShowDebugHud()) {
+            LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
+        }
     }
 
 }
