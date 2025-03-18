@@ -11,8 +11,10 @@ import com.goby56.wakes.render.WakeRenderer;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
+import net.fabricmc.fabric.api.event.player.PlayerPickItemEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -41,12 +43,14 @@ public class WakesClient implements ClientModInitializer {
 		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
 
 		// Game events
-		ClientPickBlockGatherCallback.EVENT.register(new PickBoat());
+		PlayerPickItemEvents.BLOCK.register(new PickBoat());
+		PlayerPickItemEvents.ENTITY.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new SplashPlaneRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
+		WakeDebugRenderer.registerDebugTextureRenderer();
 
 		SplashPlaneRenderer.initSplashPlane();
 	}

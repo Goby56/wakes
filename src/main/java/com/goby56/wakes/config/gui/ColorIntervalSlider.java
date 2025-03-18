@@ -8,6 +8,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -51,32 +52,30 @@ public class ColorIntervalSlider extends SliderWidget {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-
-        context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
         this.hovered = context.scissorContains(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
         int y = this.getY();
 
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 0.5F);
         int prevX = this.getX();
         for (int i = 0; i < n; i++) {
             float value = handles.get(i).value;
 
             int currX = this.getX() + (int)(value * (double)(this.width));
-
-            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, WakesConfig.getWakeColor(i).argb);
+            WakeColor color = WakesConfig.getWakeColor(i);
+            color.a = 128;
+            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, color.argb);
 
             prevX = currX;
         }
         context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1, WakesConfig.getWakeColor(n).argb);
-        context.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         float hoveredVal = valueFromMousePos(mouseX);
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
         for (SliderHandle handle : handles) {
             boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
-            context.drawGuiTexture(handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
+            context.drawGuiTexture(RenderLayer::getGuiTextured, handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
         }
     }
 

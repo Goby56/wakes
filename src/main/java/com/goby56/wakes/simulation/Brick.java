@@ -4,6 +4,8 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.WakeTexture;
+import com.goby56.wakes.utils.WakesUtils;
+import com.ibm.icu.impl.number.MicroProps;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
@@ -177,11 +179,7 @@ public class Brick {
                 float opacity = 0;
                 if (node != null) {
                     fluidColor = BiomeColors.getWaterColor(world, node.blockPos());
-                    int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, node.blockPos());
-                    lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
-                            LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
-                            LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
-                    );
+                    lightCol = WakesUtils.getLightColor(world, node.blockPos());
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
                     opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);
                 }

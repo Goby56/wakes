@@ -2,22 +2,26 @@ package com.goby56.wakes.debug;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
-import kroppeb.stareval.function.Type;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.debug.DebugRenderer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ColorHelper;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
+    public static final Identifier DEBUG_TEXTURE_LAYER = Identifier.of(WakesClient.MOD_ID, "debug-texture-layer");
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
@@ -39,4 +43,15 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
             }
         }
     }
+
+    public static void registerDebugTextureRenderer() {
+        HudLayerRegistrationCallback.EVENT.register(layeredDrawerWrapper -> {
+            layeredDrawerWrapper.attachLayerBefore(IdentifiedLayer.DEBUG, WakeDebugRenderer.DEBUG_TEXTURE_LAYER, WakeDebugRenderer::renderOnHUD);
+        });
+    }
+
+    public static void renderOnHUD(DrawContext context, RenderTickCounter tickCounter) {
+        LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
+    }
+
 }

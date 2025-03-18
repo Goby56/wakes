@@ -29,7 +29,7 @@ public class WakeHandler {
     private WakeHandler(World world) {
         this.world = world;
         this.minY = world.getBottomY();
-        this.maxY = world.getTopY();
+        this.maxY = world.getTopYInclusive();
         int worldHeight = this.maxY - this.minY;
         this.trees = new QuadTree[worldHeight];
         this.toBeInserted = new QueueSet[worldHeight];

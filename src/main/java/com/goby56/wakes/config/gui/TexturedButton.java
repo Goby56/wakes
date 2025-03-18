@@ -2,6 +2,7 @@ package com.goby56.wakes.config.gui;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -16,8 +17,8 @@ public class TexturedButton extends ButtonWidget {
         this.textureHeight = texHeight;
     }
 
-    public static Builder builder(ButtonWidget.PressAction onPress) {
-        return new Builder(onPress);
+    public static com.goby56.wakes.config.gui.TexturedButton.Builder builder(ButtonWidget.PressAction onPress) {
+        return new com.goby56.wakes.config.gui.TexturedButton.Builder(onPress);
     }
 
     @Override
@@ -27,7 +28,7 @@ public class TexturedButton extends ButtonWidget {
         int th = this.textureHeight;
         int x = this.getX() + this.getWidth() / 2 - this.textureWidth / 2;
         int y = this.getY() + this.getHeight() / 2 - this.textureHeight / 2;
-        context.drawTexture(this.texture, x, y, 0, 0, tw, th, tw, th);
+        context.drawTexture(RenderLayer::getGuiTextured, this.texture, x, y, 0, 0, tw, th, tw, th);
     }
 
     public static class Builder {
@@ -42,13 +43,13 @@ public class TexturedButton extends ButtonWidget {
             this.onPress = onPress;
         }
 
-        public Builder dimension(int width, int height) {
+        public com.goby56.wakes.config.gui.TexturedButton.Builder dimension(int width, int height) {
             this.width = width;
             this.height = height;
             return this;
         }
 
-        public Builder texture(Identifier texture, int width, int height) {
+        public com.goby56.wakes.config.gui.TexturedButton.Builder texture(Identifier texture, int width, int height) {
             this.texture = texture;
             this.textureWidth = width;
             this.textureHeight = height;

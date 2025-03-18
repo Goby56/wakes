@@ -1,5 +1,6 @@
 package com.goby56.wakes.config.gui;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.simulation.WakeHandler;
@@ -84,14 +85,15 @@ public class ColorPickerScreen extends Screen {
         context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffff);
         if (this.showInfoText) {
             // TODO DYNAMIC TOOLTIP BACKGROUND SIZE DEPENDING ON INFO TEXT LENGTH
-            TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0);
-            context.drawTextWrapped(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xa8a8a8);
+            TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0, Identifier.of("minecraft", "textures/block/bricks.png"));
+            context.drawWrappedText(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xa8a8a8, true);
         }
     }
 
     @Override
-    protected void applyBlur(float delta) {
+    protected void applyBlur() {
         // No Song 2
+        super.applyBlur();
     }
 
     public void addWidget(ClickableWidget widget) {

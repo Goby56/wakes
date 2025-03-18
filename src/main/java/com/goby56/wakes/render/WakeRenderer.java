@@ -6,9 +6,11 @@ import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.debug.WakesDebugInfo;
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -26,6 +28,8 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
         );
     }
 
+    public static long lightmapTexure = -1;
+
     @Override
     public void afterTranslucent(WorldRenderContext context) {
         if (WakesConfig.disableMod) {
@@ -33,6 +37,8 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
             return;
         }
 
+        context.gameRenderer().getLightmapTextureManager().enable();
+        LightmapWrapper.updateTexture(context.gameRenderer().getLightmapTextureManager());
         if (wakeTextures == null) initTextures();
 
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
@@ -42,7 +48,6 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
         RenderSystem.enableBlend();
-        context.lightmapTextureManager().enable();
 
         Resolution resolution = WakeHandler.resolution;
         int n = 0;
@@ -57,7 +62,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
     private void render(Matrix4f matrix, Camera camera, Brick brick, WakeTexture texture) {
         if (!brick.hasPopulatedPixels) return;
-        texture.loadTexture(brick.imgPtr);
+        texture.loadTexture(brick.imgPtr, GlConst.GL_RGBA);
 
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
 

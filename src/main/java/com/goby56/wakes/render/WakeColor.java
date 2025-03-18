@@ -2,7 +2,6 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import net.minecraft.client.MinecraftClient;
 
 import java.awt.*;
 
@@ -12,7 +11,7 @@ public class WakeColor {
     public final int r;
     public final int g;
     public final int b;
-    public final int a;
+    public int a;
     public final float h;
     public final float s;
     public final float v;
@@ -79,6 +78,9 @@ public class WakeColor {
         r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
         b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
+        // int r = lightColor       & 0xFF;
+        // int g = lightColor >> 8  & 0xFF;
+        // int b = lightColor >> 16 & 0xFF;
 
         return new WakeColor(r, g, b, (int) (this.a * opacity));
     }

@@ -5,6 +5,8 @@ import com.goby56.wakes.render.WakeColor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.ShaderProgramKey;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -163,21 +165,21 @@ public class ColorPicker extends ClickableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
 
-        context.drawTexture(PICKER_BG_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        context.drawTexture(RenderLayer::getGuiTextured, PICKER_BG_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
         drawHSVCircle();
-        context.drawTexture(PICKER_RIM_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        context.drawTexture(RenderLayer::getGuiTextured, PICKER_RIM_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
         // Draw picker knob
         int d = pickerKnobDim;
         Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
         this.pickerPos.set(this.pickerCenter.x + rv.x * Math.cos(rv.y), this.pickerCenter.y + rv.x * Math.sin(rv.y));
         int pickerX = (int) (this.pickerCenter.x + rv.x * Math.cos(rv.y));
         int pickerY = (int) (this.pickerCenter.y + rv.x * Math.sin(rv.y));
-        context.drawTexture(PICKER_KNOB_TEXTURE, pickerX - 3, pickerY - 3, 0, 0, d, d, d, d);
+        context.drawTexture(RenderLayer::getGuiTextured, PICKER_KNOB_TEXTURE, pickerX - 3, pickerY - 3, 0, 0, d, d, d, d);
     }
 
     private void drawHSVCircle() {
         // Credit goes to @mchorse on the Fabric Discord server
-        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         RenderSystem.enableBlend();
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
         int radius = colorPickerBounds.width / 2;
@@ -349,10 +351,9 @@ public class ColorPicker extends ClickableWidget {
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableDepthTest();
 
-            context.drawGuiTexture(this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
-            context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            context.drawGuiTexture(this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
             this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
         }

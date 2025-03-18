@@ -129,11 +129,7 @@ public class SplashPlaneParticle extends Particle {
 
     public void populatePixels() {
         int fluidColor = BiomeColors.getWaterColor(world, this.owner.getBlockPos());
-        int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, this.owner.getBlockPos());
-        int lightCol = MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().image.getColor(
-                LightmapTextureManager.getBlockLightCoordinates(lightCoordinate),
-                LightmapTextureManager.getSkyLightCoordinates(lightCoordinate)
-        );
+        int lightCol = WakesUtils.getLightColor(world, this.owner.getBlockPos());
         float opacity = WakesConfig.wakeOpacity * 0.9f;
         int res = WakeHandler.resolution.res;
         for (int r = 0; r < res; r++) {
@@ -146,7 +142,7 @@ public class SplashPlaneParticle extends Particle {
     }
 
     @Override
-    public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
+    public void render(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
         this.isRenderReady = false;
         if (this.dead) return;
         if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() &&

@@ -6,11 +6,17 @@ import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
+import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
+import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -25,11 +31,22 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class WakesUtils {
+
+    public static int getLightColor(World world, BlockPos blockPos) {
+        int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, blockPos);
+        int x = LightmapTextureManager.getBlockLightCoordinates(lightCoordinate);
+        int y = LightmapTextureManager.getSkyLightCoordinates(lightCoordinate);
+        return LightmapWrapper.readPixel(x, y);
+    }
 
     public static void placeFallSplash(Entity entity) {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);

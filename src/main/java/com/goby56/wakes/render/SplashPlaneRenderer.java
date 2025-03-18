@@ -6,6 +6,7 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
@@ -13,6 +14,7 @@ import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -62,7 +64,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
-        RenderSystem.setShader(GameRenderer::getPositionTexColorProgram);
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.enableBlend();
 
@@ -75,7 +77,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr);
+        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr, GlConst.GL_RGBA);
         renderSurface(matrix);
 
         matrices.pop();
