@@ -20,4 +20,4 @@
 - Wakes on lava
 - API for other mods to add Wakes to their liquids
 
-  [![Download on Modrinth](https://raw.githubusercontent.com/Prospector/badges/master/modrinth-badge-72h-padded.png)](https://modrinth.com/mod/wakes)
+[![Download on Modrinth](https://raw.githubusercontent.com/Prospector/badges/master/modrinth-badge-72h-padded.png)](https://modrinth.com/mod/wakes)
