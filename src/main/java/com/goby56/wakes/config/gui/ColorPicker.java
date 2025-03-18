@@ -164,10 +164,9 @@ public class ColorPicker extends ClickableWidget {
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
-
         context.drawTexture(RenderLayer::getGuiTextured, PICKER_BG_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
-        drawHSVCircle();
         context.drawTexture(RenderLayer::getGuiTextured, PICKER_RIM_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        drawHSVCircle();
         // Draw picker knob
         int d = pickerKnobDim;
         Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
@@ -179,8 +178,11 @@ public class ColorPicker extends ClickableWidget {
 
     private void drawHSVCircle() {
         // Credit goes to @mchorse on the Fabric Discord server
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
         int radius = colorPickerBounds.width / 2;
         int x = colorPickerBounds.x + radius;
@@ -197,7 +199,7 @@ public class ColorPicker extends ClickableWidget {
             float hue = i / (float) segments;
             int color = new WakeColor(hue, 1f, value, opacity).argb;
 
-            buffer.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0F).color(color);
+            buffer.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0).color(color);
         }
 
         BufferRenderer.drawWithGlobalProgram(buffer.end());

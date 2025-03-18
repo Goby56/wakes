@@ -11,7 +11,7 @@ public class WakeColor {
     public final int r;
     public final int g;
     public final int b;
-    public int a;
+    public final int a;
     public final float h;
     public final float s;
     public final float v;
@@ -67,6 +67,10 @@ public class WakeColor {
         return color.blend(tint, lightColor, opacity).abgr;
     }
 
+    public WakeColor modifyOpacity(float opacityMultiplier) {
+        return new WakeColor(r, g, b, (int) (this.a * opacityMultiplier));
+    }
+
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
         double srcA = Math.pow(this.a / 255f, WakesConfig.blendStrength * 10);
         // Pow to make tint color have a larger influence
@@ -78,9 +82,6 @@ public class WakeColor {
         r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
         b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
-        // int r = lightColor       & 0xFF;
-        // int g = lightColor >> 8  & 0xFF;
-        // int b = lightColor >> 16 & 0xFF;
 
         return new WakeColor(r, g, b, (int) (this.a * opacity));
     }

@@ -5,7 +5,7 @@ wakes:
             title: Color Interval Slider
             infoText: |
                 - [Left Click] on a section to edit its color
-                - [Left Drag] a separator to change the extend of that section
+                - [Left Drag] a separator to change the range of that section
                 - [Shift + Left Click] on a section to insert a new separator
                 - [Shift + Left Click] on a separator to remove it
             infoButton.tooltip: Show/hide info

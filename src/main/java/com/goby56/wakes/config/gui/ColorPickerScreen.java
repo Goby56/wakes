@@ -84,8 +84,6 @@ public class ColorPickerScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffff);
         if (this.showInfoText) {
-            // TODO DYNAMIC TOOLTIP BACKGROUND SIZE DEPENDING ON INFO TEXT LENGTH
-            TooltipBackgroundRenderer.render(context, width - 350, height - 60, 325, 34, 0, Identifier.of("minecraft", "textures/block/bricks.png"));
             context.drawWrappedText(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xa8a8a8, true);
         }
     }

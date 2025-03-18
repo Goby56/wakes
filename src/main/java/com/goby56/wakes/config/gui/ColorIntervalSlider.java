@@ -63,13 +63,13 @@ public class ColorIntervalSlider extends SliderWidget {
             float value = handles.get(i).value;
 
             int currX = this.getX() + (int)(value * (double)(this.width));
-            WakeColor color = WakesConfig.getWakeColor(i);
-            color.a = 128;
-            context.fill(prevX + 1, y + 1, currX, y + this.height - 1, color.argb);
+            context.fill(prevX + 1, y + 1, currX, y + this.height - 1,
+                    WakesConfig.getWakeColor(i).modifyOpacity(0.5f).argb);
 
             prevX = currX;
         }
-        context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1, WakesConfig.getWakeColor(n).argb);
+        context.fill(prevX + 1, y + 1, this.getX() + this.width - 1, y + this.height - 1,
+                WakesConfig.getWakeColor(n).modifyOpacity(0.5f).argb);
 
         float hoveredVal = valueFromMousePos(mouseX);
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;

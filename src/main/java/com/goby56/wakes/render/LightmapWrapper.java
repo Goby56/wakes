@@ -7,12 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class LightmapWrapper {
-    private static final Logger log = LoggerFactory.getLogger(LightmapWrapper.class);
     public static long imgPtr = -1;
     public static WakeTexture texture;
 
@@ -56,6 +52,6 @@ public class LightmapWrapper {
                 .texture(1, 0)
                 .color(1f, 1f, 1f, 1f);
 
-BufferRenderer.drawWithGlobalProgram(buffer.end());
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 }
