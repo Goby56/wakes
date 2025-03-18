@@ -79,9 +79,9 @@ public class WakeColor {
         int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
         int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
 
-        r = (int) ((r * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
+        r = (int) ((r * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
         g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
-        b = (int) ((b * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
+        b = (int) ((b * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
 
         return new WakeColor(r, g, b, (int) (this.a * opacity));
     }
