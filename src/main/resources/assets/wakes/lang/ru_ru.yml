@@ -1,0 +1,82 @@
+waves:
+  gui:
+    title: Конфигурация Волн
+    colorIntervalSlider:
+      title: Ползунок цветового интервала
+      infoText: |
+        - [Щёлчок ЛКМ] по секции, чтобы изменить её цвет
+        - [Перетащите влево] разделитель, чтобы изменить диапазон этого раздела
+        - [Shift + щелчок ЛКМ] по секции, чтобы вставить новый разделитель
+        - [Shift + щелчок ЛКМ] по разделителю, чтобы удалить его
+      infoButton.tooltip: Показать/скрыть информацию
+      resetButton.tooltip: Сбросить конфигурацию
+    configButton: Конфигурации мода
+    colorConfigButton: Настройка цветов волн
+  midnightconfig:
+    title: Конфигурация Волн
+    category:
+      appearance: Внешний вид
+      general: Общие
+      debug: Отладка
+
+    spawnParticles: Частицы волн
+    firstPersonSplashPlane: Плоскость всплеска от первого лица
+    firstPersonSplashPlane.tooltip: Должна ли поверхность всплеска игрока быть видна при игре от первого лица?
+    wakeOpacity: Непрозрачность волн
+    blendStrength: Сила смешивания
+    wakeResolution: Разрешение волн
+    wakeResolution.tooltip: Пиксельное разрешение волн. Удобно для настройки волн, чтобы они визуально лучше соответствовали некоторым наборам ресурсов.
+    shaderLightPassthrough: Прохождение света шейдера
+    shaderLightPassthrough.tooltip: Используется для точной настройки внешнего вида волн при использовании шейдеров. Более высокое значение позволяет получить более яркие волны.
+    splashPlaneWidth: Ширина
+    splashPlaneHeight: Высота
+    splashPlaneDepth: Глубина
+    splashPlaneOffset: Смещение
+    splashPlaneGap: Зазор
+    splashPlaneResolution: Разрешение
+    splashPlaneScale: Масштаб
+    maxSplashPlaneVelocity: Максимальная скорость
+
+    disableMod: Отключить мод
+    pickBoat: Взять лодку
+    pickBoat.tooltip: Позволяет быстро взять лодку при щелчке СКМ по воде. (Точно так же, как при выборе блока в творческом режиме)
+    boatSpawning: Лодки
+    boatSpawning.tooltip: Какой эффект должен быть виден, когда лодка движется по воде?
+    playerSpawning: Игроки
+    playerSpawning.tooltip: Какой эффект должен быть виден, когда вы двигаетесь в воде?
+    otherPlayersSpawning: Другие игроки
+    otherPlayersSpawning.tooltip: Какой эффект должен быть виден, когда другие игроки двигаются в воде?
+    mobSpawning: Мобы
+    mobSpawning.tooltip: Какой эффект должен быть виден, когда мобы двигаются в воде?
+    itemSpawning: Предметы
+    itemSpawning.tooltip: Какой эффект должен быть виден, когда предмет движется в воде?
+    wavePropagationFactor: Коэффициент распространения волны
+    wavePropagationFactor.tooltip: Влияние, которое пиксель оказывает на соседние пиксели внутри волн
+    waveDecayFactor: Коэффициент затухания волны
+    waveDecayFactor.tooltip: Указывает, сколько пикселей остается после каждого такта. (Логарифмическая шкала)
+    initialStrength: Начальная сила волны
+    initialStrength.tooltip: Сила, с которой источник начинает создавать волну.
+    paddleStrength: Сила весла
+    splashStrength: Сила всплеска
+
+    debugColors: Отображать волны с отладочными цветами
+    drawDebugBoxes: Отображать отладочные коробки
+    showDebugInfo: Показывать отладочную информацию в F3
+    floodFillDistance: Расстояние заливки потоком
+    floodFillTickDelay: Тактов до следующей заливки потоком
+    renderType: Тип отображения
+
+    enum:
+      Resolution:
+        "8": 8×8
+        "16": 16×16
+        "32": 32×32
+      EffectSpawningRule:
+        SIMULATION_AND_PLANES: Моделирование и плоскости
+        ONLY_SIMULATION: Только моделирование
+        ONLY_PLANES: Только плоскости
+        DISABLED: Отключено
+
+    splashPlaneDivider: Плоскость всплеска
+    spawningRuleDivider: Правила появления эффекта
+    wakeBehaviourDivider: Поведение волн
