@@ -25,9 +25,9 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
         this.velocityY = velocityY;
         this.velocityZ = velocityZ;
 
-        this.prevPosX = x;
-        this.prevPosY = y;
-        this.prevPosZ = z;
+        this.lastX = x;
+        this.lastY = y;
+        this.lastZ = z;
 
         this.maxAge = (int) (WakeNode.maxAge * 1.5);
         this.setSprite(sprites.getSprite(world.random));
@@ -54,9 +54,9 @@ public class SplashCloudParticle extends SpriteBillboardParticle {
             }
             this.alpha = 1f - (float) this.age / (this.maxAge / 3f);
         }
-        this.prevPosX = this.x;
-        this.prevPosY = this.y;
-        this.prevPosZ = this.z;
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
 
         if (world.getFluidState(new BlockPos((int) this.x, (int) this.y, (int) this.z)).isOf(Fluids.WATER)) {
             this.velocityY = 0.1;

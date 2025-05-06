@@ -2,11 +2,18 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeColor;
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKey;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -21,6 +28,7 @@ import org.joml.Vector2f;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -29,6 +37,11 @@ public class ColorPicker extends ClickableWidget {
     private static final Identifier PICKER_RIM_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_rim.png");
     private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
+
+    private static final RenderPipeline renderPipeline = RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
+            .withVertexShader("core/position_color").withFragmentShader("core/position_color")
+            .withBlend(BlendFunction.OVERLAY).withDepthWrite(true)
+            .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.TRIANGLE_FAN).build();
 
     private final Map<String, Bounded> widgets = new HashMap<>();
     private final AABB colorPickerBounds;
@@ -178,12 +191,13 @@ public class ColorPicker extends ClickableWidget {
 
     private void drawHSVCircle() {
         // Credit goes to @mchorse on the Fabric Discord server
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableDepthTest();
+        // GlStateManager._enableBlend();
+        // GlStateManager._blendFuncSeparate();
+        //RenderSystem.defaultBlendFunc();
+        // GlStateManager._disableDepthTest();
 
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+
+        BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
         int radius = colorPickerBounds.width / 2;
         int x = colorPickerBounds.x + radius;
         int y = colorPickerBounds.y + radius;
@@ -192,17 +206,25 @@ public class ColorPicker extends ClickableWidget {
         float opacity = ((ColorPickerSlider) this.widgets.get("alphaSlider").getWidget()).getValue() * 0.5f;
 
         WakeColor middleColor = new WakeColor(0, 0, value, opacity);
-        buffer.vertex(x, y, 0F).color(middleColor.argb);
+        bufferBuilder.vertex(x, y, 0F).color(middleColor.argb);
 
         for (int i = 0; i <= segments; i ++) {
             double a = i / (double) segments * Math.PI * 2 - Math.PI / 2;
             float hue = i / (float) segments;
             int color = new WakeColor(hue, 1f, value, opacity).argb;
 
-            buffer.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0).color(color);
+            bufferBuilder.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0).color(color);
         }
 
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        BuiltBuffer builtBuffer = bufferBuilder.end();
+        var buffer = RenderSystem.getDevice().createBuffer(() -> "Wakes HSV circle buffer", BufferType.VERTICES, BufferUsage.STATIC_READ, builtBuffer.getBuffer());
+        int indices = builtBuffer.getDrawParameters().indexCount();
+        Framebuffer framebuffer = MinecraftClient.getInstance().getFramebuffer();
+        try(RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(framebuffer.getColorAttachment(), OptionalInt.of(0xFFFFFFFF))) {
+            pass.setPipeline(renderPipeline);
+            pass.setVertexBuffer(0, buffer);
+            pass.draw(0, indices);
+        }
     }
 
     @Override
@@ -349,9 +371,9 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
+//            RenderSystem.enableBlend();
+//            RenderSystem.defaultBlendFunc();
+//            RenderSystem.disableDepthTest();
 
             context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 

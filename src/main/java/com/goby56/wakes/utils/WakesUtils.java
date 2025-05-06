@@ -67,7 +67,7 @@ public class WakesUtils {
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
                     Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
-                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
+                    world.addParticleClient(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
         }
@@ -76,7 +76,7 @@ public class WakesUtils {
     public static void spawnSplashPlane(World world, Entity owner) {
         WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
         Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+        world.addParticleClient(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
 
     public static void placeWakeTrail(Entity entity) {

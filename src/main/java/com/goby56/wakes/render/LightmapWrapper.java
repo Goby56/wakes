@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.LightmapTextureManager;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -21,6 +21,7 @@ public class LightmapWrapper {
         if (imgPtr == -1) {
             initTexture();
         }
+
         RenderSystem.bindTexture(lightmapTextureManager.lightmapFramebuffer.getColorAttachment());
         GlStateManager._getTexImage(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_BGR, GlConst.GL_UNSIGNED_BYTE, imgPtr);
     }

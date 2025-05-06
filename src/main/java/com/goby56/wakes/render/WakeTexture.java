@@ -17,6 +17,7 @@ public class WakeTexture {
     public final boolean isUsingBricks;
     private final int resolutionScaling;
 
+
     public WakeTexture(int res, boolean useBricks) {
         this.res = res;
         this.glTexId = TextureUtil.generateTextureId();
