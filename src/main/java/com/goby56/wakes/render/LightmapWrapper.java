@@ -1,5 +1,7 @@
 package com.goby56.wakes.render;
 
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -9,30 +11,24 @@ import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
 public class LightmapWrapper {
-    public static long imgPtr = -1;
-    public static WakeTexture texture;
+    public static WritableTexture texture;
 
     public static void initTexture() {
-        imgPtr = MemoryUtil.nmemAlloc(16 * 16 * 3);
-        texture = new WakeTexture(16, false);
+        texture = new WritableTexture(16, 16, "Lightmap wrapper texture");
     }
 
     public static void updateTexture(LightmapTextureManager lightmapTextureManager) {
-        if (imgPtr == -1) {
+        if (texture == null) {
             initTexture();
         }
-
-        RenderSystem.bindTexture(lightmapTextureManager.lightmapFramebuffer.getColorAttachment());
-        GlStateManager._getTexImage(GlConst.GL_TEXTURE_2D, 0, GlConst.GL_BGR, GlConst.GL_UNSIGNED_BYTE, imgPtr);
+        texture.readFromTexture(lightmapTextureManager.getGlTexture());
     }
 
     public static int readPixel(int block, int sky) {
-        if (imgPtr == -1) {
+        if (texture == null) {
             return 0;
         }
-        int index = (block + sky * 16) * 3;
-
-        return MemoryUtil.memGetInt(imgPtr + index);
+        return texture.getPixel(block, sky);
     }
 
     public static void render(Matrix4f matrix) {
