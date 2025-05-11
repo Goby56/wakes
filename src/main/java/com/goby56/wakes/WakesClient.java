@@ -2,7 +2,6 @@ package com.goby56.wakes;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
-import com.goby56.wakes.event.PickBoat;
 import com.goby56.wakes.event.WakeClientTicker;
 import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
@@ -11,10 +10,7 @@ import com.goby56.wakes.render.WakeRenderer;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.player.PlayerPickItemEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -41,10 +37,6 @@ public class WakesClient implements ClientModInitializer {
 		// Wake handler handling
 		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
 		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
-
-		// Game events
-		PlayerPickItemEvents.BLOCK.register(new PickBoat());
-		PlayerPickItemEvents.ENTITY.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());
