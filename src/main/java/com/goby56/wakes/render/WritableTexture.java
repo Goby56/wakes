@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
 import net.minecraft.client.texture.NativeImage;
+import org.lwjgl.BufferUtils;
 
 import java.nio.IntBuffer;
 
@@ -15,17 +16,17 @@ public class WritableTexture {
     private final int width;
     private final int height;
 
-    private final GpuTexture texture;
+    public final GpuTexture texture;
 
     public WritableTexture(int width, int height, String name) {
         this.width = width;
         this.height = height;
-        this.pixelBuffer = IntBuffer.allocate(width * height);
+        this.pixelBuffer = BufferUtils.createIntBuffer(width * height);
         this.texture = RenderSystem.getDevice().createTexture(name, TextureFormat.RGBA8, width, height, 1);
     }
 
     public int getPixel(int x, int y) {
-        this.pixelBuffer.get(y*this.width + x);
+        return this.pixelBuffer.get(y*this.width + x);
     }
 
     public void setPixel(int x, int y, int color) {
@@ -55,7 +56,13 @@ public class WritableTexture {
     public void upload() {
         RenderSystem.getDevice().createCommandEncoder().writeToTexture(
                 this.texture, this.pixelBuffer, NativeImage.Format.RGBA,
-                1, 0, 0, this.width, this.height);
+                0, 0, 0, this.width, this.height);
+    }
+
+    public void upload(IntBuffer pixels) {
+        RenderSystem.getDevice().createCommandEncoder().writeToTexture(
+                this.texture, pixels, NativeImage.Format.RGBA,
+                0, 0, 0, this.width, this.height);
     }
 
     public void release() {

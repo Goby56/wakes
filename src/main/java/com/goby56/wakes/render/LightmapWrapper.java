@@ -1,14 +1,16 @@
 package com.goby56.wakes.render;
 
 import com.mojang.blaze3d.buffers.BufferType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.render.*;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryUtil;
+
+import java.util.OptionalInt;
 
 public class LightmapWrapper {
     public static WritableTexture texture;
@@ -24,7 +26,7 @@ public class LightmapWrapper {
         texture.readFromTexture(lightmapTextureManager.getGlTexture());
     }
 
-    public static int readPixel(int block, int sky) {
+    public static int getLightColor(int block, int sky) {
         if (texture == null) {
             return 0;
         }
@@ -32,23 +34,21 @@ public class LightmapWrapper {
     }
 
     public static void render(Matrix4f matrix) {
-        texture.loadTexture(imgPtr, GlConst.GL_BGR);
+        RenderSystem.getDevice().createCommandEncoder().presentTexture(texture.texture);
+        // BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        // int middleX = MinecraftClient.getInstance().getWindow().getScaledWidth() / 2;
 
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        int middleX = MinecraftClient.getInstance().getWindow().getScaledWidth() / 2;
-        buffer.vertex(matrix, middleX - 50, 0, 0)
-                .texture(0, 0)
-                .color(1f, 1f, 1f, 1f);
-        buffer.vertex(matrix,  middleX + 50, 0, 0)
-                .texture(0, 1)
-                .color(1f, 1f, 1f, 1f);
-        buffer.vertex(matrix, middleX + 50, 100, 0)
-                .texture(1, 1)
-                .color(1f, 1f, 1f, 1f);
-        buffer.vertex(matrix, middleX - 50, 100, 0)
-                .texture(1, 0)
-                .color(1f, 1f, 1f, 1f);
+        // bufferBuilder.vertex(matrix, middleX - 50, 0, 0).texture(0, 0).color(0xffffffff);
+        // bufferBuilder.vertex(matrix, middleX + 50, 0, 0).texture(0, 1).color(0xffffffff);
+        // bufferBuilder.vertex(matrix, middleX + 50, 100, 0).texture(1, 1).color(0xffffffff);
+        // bufferBuilder.vertex(matrix, middleX - 50, 100, 0).texture(1, 0).color(0xffffffff);
 
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        // BuiltBuffer builtBuffer = bufferBuilder.end();
+        // var buffer = RenderSystem.getDevice().createBuffer(() -> "Wakes lightmap quad buffer", BufferType.VERTICES, BufferUsage.STATIC_READ, builtBuffer.getBuffer());
+        // try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(texture.texture, OptionalInt.of(0xffffffff))) {
+        //     pass.setPipeline(RenderPipelines.GUI_TEXTURED);
+        //     pass.setVertexBuffer(0, buffer);
+        //     pass.draw(0, buffer.size);
+        // }
     }
 }

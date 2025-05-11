@@ -6,15 +6,18 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
-import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.buffers.BufferType;
+import com.mojang.blaze3d.buffers.BufferUsage;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -25,6 +28,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 
 public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
 
@@ -64,9 +68,6 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        RenderSystem.enableBlend();
 
         matrices.push();
         splashPlane.translateMatrix(context, matrices);
@@ -77,14 +78,14 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
 
-        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr, GlConst.GL_RGBA);
-        renderSurface(matrix);
+        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.pixels);
+        renderSurface(matrix, wakeTextures.get(WakeHandler.resolution));
 
         matrices.pop();
     }
 
-    private static void renderSurface(Matrix4f matrix) {
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
+    private static void renderSurface(Matrix4f matrix, WakeTexture texture) {
+        BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -95,7 +96,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
             for (int i = 0; i < vertices.size(); i++) {
                 Vec3d vertex = vertices.get(i);
                 Vec3d normal = normals.get(i);
-                buffer.vertex(matrix,
+                bufferBuilder.vertex(matrix,
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
@@ -105,10 +106,14 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
             }
         }
 
-        RenderSystem.disableCull();
-        RenderSystem.enableDepthTest();
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-        RenderSystem.enableCull();
+        BuiltBuffer builtBuffer = bufferBuilder.end();
+        var buffer = RenderSystem.getDevice().createBuffer(() -> "Wakes wake quad buffer", BufferType.VERTICES, BufferUsage.STATIC_READ, builtBuffer.getBuffer());
+
+        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(texture.texture, OptionalInt.of(0xffffffff))) {
+            pass.setPipeline(RenderPipelines.TRANSLUCENT);
+            pass.setVertexBuffer(0, buffer);
+            pass.draw(0, buffer.size);
+        }
     }
 
     private static double upperBound(double x) {

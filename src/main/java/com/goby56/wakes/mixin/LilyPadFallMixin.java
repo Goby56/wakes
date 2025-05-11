@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class LilyPadFallMixin {
 
     @Inject(at = @At("TAIL"), method = "onLandedUpon")
-    public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, float fallDistance, CallbackInfo ci) {
+    public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, double fallDistance, CallbackInfo ci) {
         if (!world.getBlockState(pos.up()).isOf(Blocks.LILY_PAD)) return;
         if (WakesConfig.disableMod) return;
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);

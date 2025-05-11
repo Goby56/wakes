@@ -43,8 +43,8 @@ public class WakesClient implements ClientModInitializer {
 		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
 
 		// Game events
-		PlayerPickItemEvents.BLOCK.register(new PickBoat());
-		PlayerPickItemEvents.ENTITY.register(new PickBoat());
+		// PlayerPickItemEvents.BLOCK.register(new PickBoat());
+		// PlayerPickItemEvents.ENTITY.register(new PickBoat());
 
 		// Rendering events
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(new WakeRenderer());

@@ -35,9 +35,5 @@
 	},
 	"suggests": {
 		"blazingly-fast-boats": "*"
-	},
-	"recommends": {
-		"modmenu": ">=11.0.0",
-		"yet_another_config_lib_v3": ">=3.5.0"
 	}
 }

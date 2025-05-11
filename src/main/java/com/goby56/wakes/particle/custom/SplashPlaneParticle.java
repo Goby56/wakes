@@ -27,8 +27,10 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.particle.SimpleParticleType;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.IntBuffer;
 import java.util.Random;
 
 public class SplashPlaneParticle extends Particle {
@@ -40,7 +42,7 @@ public class SplashPlaneParticle extends Particle {
 
     private final SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
 
-    public long imgPtr = -1;
+    public IntBuffer pixels;
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
@@ -112,19 +114,15 @@ public class SplashPlaneParticle extends Particle {
     }
 
     public void initTexture(int res) {
-        long size = 4L * res * res;
-        if (imgPtr == -1) {
-            imgPtr = MemoryUtil.nmemAlloc(size);
-        } else {
-            imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
+        if (pixels == null) {
+            this.pixels = BufferUtils.createIntBuffer(res*res);
         }
-
         this.texRes = res;
         this.hasPopulatedPixels = false;
     }
 
     public void deallocTexture() {
-        MemoryUtil.nmemFree(imgPtr);
+        this.pixels.clear();
     }
 
     public void populatePixels() {
@@ -134,8 +132,8 @@ public class SplashPlaneParticle extends Particle {
         int res = WakeHandler.resolution.res;
         for (int r = 0; r < res; r++) {
             for (int c = 0; c < res; c++) {
-                long pixelOffset = 4L * (((long) r * res) + c);
-                MemoryUtil.memPutInt(imgPtr + pixelOffset, simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity));
+                int pixelOffset = ((r * res) + c);
+                this.pixels.put(pixelOffset, simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity));
             }
         }
         this.hasPopulatedPixels = true;

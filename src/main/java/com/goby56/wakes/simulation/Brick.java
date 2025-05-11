@@ -1,21 +1,19 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.goby56.wakes.render.WakeTexture;
 import com.goby56.wakes.utils.WakesUtils;
-import com.ibm.icu.impl.number.MicroProps;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.world.BiomeColors;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +33,7 @@ public class Brick {
     public Brick SOUTH;
     public Brick WEST;
 
-    public long imgPtr = -1;
+    public IntBuffer pixels;
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
@@ -49,18 +47,15 @@ public class Brick {
     }
 
     public void initTexture(int res) {
-        long size = 4L * dim * dim * res * res;
-        if (imgPtr == -1) {
-            this.imgPtr = MemoryUtil.nmemAlloc(size);
-        } else {
-            this.imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
+        if (pixels == null) {
+            this.pixels = BufferUtils.createIntBuffer(dim*dim*res*res);
         }
         this.texRes = res;
         this.hasPopulatedPixels = false;
     }
 
     public void deallocTexture() {
-        MemoryUtil.nmemFree(imgPtr);
+        this.pixels.clear();
     }
 
     public boolean tick(WakeHandler wakeHandler) {
@@ -185,7 +180,7 @@ public class Brick {
                 }
 
                 // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)
-                long nodeOffset = texRes * 4L * (((long) z * dim * texRes) + (long) x);
+                int nodeOffset = texRes * ((z * dim * texRes) + x);
                 for (int r = 0; r < texRes; r++) {
                     for (int c = 0; c < texRes; c++) {
                         int color = 0;
@@ -193,8 +188,8 @@ public class Brick {
                             // TODO USE SHADERS TO COLOR THE WAKES?
                             color = node.simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity);
                         }
-                        long pixelOffset = 4L * (((long) r * dim * texRes) + c);
-                        MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
+                        int pixelOffset = (( r * dim * texRes) + c);
+                        this.pixels.put(nodeOffset + pixelOffset, color);
                     }
                 }
             }
