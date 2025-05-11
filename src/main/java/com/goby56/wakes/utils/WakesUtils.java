@@ -21,6 +21,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.registry.tag.FluidTags;
@@ -110,7 +111,7 @@ public class WakesUtils {
     }
 
     public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
-        if (source instanceof BoatEntity boat) {
+        if (source instanceof AbstractBoatEntity boat) {
             List<Entity> passengers = boat.getPassengerList();
             if (passengers.contains(MinecraftClient.getInstance().player)) {
                 return WakesConfig.boatSpawning;
