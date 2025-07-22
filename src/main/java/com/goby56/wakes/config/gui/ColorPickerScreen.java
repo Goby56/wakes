@@ -89,8 +89,8 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    protected void applyBlur() {
-        // No Song 2
+    protected void applyBlur(DrawContext context) {
+
     }
 
     public void addWidget(ClickableWidget widget) {

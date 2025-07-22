@@ -69,9 +69,9 @@ public class SplashPlaneParticle extends Particle {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(this.owner).renderPlanes) {
             this.markDead();
         }
-        this.prevPosX = this.x;
-        this.prevPosY = this.y;
-        this.prevPosZ = this.z;
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
@@ -103,8 +103,8 @@ public class SplashPlaneParticle extends Particle {
             Vec3d particleOffset = new Vec3d(-direction.z, 0, direction.x).multiply(random.nextDouble() * this.owner.getWidth() / 4);
             Vec3d particlePos = this.owner.getPos().add(direction.multiply(this.owner.getWidth() - 0.3));
             Vec3d particleVelocity = Vec3d.fromPolar((float) (45 * random.nextDouble()), (float) (-this.yaw + 30 * (random.nextDouble() - 0.5f))).multiply(1.5 * vel.length());
-            this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
-            this.world.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+            this.world.addParticleClient(ModParticles.SPLASH_CLOUD, particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+            this.world.addParticleClient(ModParticles.SPLASH_CLOUD, particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
         }
 
         this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);
@@ -164,10 +164,10 @@ public class SplashPlaneParticle extends Particle {
 
     public void translateMatrix(WorldRenderContext context, MatrixStack matrices) {
         Vec3d cameraPos = context.camera().getPos();
-        float tickDelta = context.tickCounter().getTickDelta(true);
-        float x = (float) (MathHelper.lerp(tickDelta, this.prevPosX, this.x) - cameraPos.getX());
-        float y = (float) (MathHelper.lerp(tickDelta, this.prevPosY, this.y) - cameraPos.getY());
-        float z = (float) (MathHelper.lerp(tickDelta, this.prevPosZ, this.z) - cameraPos.getZ());
+        float tickDelta = context.tickCounter().getTickProgress(true);
+        float x = (float) (MathHelper.lerp(tickDelta, this.lastX, this.x) - cameraPos.getX());
+        float y = (float) (MathHelper.lerp(tickDelta, this.lastY, this.y) - cameraPos.getY());
+        float z = (float) (MathHelper.lerp(tickDelta, this.lastZ, this.z) - cameraPos.getZ());
 
         matrices.translate(x, y, z);
     }

@@ -6,15 +6,20 @@ import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
-import com.mojang.blaze3d.platform.GlConst;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.opengl.GlConst;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -22,9 +27,7 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
 
@@ -64,9 +67,6 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        RenderSystem.enableBlend();
 
         matrices.push();
         splashPlane.translateMatrix(context, matrices);
@@ -84,7 +84,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
     }
 
     private static void renderSurface(Matrix4f matrix) {
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_TEXTURE_COLOR_NORMAL);
+        BufferBuilder bb = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
@@ -95,20 +95,32 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
             for (int i = 0; i < vertices.size(); i++) {
                 Vec3d vertex = vertices.get(i);
                 Vec3d normal = normals.get(i);
-                buffer.vertex(matrix,
+                bb.vertex(matrix,
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
                         .texture((float) (vertex.x), (float) (vertex.y))
+                        .light(LightmapTextureManager.MAX_LIGHT_COORDINATE)
                         .color(1f, 1f, 1f, 1f)
                         .normal((float) normal.x, (float) normal.y, (float) normal.z);
             }
         }
 
-        RenderSystem.disableCull();
-        RenderSystem.enableDepthTest();
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-        RenderSystem.enableCull();
+        BuiltBuffer built = bb.end();
+
+        GpuBuffer buffer = VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.uploadImmediateVertexBuffer(built.getBuffer());
+        GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES).getIndexBuffer(built.getDrawParameters().indexCount());
+        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", MinecraftClient.getInstance().getFramebuffer().getColorAttachmentView(), OptionalInt.empty(), MinecraftClient.getInstance().getFramebuffer().getDepthAttachmentView(), OptionalDouble.empty())) {
+            pass.setPipeline(RenderPipelines.RENDERTYPE_TRANSLUCENT_MOVING_BLOCK);
+            pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
+            pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
+            RenderSystem.bindDefaultUniforms(pass);
+
+            pass.setVertexBuffer(0, buffer);
+            pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES).getIndexType());
+            pass.drawIndexed(0, 0, built.getDrawParameters().indexCount(), 1);
+        }
+        built.close();
     }
 
     private static double upperBound(double x) {
