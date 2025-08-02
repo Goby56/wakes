@@ -18,12 +18,12 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url "https://maven.terraformersmc.com/releases/" }
+	maven { url = 'https://jitpack.io' }
+	maven { url = "https://maven.shedaniel.me/" }
+	maven { url = "https://maven.terraformersmc.com/releases/" }
 	maven {
-		name "Ladysnake Mods"
-		url "https://maven.ladysnake.org/releases"
+		name = "Ladysnake Mods"
+		url  = "https://maven.ladysnake.org/releases"
 	}
 
 	exclusiveContent {
