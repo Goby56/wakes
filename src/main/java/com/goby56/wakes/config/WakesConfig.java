@@ -15,7 +15,6 @@ public class WakesConfig extends MidnightConfig {
 
     // Debug
     @Entry(category = GENERAL) public static boolean disableMod = false; // TODO SWITCH TO ENABLE MOD TOGGLE
-    @Entry(category = GENERAL) public static boolean pickBoat = true;
 
 
     // Spawning

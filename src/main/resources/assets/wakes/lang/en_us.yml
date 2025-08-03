@@ -38,8 +38,6 @@ wakes:
         maxSplashPlaneVelocity: Max velocity
 
         disableMod: Disable mod
-        pickBoat: Pick boat
-        pickBoat.tooltip: Enables you to quickly grab a boat when middle clicking water. (Just like pick block)
         boatSpawning: Boats
         boatSpawning.tooltip: What effect should be visible when a boat moves in water?
         playerSpawning: Player

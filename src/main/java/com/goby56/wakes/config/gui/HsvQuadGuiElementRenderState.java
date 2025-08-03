@@ -48,6 +48,7 @@ public record HsvQuadGuiElementRenderState(
 
     @Override
     public TextureSetup textureSetup() {
-        return TextureSetup.withoutGlTexture(MinecraftClient.getInstance().getTextureManager().getTexture(Identifier.ofVanilla("textures/block/dirt.png")).getGlTextureView());
+        return TextureSetup.empty();
+        // return TextureSetup.withoutGlTexture(MinecraftClient.getInstance().getTextureManager().getTexture(Identifier.ofVanilla("textures/block/dirt.png")).getGlTextureView());
     }
 }

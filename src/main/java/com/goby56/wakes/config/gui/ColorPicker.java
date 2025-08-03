@@ -339,20 +339,19 @@ public class ColorPicker extends ClickableWidget {
 
             if (this.type.equals(SliderUpdateType.HUE)) {
                 context.state.addSimpleElement(new HsvQuadGuiElementRenderState(
-                                new Matrix3x2f(context.getMatrices()),
-                                this.getX() + 1, this.getY() + 1, this.getWidth() - 2, this.getHeight() - 2,
-                                0x4000FFFF,
-                                0x4000FFFF,
-                                0x40FFFFFF,
-                                0x40FFFFFF,
-                                context.scissorStack.peekLast()
-                        )
+                        new Matrix3x2f(context.getMatrices()),
+                        this.getX() + 1, this.getY() + 1, this.getWidth() - 2, this.getHeight() - 2,
+                        0x4000FFFF,
+                        0x4000FFFF,
+                        0x40FFFFFF,
+                        0x40FFFFFF,
+                        context.scissorStack.peekLast()
+                    )
                 );
             }
-
             context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
-            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
+            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil(this.alpha * 255.0f) << 24);
         }
 
         @Override
