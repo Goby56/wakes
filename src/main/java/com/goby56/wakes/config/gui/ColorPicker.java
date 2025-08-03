@@ -2,20 +2,18 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeColor;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKey;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.*;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 
 import java.awt.*;
@@ -25,8 +23,8 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class ColorPicker extends ClickableWidget {
+    private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("textures/gui/sprites/widget/slot_frame.png");
     private static final Identifier PICKER_BG_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_background.png");
-    private static final Identifier PICKER_RIM_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_rim.png");
     private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
@@ -46,7 +44,7 @@ public class ColorPicker extends ClickableWidget {
         this.pickerCenter.y = this.colorPickerBounds.y + this.colorPickerBounds.height / 2f;
         this.pickerRadius = this.colorPickerBounds.width / 2f;
 
-        this.widgets.put("valueSlider", new ColorPickerSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Brightness", this, SliderUpdateType.VALUE));
+        this.widgets.put("hueSlider", new ColorPickerSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", this, SliderUpdateType.HUE));
         this.widgets.put("alphaSlider", new ColorPickerSlider(new AABB(3f / 6f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, SliderUpdateType.OPACITY));
         this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 3f / 6f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
 
@@ -70,8 +68,8 @@ public class ColorPicker extends ClickableWidget {
             return;
         }
         float[] hsv = Color.RGBtoHSB(currentColor.r, currentColor.g, currentColor.b, null);
-        float x = (float) (this.pickerCenter.x + hsv[1] * this.pickerRadius * Math.cos(hsv[0]));
-        float y = (float) (this.pickerCenter.y + hsv[1] * this.pickerRadius * Math.sin(hsv[0]));
+        float x = this.colorPickerBounds.x + hsv[1] * this.colorPickerBounds.width;
+        float y = this.colorPickerBounds.y + (1 - hsv[2]) * this.colorPickerBounds.height;
         this.pickerPos.set(x, y);
         for (var widgetKey : this.widgets.keySet()) {
             if (updateFlag.equals(WidgetUpdateFlag.IGNORE_HEX) && widgetKey.equals("hexInputField")) {
@@ -145,16 +143,16 @@ public class ColorPicker extends ClickableWidget {
     }
 
     public void updatePickerPos(double mouseX, double mouseY) {
-        Vector2f rv = getPolarPos(mouseX, mouseY);
-        this.pickerPos.set(this.pickerCenter.x + rv.x * Math.cos(rv.y), this.pickerCenter.y + rv.x * Math.sin(rv.y));
+        mouseX = Math.min(this.colorPickerBounds.x + this.colorPickerBounds.width, Math.max(this.colorPickerBounds.x, mouseX));
+        mouseY = Math.min(this.colorPickerBounds.y + this.colorPickerBounds.height, Math.max(this.colorPickerBounds.y, mouseY));
+        this.pickerPos.set(mouseX, mouseY);
         this.updateColor();
     }
 
     public void updateColor() {
-        Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
-        float hue = (float) (1 - (rv.y + Math.PI / 2) / (2f * Math.PI));
-        float saturation = rv.x / pickerRadius;
-        float value = ((ColorPickerSlider) this.widgets.get("valueSlider").getWidget()).getValue();
+        float hue = ((ColorPickerSlider) this.widgets.get("hueSlider").getWidget()).getValue();
+        float saturation = (pickerPos.x - this.colorPickerBounds.x) / this.colorPickerBounds.width;
+        float value = 1f - (pickerPos.y - this.colorPickerBounds.y) / this.colorPickerBounds.height;
         float opacity = ((ColorPickerSlider) this.widgets.get("alphaSlider").getWidget()).getValue();
         WakeColor newColor = new WakeColor(hue, saturation, value, opacity);
         this.setColor(newColor, WidgetUpdateFlag.ONLY_HEX);
@@ -164,45 +162,33 @@ public class ColorPicker extends ClickableWidget {
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         if (!active) return;
-        context.drawTexture(RenderLayer::getGuiTextured, PICKER_BG_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
-        context.drawTexture(RenderLayer::getGuiTextured, PICKER_RIM_TEXTURE, colorPickerBounds.x - 1, colorPickerBounds.y - 1, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
-        drawHSVCircle();
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, PICKER_BG_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, FRAME_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+
+        drawPickerBox(context);
         // Draw picker knob
         int d = pickerKnobDim;
-        Vector2f rv = getPolarPos(pickerPos.x, pickerPos.y);
-        this.pickerPos.set(this.pickerCenter.x + rv.x * Math.cos(rv.y), this.pickerCenter.y + rv.x * Math.sin(rv.y));
-        int pickerX = (int) (this.pickerCenter.x + rv.x * Math.cos(rv.y));
-        int pickerY = (int) (this.pickerCenter.y + rv.x * Math.sin(rv.y));
-        context.drawTexture(RenderLayer::getGuiTextured, PICKER_KNOB_TEXTURE, pickerX - 3, pickerY - 3, 0, 0, d, d, d, d);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, PICKER_KNOB_TEXTURE, (int) pickerPos.x - 3, (int) pickerPos.y - 3, 0, 0, d, d, d, d);
     }
 
-    private void drawHSVCircle() {
-        // Credit goes to @mchorse on the Fabric Discord server
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableDepthTest();
+    private void drawPickerBox(DrawContext context) {
+        int y = colorPickerBounds.y + 3;
+        int x = colorPickerBounds.x + 3;
+        int w = colorPickerBounds.width - 6;
+        int h = colorPickerBounds.height - 6;
 
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-        int radius = colorPickerBounds.width / 2;
-        int x = colorPickerBounds.x + radius;
-        int y = colorPickerBounds.y + radius;
-        int segments = 24;
-        float value = ((ColorPickerSlider) this.widgets.get("valueSlider").getWidget()).getValue();
-        float opacity = ((ColorPickerSlider) this.widgets.get("alphaSlider").getWidget()).getValue() * 0.5f;
+        int hue = (int) (((ColorPickerSlider) this.widgets.get("hueSlider").getWidget()).getValue() * 255);
 
-        WakeColor middleColor = new WakeColor(0, 0, value, opacity);
-        buffer.vertex(x, y, 0F).color(middleColor.argb);
-
-        for (int i = 0; i <= segments; i ++) {
-            double a = i / (double) segments * Math.PI * 2 - Math.PI / 2;
-            float hue = i / (float) segments;
-            int color = new WakeColor(hue, 1f, value, opacity).argb;
-
-            buffer.vertex((int) (x - Math.cos(a) * radius), (int) (y + Math.sin(a) * radius), 0).color(color);
-        }
-
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        context.state.addSimpleElement(new HsvQuadGuiElementRenderState(
+                new Matrix3x2f(context.getMatrices()),
+                x, y, w, h,
+                0x7F0000FF | hue << 16,
+                0x7F000000 | hue << 16,
+                0x7F00FF00 | hue << 16,
+                0x7F00FFFF | hue << 16,
+                context.scissorStack.peekLast()
+                )
+        );
     }
 
     @Override
@@ -349,15 +335,23 @@ public class ColorPicker extends ClickableWidget {
 
         @Override
         public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.disableDepthTest();
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
-            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-
-            context.drawGuiTexture(RenderLayer::getGuiTextured, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            if (this.type.equals(SliderUpdateType.HUE)) {
+                context.state.addSimpleElement(new HsvQuadGuiElementRenderState(
+                        new Matrix3x2f(context.getMatrices()),
+                        this.getX() + 1, this.getY() + 1, this.getWidth() - 2, this.getHeight() - 2,
+                        0x4000FFFF,
+                        0x4000FFFF,
+                        0x40FFFFFF,
+                        0x40FFFFFF,
+                        context.scissorStack.peekLast()
+                    )
+                );
+            }
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
-            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil((float)(this.alpha * 255.0f)) << 24);
+            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil(this.alpha * 255.0f) << 24);
         }
 
         @Override

@@ -32,12 +32,5 @@
 		"minecraft": "~1.21",
 		"java": ">=21",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"blazingly-fast-boats": "*"
-	},
-	"recommends": {
-		"modmenu": ">=11.0.0",
-		"yet_another_config_lib_v3": ">=3.5.0"
 	}
 }

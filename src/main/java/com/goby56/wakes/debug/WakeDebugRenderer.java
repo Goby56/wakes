@@ -46,14 +46,14 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
     }
 
     public static void registerDebugTextureRenderer() {
-        HudLayerRegistrationCallback.EVENT.register(layeredDrawerWrapper -> {
-            layeredDrawerWrapper.attachLayerBefore(IdentifiedLayer.DEBUG, WakeDebugRenderer.DEBUG_TEXTURE_LAYER, WakeDebugRenderer::renderOnHUD);
-        });
+       // HudLayerRegistrationCallback.EVENT.register(layeredDrawerWrapper -> {
+       //     layeredDrawerWrapper.attachLayerBefore(IdentifiedLayer.DEBUG, WakeDebugRenderer.DEBUG_TEXTURE_LAYER, WakeDebugRenderer::renderOnHUD);
+        //});
     }
 
     public static void renderOnHUD(DrawContext context, RenderTickCounter tickCounter) {
         if (WakesConfig.showDebugInfo && MinecraftClient.getInstance().getDebugHud().shouldShowDebugHud()) {
-            LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
+          //  LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
         }
     }
 

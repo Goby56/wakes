@@ -9,8 +9,6 @@ import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
@@ -68,7 +66,7 @@ public class WakesUtils {
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
                     Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
-                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
+                    world.addParticleClient(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
         }
@@ -77,7 +75,7 @@ public class WakesUtils {
     public static void spawnSplashPlane(World world, Entity owner) {
         WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
         Vec3d pos = owner.getPos();
-        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+        world.addParticleClient(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
 
     public static void placeWakeTrail(Entity entity) {

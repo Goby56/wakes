@@ -6,6 +6,7 @@
         "DebugHudMixin",
         "TameableTeleportMixin",
         "WakeSpawnerMixin",
+        "LightmapTextureManagerMixin",
         "LilyPadFallMixin"
     ],
     "injectors": {

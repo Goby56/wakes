@@ -1,5 +1,6 @@
 package com.goby56.wakes.config.gui;
 
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.RenderLayer;
@@ -28,7 +29,7 @@ public class TexturedButton extends ButtonWidget {
         int th = this.textureHeight;
         int x = this.getX() + this.getWidth() / 2 - this.textureWidth / 2;
         int y = this.getY() + this.getHeight() / 2 - this.textureHeight / 2;
-        context.drawTexture(RenderLayer::getGuiTextured, this.texture, x, y, 0, 0, tw, th, tw, th);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, this.texture, x, y, 0, 0, tw, th, tw, th);
     }
 
     public static class Builder {

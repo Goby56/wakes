@@ -38,8 +38,6 @@ waves:
     maxSplashPlaneVelocity: Максимальная скорость
 
     disableMod: Отключить мод
-    pickBoat: Взять лодку
-    pickBoat.tooltip: Позволяет быстро взять лодку при щелчке СКМ по воде. (Точно так же, как при выборе блока в творческом режиме)
     boatSpawning: Лодки
     boatSpawning.tooltip: Какой эффект должен быть виден, когда лодка движется по воде?
     playerSpawning: Игроки

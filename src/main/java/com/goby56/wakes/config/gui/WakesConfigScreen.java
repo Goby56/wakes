@@ -1,13 +1,10 @@
 package com.goby56.wakes.config.gui;
 
-import com.goby56.wakes.config.gui.ColorPickerScreen;
 import com.goby56.wakes.utils.WakesUtils;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.client.gui.widget.*;
-import net.minecraft.text.Text;
 
 public class WakesConfigScreen extends Screen {
 

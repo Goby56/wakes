@@ -1,7 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.9-SNAPSHOT'
+	id 'fabric-loom' version '1.11-SNAPSHOT'
 	id 'maven-publish'
-	id 'me.fallenbreath.yamlang' version '1.3.1'
+	id 'me.fallenbreath.yamlang' version '1.4.1'
 }
 
 version = project.mod_version
@@ -18,12 +18,12 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url "https://maven.terraformersmc.com/releases/" }
+	maven { url = 'https://jitpack.io' }
+	maven { url = "https://maven.shedaniel.me/" }
+	maven { url = "https://maven.terraformersmc.com/releases/" }
 	maven {
-		name "Ladysnake Mods"
-		url "https://maven.ladysnake.org/releases"
+		name = "Ladysnake Mods"
+		url  = "https://maven.ladysnake.org/releases"
 	}
 
 	exclusiveContent {

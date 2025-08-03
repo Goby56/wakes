@@ -6,7 +6,6 @@ accessible field net/minecraft/entity/vehicle/AbstractBoatEntity NEXT_PADDLE_PHA
 
 accessible field net/minecraft/client/model/ModelPart$Cuboid sides [Lnet/minecraft/client/model/ModelPart$Quad;
 
-accessible field net/minecraft/client/render/LightmapTextureManager lightmapFramebuffer Lnet/minecraft/client/gl/SimpleFramebuffer;
 
 accessible method net/minecraft/client/gui/widget/SliderWidget getTexture ()Lnet/minecraft/util/Identifier;
 accessible method net/minecraft/client/gui/widget/SliderWidget getHandleTexture ()Lnet/minecraft/util/Identifier;
