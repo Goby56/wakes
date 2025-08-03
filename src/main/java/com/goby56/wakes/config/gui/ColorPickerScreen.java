@@ -84,7 +84,7 @@ public class ColorPickerScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
         if (this.showInfoText) {
-            context.drawWrappedText(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 350, height - 60, 325, 0xffffffff, true);
+            context.drawWrappedText(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff, true);
         }
     }
 

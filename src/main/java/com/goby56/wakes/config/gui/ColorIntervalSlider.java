@@ -23,7 +23,7 @@ public class ColorIntervalSlider extends SliderWidget {
     public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
         super(x, y, width, height, Text.of(""), 0f);
         this.initHandles();
-        this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2 - 64, 128, 128);
+        this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
     }
 
