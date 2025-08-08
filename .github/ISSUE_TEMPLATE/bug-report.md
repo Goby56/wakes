@@ -1,17 +1,21 @@
 ---
 name: Bug report
-about: Have you found a bug with the mod? Please use this template and report it. If applicable, please add more describing labels.
+about: Have you found a bug with the mod? Please use this template and report it.
+  If applicable, please add more describing labels.
 title: A very informative and concise title
 labels: bug
 assignees: ''
 
 ---
 
+**Does a similar issue already exist?**
+Please look for similar issues that has already been opened and add information that may be of use.
+
 **Describe the bug**
-A clear and concise description of what the bug is.
+What is happening?
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What should happen?
 
 **To Reproduce**
 Steps to reproduce (if possible).
