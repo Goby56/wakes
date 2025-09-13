@@ -32,8 +32,7 @@ public class LightmapWrapper {
         return new Vector3f(
                 1.0f - nx0 * nx0 * nx0 * nx0,
                 1.0f - nx1 * nx1 * nx1 * nx1,
-                1.0f - nx2 * nx2 * nx2 * nx2
-        );
+                1.0f - nx2 * nx2 * nx2 * nx2);
     }
 
     private static Vector3f mix3(Vector3f color, Vector3f c2, float v) {
@@ -50,8 +49,7 @@ public class LightmapWrapper {
         Vector3f color = new Vector3f(
                 block_brightness,
                 block_brightness * ((block_brightness * 0.6f + 0.4f) * 0.6f + 0.4f),
-                block_brightness * (block_brightness * block_brightness * 0.6f + 0.4f)
-        );
+                block_brightness * (block_brightness * block_brightness * 0.6f + 0.4f));
 
         if (info.UseBrightLightmap()) {
             color = mix3(color, new Vector3f(0.99f, 1.12f, 1.0f), 0.25f);
@@ -86,11 +84,18 @@ public class LightmapWrapper {
     }
 
     private static Vector3f clamp3(Vector3f color, double v, double v1) {
-        return color.set(MathHelper.clamp(color.x, v, v1), MathHelper.clamp(color.y, v, v1), MathHelper.clamp(color.z, v, v1));
+        return color.set(MathHelper.clamp(color.x, v, v1), MathHelper.clamp(color.y, v, v1),
+                MathHelper.clamp(color.z, v, v1));
     }
 
     public static int readPixel(int block, int sky) {
-        LightmapInfo info = ((LightmapAccess) MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager()).wakes$getLightmapInfo();
+        LightmapInfo info = ((LightmapAccess) MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager())
+                .wakes$getLightmapInfo();
+
+        // Added null check to avoid NullPointerException if info is null
+        if (info == null) {
+            return color[block][sky];
+        }
 
         if (tick[block][sky] != info.currentTick()) {
             tick[block][sky] = info.currentTick();
