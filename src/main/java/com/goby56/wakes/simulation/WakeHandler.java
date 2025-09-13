@@ -64,7 +64,8 @@ public class WakeHandler {
         for (int i = 0; i < this.maxY - this.minY; i++) {
             Queue<WakeNode> pendingNodes = this.toBeInserted[i];
             if (resolutionResetScheduled) {
-                if (pendingNodes != null) pendingNodes.clear();
+                if (pendingNodes != null)
+                    pendingNodes.clear();
                 continue;
             }
             QuadTree tree = this.trees[i];
@@ -104,9 +105,11 @@ public class WakeHandler {
     }
 
     public void insert(WakeNode node) {
-        if (resolutionResetScheduled) return;
+        if (resolutionResetScheduled)
+            return;
         int i = this.getArrayIndex(node.y);
-        if (i < 0) return;
+        if (i < 0)
+            return;
 
         if (this.trees[i] == null) {
             this.trees[i] = new QuadTree(node.y);
