@@ -1,6 +1,6 @@
 package com.goby56.wakes.config.enums;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public enum Resolution {
     EIGHT(8),
@@ -12,7 +12,7 @@ public enum Resolution {
 
     Resolution(int res) {
         this.res = res;
-        this.power = MathHelper.floorLog2(res);
+        this.power = Mth.log2(res);
     }
 
     @Override

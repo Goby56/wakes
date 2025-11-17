@@ -2,17 +2,17 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.render.WakeColor;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 
@@ -22,10 +22,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-public class ColorPicker extends ClickableWidget {
-    private static final Identifier FRAME_TEXTURE = Identifier.ofVanilla("textures/gui/sprites/widget/slot_frame.png");
-    private static final Identifier PICKER_BG_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_background.png");
-    private static final Identifier PICKER_KNOB_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/picker_knob.png");
+public class ColorPicker extends AbstractWidget {
+    private static final ResourceLocation FRAME_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/sprites/widget/slot_frame.png");
+    private static final ResourceLocation PICKER_BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_background.png");
+    private static final ResourceLocation PICKER_KNOB_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
     private final Map<String, Bounded> widgets = new HashMap<>();
@@ -37,7 +37,7 @@ public class ColorPicker extends ClickableWidget {
     private final float pickerRadius;
 
     public ColorPicker(ColorPickerScreen screenContext, int x, int y, int width, int height) {
-        super(x, y, width, height, Text.of(""));
+        super(x, y, width, height, Component.nullToEmpty(""));
 
         this.colorPickerBounds = new AABB(1/6f, 0, 5/6f, 2f / 3f, x, y, width, height);
         this.pickerCenter.x = this.colorPickerBounds.x + this.colorPickerBounds.width / 2f;
@@ -46,7 +46,7 @@ public class ColorPicker extends ClickableWidget {
 
         this.widgets.put("hueSlider", new ColorPickerSlider(new AABB(0f, 4f / 6f, 1f, 5f / 6f, x, y, width, height), "Hue", this, SliderUpdateType.HUE));
         this.widgets.put("alphaSlider", new ColorPickerSlider(new AABB(3f / 6f, 5f / 6f, 1f, 1f, x, y, width, height), "Opacity", this, SliderUpdateType.OPACITY));
-        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 3f / 6f, 1f, x, y, width, height), this, MinecraftClient.getInstance().textRenderer));
+        this.widgets.put("hexInputField", new HexInputField(new AABB(0f, 5f / 6f, 3f / 6f, 1f, x, y, width, height), this, Minecraft.getInstance().font));
 
         screenContext.addWidget(this);
         for (var widget : this.widgets.values()) {
@@ -86,7 +86,7 @@ public class ColorPicker extends ClickableWidget {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        ClickableWidget hexInput = this.widgets.get("hexInputField").getWidget();
+        AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
         if (hexInput.isFocused()) {
             return hexInput.keyPressed(keyCode, scanCode, modifiers);
         }
@@ -95,7 +95,7 @@ public class ColorPicker extends ClickableWidget {
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        ClickableWidget hexInput = this.widgets.get("hexInputField").getWidget();
+        AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
         if (hexInput.isFocused()) {
             return hexInput.charTyped(chr, modifiers);
         }
@@ -104,7 +104,7 @@ public class ColorPicker extends ClickableWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        ClickableWidget focusedWidget = null;
+        AbstractWidget focusedWidget = null;
         for (var widget : this.widgets.values()) {
             widget.getWidget().setFocused(false);
             if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
@@ -160,18 +160,18 @@ public class ColorPicker extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
         if (!active) return;
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, PICKER_BG_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, FRAME_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        context.blit(RenderPipelines.GUI_TEXTURED, PICKER_BG_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
+        context.blit(RenderPipelines.GUI_TEXTURED, FRAME_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
 
         drawPickerBox(context);
         // Draw picker knob
         int d = pickerKnobDim;
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, PICKER_KNOB_TEXTURE, (int) pickerPos.x - 3, (int) pickerPos.y - 3, 0, 0, d, d, d, d);
+        context.blit(RenderPipelines.GUI_TEXTURED, PICKER_KNOB_TEXTURE, (int) pickerPos.x - 3, (int) pickerPos.y - 3, 0, 0, d, d, d, d);
     }
 
-    private void drawPickerBox(DrawContext context) {
+    private void drawPickerBox(GuiGraphics context) {
         int y = colorPickerBounds.y + 3;
         int x = colorPickerBounds.x + 3;
         int w = colorPickerBounds.width - 6;
@@ -179,26 +179,26 @@ public class ColorPicker extends ClickableWidget {
 
         int hue = (int) (((ColorPickerSlider) this.widgets.get("hueSlider").getWidget()).getValue() * 255);
 
-        context.state.addSimpleElement(new HsvQuadGuiElementRenderState(
-                new Matrix3x2f(context.getMatrices()),
+        context.guiRenderState.submitGuiElement(new HsvQuadGuiElementRenderState(
+                new Matrix3x2f(context.pose()),
                 x, y, w, h,
                 0x7F0000FF | hue << 16,
                 0x7F000000 | hue << 16,
                 0x7F00FF00 | hue << 16,
                 0x7F00FFFF | hue << 16,
-                context.scissorStack.peekLast()
+                context.scissorStack.peek()
                 )
         );
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
 
     }
 
     public interface Bounded {
         AABB getBounds();
-        ClickableWidget getWidget();
+        AbstractWidget getWidget();
 
         void setActive(boolean active);
 
@@ -224,23 +224,23 @@ public class ColorPicker extends ClickableWidget {
         }
     }
 
-    private static class HexInputField extends TextFieldWidget implements Bounded {
+    private static class HexInputField extends EditBox implements Bounded {
         protected AABB bounds;
         private final ColorPicker colorPicker;
         private final Pattern hexColorRegex;
         private boolean autoUpdate = false;
 
-        public HexInputField(AABB bounds, ColorPicker colorPicker, TextRenderer textRenderer) {
-            super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Text.empty());
+        public HexInputField(AABB bounds, ColorPicker colorPicker, Font textRenderer) {
+            super(textRenderer, bounds.x, bounds.y, bounds.width, bounds.height, Component.empty());
             this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
             this.colorPicker = colorPicker;
-            this.setTextPredicate(HexInputField::validHex);
+            this.setFilter(HexInputField::validHex);
             this.hexColorRegex = Pattern.compile("#[a-f0-9]{7,9}", Pattern.CASE_INSENSITIVE);
         }
 
         @Override
-        protected void onChanged(String newText) {
+        protected void onValueChange(String newText) {
             if (autoUpdate) {
                 // Ensures color picker doesn't update itself when updating hex string
                 return;
@@ -249,7 +249,7 @@ public class ColorPicker extends ClickableWidget {
             if (hexColorRegex.matcher(newText).find()) {
                 this.colorPicker.setColor(new WakeColor(newText), WidgetUpdateFlag.IGNORE_HEX);
             }
-            super.onChanged(newText);
+            super.onValueChange(newText);
         }
 
         private static boolean validHex(String text) {
@@ -283,7 +283,7 @@ public class ColorPicker extends ClickableWidget {
         @Override
         public void setColor(WakeColor currentColor) {
             this.autoUpdate = true;
-            this.setText(currentColor.toHex());
+            this.setValue(currentColor.toHex());
         }
 
         @Override
@@ -292,19 +292,19 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        public ClickableWidget getWidget() {
+        public AbstractWidget getWidget() {
             return this;
         }
     }
 
-    private static class ColorPickerSlider extends SliderWidget implements Bounded {
+    private static class ColorPickerSlider extends AbstractSliderButton implements Bounded {
         protected AABB bounds;
         private final SliderUpdateType type;
 
         private final ColorPicker colorPicker;
 
         public ColorPickerSlider(AABB bounds, String text, ColorPicker colorPicker, SliderUpdateType type) {
-            super(bounds.x, bounds.y, bounds.width, bounds.height, Text.of(text), 1f);
+            super(bounds.x, bounds.y, bounds.width, bounds.height, Component.nullToEmpty(text), 1f);
             this.bounds = bounds;
             this.colorPicker = colorPicker;
             this.type = type;
@@ -334,24 +334,24 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
             if (this.type.equals(SliderUpdateType.HUE)) {
-                context.state.addSimpleElement(new HsvQuadGuiElementRenderState(
-                        new Matrix3x2f(context.getMatrices()),
+                context.guiRenderState.submitGuiElement(new HsvQuadGuiElementRenderState(
+                        new Matrix3x2f(context.pose()),
                         this.getX() + 1, this.getY() + 1, this.getWidth() - 2, this.getHeight() - 2,
                         0x4000FFFF,
                         0x4000FFFF,
                         0x40FFFFFF,
                         0x40FFFFFF,
-                        context.scissorStack.peekLast()
+                        context.scissorStack.peek()
                     )
                 );
             }
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getHandleTexture(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleSprite(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
-            this.drawScrollableText(context, MinecraftClient.getInstance().textRenderer, 2, i | MathHelper.ceil(this.alpha * 255.0f) << 24);
+            this.renderScrollingString(context, Minecraft.getInstance().font, 2, i | Mth.ceil(this.alpha * 255.0f) << 24);
         }
 
         @Override
@@ -370,7 +370,7 @@ public class ColorPicker extends ClickableWidget {
         }
 
         @Override
-        public ClickableWidget getWidget() {
+        public AbstractWidget getWidget() {
             return this;
         }
     }

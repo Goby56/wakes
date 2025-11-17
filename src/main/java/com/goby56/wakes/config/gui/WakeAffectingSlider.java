@@ -1,18 +1,17 @@
 package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.WakesClient;
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.network.chat.Component;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class WakeAffectingSlider extends SliderWidget {
-    private final Text name;
+public class WakeAffectingSlider extends AbstractSliderButton {
+    private final Component name;
     private final String configEntryName;
     private final Supplier<Double> configOptionGetter;
     private final Consumer<Double> configOptionSetter;
@@ -28,7 +27,7 @@ public class WakeAffectingSlider extends SliderWidget {
 
     @Override
     protected void updateMessage() {
-        this.setMessage(Text.of(String.format("%s: %.2f", this.name.getString(), this.value)));
+        this.setMessage(Component.nullToEmpty(String.format("%s: %.2f", this.name.getString(), this.value)));
     }
 
     @Override

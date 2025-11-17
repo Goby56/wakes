@@ -1,7 +1,7 @@
 package com.goby56.wakes.particle;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.particle.SimpleParticleType;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.core.particles.SimpleParticleType;
 
 public class WithOwnerParticleType extends SimpleParticleType {
     public Entity owner;

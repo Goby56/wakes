@@ -1,19 +1,18 @@
 package com.goby56.wakes.config.gui;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 public class ColorPickerScreen extends Screen {
     private final Screen parent;
@@ -21,10 +20,10 @@ public class ColorPickerScreen extends Screen {
     private ColorIntervalSlider colorIntervalSlider;
     private WakeAffectingSlider wakeOpacitySlider;
     private WakeAffectingSlider blendStrengthSlider;
-    private static final Identifier INFO_ICON_TEXTURE = Identifier.of("minecraft", "textures/gui/sprites/icon/info.png");
-    private static final Identifier RESET_ICON_TEXTURE = Identifier.of(WakesClient.MOD_ID, "textures/reset_icon.png");
+    private static final ResourceLocation INFO_ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/sprites/icon/info.png");
+    private static final ResourceLocation RESET_ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
-        super(Text.of("Configure wake colors"));
+        super(Component.nullToEmpty("Configure wake colors"));
         this.parent = parent;
         this.colorIntervalSlider = null;
     }
@@ -35,34 +34,34 @@ public class ColorPickerScreen extends Screen {
                 this,
                 (int) (width / 2 - width * 0.8f / 2), 24,
                 (int) (width * 0.8f), 40);
-        this.addDrawableChild(this.colorIntervalSlider);
+        this.addRenderableWidget(this.colorIntervalSlider);
         this.wakeOpacitySlider = new WakeAffectingSlider(width / 2 - 160, 69, 150, 20, "wakeOpacity",
                 () -> (double) WakesConfig.wakeOpacity, (val) -> WakesConfig.wakeOpacity = val.floatValue());
-        this.addDrawableChild(this.wakeOpacitySlider);
+        this.addRenderableWidget(this.wakeOpacitySlider);
         this.blendStrengthSlider = new WakeAffectingSlider(width / 2 + 10, 69, 150, 20, "blendStrength",
                 () -> (double) WakesConfig.blendStrength, (val) -> WakesConfig.blendStrength = val.floatValue());
-        this.addDrawableChild(this.blendStrengthSlider);
+        this.addRenderableWidget(this.blendStrengthSlider);
 
         TexturedButton infoButton = TexturedButton.builder(this::onInfoClick)
                         .texture(INFO_ICON_TEXTURE, 20, 20)
                         .dimension(30, 30).build();
         infoButton.setPosition((int) (width / 2f - width * 0.8f / 2 - 35), 29);
-        infoButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "infoButton", "tooltip")));
-        this.addDrawableChild(infoButton);
+        infoButton.setTooltip(Tooltip.create(WakesUtils.translatable("gui", "colorIntervalSlider", "infoButton", "tooltip")));
+        this.addRenderableWidget(infoButton);
 
         TexturedButton resetButton = TexturedButton.builder(this::resetConfigurations)
                 .texture(RESET_ICON_TEXTURE, 20, 20)
                 .dimension(30, 30).build();
         resetButton.setPosition((int) (width / 2f + width * 0.8f / 2 + 5), 29);
-        resetButton.setTooltip(Tooltip.of(WakesUtils.translatable("gui", "colorIntervalSlider", "resetButton", "tooltip")));
-        this.addDrawableChild(resetButton);
+        resetButton.setTooltip(Tooltip.create(WakesUtils.translatable("gui", "colorIntervalSlider", "resetButton", "tooltip")));
+        this.addRenderableWidget(resetButton);
     }
 
-    private void onInfoClick(ButtonWidget button) {
+    private void onInfoClick(Button button) {
         this.showInfoText = !this.showInfoText;
     }
 
-    private void resetConfigurations(ButtonWidget button) {
+    private void resetConfigurations(Button button) {
         WakesConfig.wakeColorIntervals = Lists.newArrayList(WakesConfig.defaultWakeColorIntervals);
         WakesConfig.wakeColors = Lists.newArrayList(WakesConfig.defaultWakeColors);
         this.colorIntervalSlider.initHandles();
@@ -75,25 +74,25 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    public void close() {
-        client.setScreen(this.parent);
+    public void onClose() {
+        minecraft.setScreen(this.parent);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
+        context.drawCenteredString(font, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
         if (this.showInfoText) {
-            context.drawWrappedText(textRenderer, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff, true);
+            context.drawWordWrap(font, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff, true);
         }
     }
 
     @Override
-    protected void applyBlur(DrawContext context) {
+    protected void renderBlurredBackground(GuiGraphics context) {
 
     }
 
-    public void addWidget(ClickableWidget widget) {
-        this.addDrawableChild(widget);
+    public void addWidget(AbstractWidget widget) {
+        this.addRenderableWidget(widget);
     }
 }

@@ -2,14 +2,14 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
 
@@ -132,17 +132,17 @@ public class WakeNode {
         }
     }
 
-    public boolean validPos(World world) {
+    public boolean validPos(Level world) {
         FluidState fluidState = world.getFluidState(this.blockPos());
-        FluidState fluidStateAbove = world.getFluidState(this.blockPos().up());
-        if (fluidState.isOf(Fluids.WATER) && fluidStateAbove.isEmpty()) {
-            return fluidState.isStill();
+        FluidState fluidStateAbove = world.getFluidState(this.blockPos().above());
+        if (fluidState.is(Fluids.WATER) && fluidStateAbove.isEmpty()) {
+            return fluidState.isSource();
         }
         return false;
     }
 
-    public Box toBox() {
-        return new Box(this.x, this.y, this.z, this.x + 1, this.y + (1 - WakeNode.WATER_OFFSET), this.z + 1);
+    public AABB toBox() {
+        return new AABB(this.x, this.y, this.z, this.x + 1, this.y + (1 - WakeNode.WATER_OFFSET), this.z + 1);
     }
 
     public void revive(WakeNode node) {
@@ -183,7 +183,7 @@ public class WakeNode {
     public static class Factory {
         public static Set<WakeNode> splashNodes(Entity entity, int y) {
             int res = WakeHandler.resolution.res;
-            int w = (int) (0.8 * entity.getWidth() * res / 2);
+            int w = (int) (0.8 * entity.getBbWidth() * res / 2);
             int x = (int) (entity.getX() * res);
             int z = (int) (entity.getZ() * res);
 
@@ -195,23 +195,23 @@ public class WakeNode {
                     }
                 }
             }
-            return pixelsToNodes(pixelsAffected, y, WakesConfig.splashStrength, Math.abs(entity.getVelocity().y));
+            return pixelsToNodes(pixelsAffected, y, WakesConfig.splashStrength, Math.abs(entity.getDeltaMovement().y));
         }
 
-        public static Set<WakeNode> rowingNodes(BoatEntity boat, int y) {
+        public static Set<WakeNode> rowingNodes(Boat boat, int y) {
             Set<WakeNode> nodesAffected = new HashSet<>();
-            double velocity = boat.getVelocity().horizontalLength();
+            double velocity = boat.getDeltaMovement().horizontalDistance();
             for (int i = 0; i < 2; i++) {
-                if (boat.isPaddleMoving(i)) {
-                    double phase = boat.paddlePhases[i] % (2*Math.PI);
-                    if (BoatEntity.NEXT_PADDLE_PHASE / 2 <= phase && phase <= BoatEntity.EMIT_SOUND_EVENT_PADDLE_ROTATION + BoatEntity.NEXT_PADDLE_PHASE) {
-                        Vec3d rot = boat.getRotationVec(1.0f);
+                if (boat.getPaddleState(i)) {
+                    double phase = boat.paddlePositions[i] % (2*Math.PI);
+                    if (Boat.PADDLE_SPEED / 2 <= phase && phase <= Boat.PADDLE_SOUND_TIME + Boat.PADDLE_SPEED) {
+                        Vec3 rot = boat.getViewVector(1.0f);
                         double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                         double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                        Vec3d paddlePos = new Vec3d(x, y, z);
-                        Vec3d dir = Vec3d.fromPolar(0, boat.getYaw()).multiply(velocity);
-                        Vec3d from = paddlePos;
-                        Vec3d to = paddlePos.add(dir.multiply(2));
+                        Vec3 paddlePos = new Vec3(x, y, z);
+                        Vec3 dir = Vec3.directionFromRotation(0, boat.getYRot()).scale(velocity);
+                        Vec3 from = paddlePos;
+                        Vec3 to = paddlePos.add(dir.scale(2));
                         nodesAffected.addAll(nodeTrail(from.x, from.z, to.x, to.z, y, WakesConfig.paddleStrength, velocity));
                     }
                 }
@@ -250,9 +250,9 @@ public class WakeNode {
             return pixelsToNodes(pixelsAffected, y, waveStrength, velocity);
         }
 
-        public static Set<WakeNode> nodeLine(double x, int y, double z, float waveStrength, Vec3d velocity, float width) {
+        public static Set<WakeNode> nodeLine(double x, int y, double z, float waveStrength, Vec3 velocity, float width) {
             int res = WakeHandler.resolution.res;
-            Vec3d dir = velocity.normalize();
+            Vec3 dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
             int w = (int) (0.8 * width * res / 2);
@@ -264,7 +264,7 @@ public class WakeNode {
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
-            return pixelsToNodes(pixelsAffected, y, waveStrength, velocity.horizontalLength());
+            return pixelsToNodes(pixelsAffected, y, waveStrength, velocity.horizontalDistance());
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, int y, float waveStrength, double velocity) {

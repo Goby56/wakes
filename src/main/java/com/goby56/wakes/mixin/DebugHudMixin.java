@@ -1,9 +1,8 @@
 package com.goby56.wakes.mixin;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import net.minecraft.client.gui.hud.DebugHud;
+import net.minecraft.client.gui.components.DebugScreenOverlay;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -11,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@Mixin(DebugHud.class)
+@Mixin(DebugScreenOverlay.class)
 public abstract class DebugHudMixin {
 
-    @Inject(at = @At("RETURN"), method = "getLeftText")
+    @Inject(at = @At("RETURN"), method = "getGameInformation")
     protected void getLeftText(CallbackInfoReturnable<List<String>> info) {
         if (WakesConfig.showDebugInfo) {
             if (WakesConfig.disableMod) {

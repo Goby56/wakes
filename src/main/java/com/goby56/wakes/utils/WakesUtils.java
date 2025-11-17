@@ -9,41 +9,35 @@ import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.OtherClientPlayerEntity;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.AbstractBoat;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class WakesUtils {
 
-    public static int getLightColor(World world, BlockPos blockPos) {
-        int lightCoordinate = WorldRenderer.getLightmapCoordinates(world, blockPos);
-        int x = LightmapTextureManager.getBlockLightCoordinates(lightCoordinate);
-        int y = LightmapTextureManager.getSkyLightCoordinates(lightCoordinate);
+    public static int getLightColor(Level world, BlockPos blockPos) {
+        int lightCoordinate = LevelRenderer.getLightColor(world, blockPos);
+        int x = LightTexture.block(lightCoordinate);
+        int y = LightTexture.sky(lightCoordinate);
         return LightmapWrapper.readPixel(x, y);
     }
 
@@ -56,26 +50,26 @@ public class WakesUtils {
         }
     }
 
-    public static void spawnPaddleSplashCloudParticle(World world, BoatEntity boat) {
+    public static void spawnPaddleSplashCloudParticle(Level world, Boat boat) {
         // TODO MORE OBJECT ORIENTED APPROACH TO PARTICLE SPAWNING
         for (int i = 0; i < 2; i++) {
-            if (boat.isPaddleMoving(i)) {
-                double phase = boat.paddlePhases[i] % (2*Math.PI);
-                if (BoatEntity.NEXT_PADDLE_PHASE / 2 <= phase && phase <= BoatEntity.EMIT_SOUND_EVENT_PADDLE_ROTATION + BoatEntity.NEXT_PADDLE_PHASE) {
-                    Vec3d rot = boat.getRotationVec(1.0f);
+            if (boat.getPaddleState(i)) {
+                double phase = boat.paddlePositions[i] % (2*Math.PI);
+                if (Boat.PADDLE_SPEED / 2 <= phase && phase <= Boat.PADDLE_SOUND_TIME + Boat.PADDLE_SPEED) {
+                    Vec3 rot = boat.getViewVector(1.0f);
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
-                    Vec3d pos = new Vec3d(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
-                    world.addParticleClient(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
+                    Vec3 pos = new Vec3(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
+                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
         }
     }
 
-    public static void spawnSplashPlane(World world, Entity owner) {
+    public static void spawnSplashPlane(Level world, Entity owner) {
         WithOwnerParticleType wake = ModParticles.SPLASH_PLANE.withOwner(owner);
-        Vec3d pos = owner.getPos();
-        world.addParticleClient(wake, pos.x, pos.y, pos.z, 0, 0, 0);
+        Vec3 pos = owner.position();
+        world.addParticle(wake, pos.x, pos.y, pos.z, 0, 0, 0);
     }
 
     public static void placeWakeTrail(Entity entity) {
@@ -86,12 +80,12 @@ public class WakesUtils {
         double velocity = producer.wakes$getHorizontalVelocity();
         int y = (int) Math.floor(producer.wakes$wakeHeight());
 
-        if (entity instanceof BoatEntity boat) {
+        if (entity instanceof Boat boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
                 wakeHandler.insert(node);
             }
             if (WakesConfig.spawnParticles) {
-                WakesUtils.spawnPaddleSplashCloudParticle(entity.getWorld(), boat);
+                WakesUtils.spawnPaddleSplashCloudParticle(entity.level(), boat);
             }
         }
       
@@ -99,34 +93,34 @@ public class WakesUtils {
         // if (velocity < WakesConfig.minimumProducerVelocity) {
         //     ((ProducesWake) entity).setPrevPos(null);
         // }
-        Vec3d prevPos = producer.wakes$getPrevPos();
+        Vec3 prevPos = producer.wakes$getPrevPos();
         if (prevPos == null) {
             return;
         }
-        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesConfig.initialStrength, velocity, entity.getWidth())) {
+        for (WakeNode node : WakeNode.Factory.thickNodeTrail(prevPos.x, prevPos.z, entity.getX(), entity.getZ(), y, WakesConfig.initialStrength, velocity, entity.getBbWidth())) {
             wakeHandler.insert(node);
         }
     }
 
     public static EffectSpawningRule getEffectRuleFromSource(Entity source) {
-        if (source instanceof AbstractBoatEntity boat) {
-            List<Entity> passengers = boat.getPassengerList();
-            if (passengers.contains(MinecraftClient.getInstance().player)) {
+        if (source instanceof AbstractBoat boat) {
+            List<Entity> passengers = boat.getPassengers();
+            if (passengers.contains(Minecraft.getInstance().player)) {
                 return WakesConfig.boatSpawning;
             }
-            if (passengers.stream().anyMatch(Entity::isPlayer)) {
+            if (passengers.stream().anyMatch(Entity::isAlwaysTicking)) {
                 return WakesConfig.boatSpawning.mask(WakesConfig.otherPlayersSpawning);
             }
             return WakesConfig.boatSpawning;
         }
-        if (source instanceof PlayerEntity player) {
+        if (source instanceof Player player) {
             if (player.isSpectator()) {
                 return EffectSpawningRule.DISABLED;
             }
-            if (player instanceof ClientPlayerEntity) {
+            if (player instanceof LocalPlayer) {
                 return WakesConfig.playerSpawning;
             }
-            if (player instanceof OtherClientPlayerEntity) {
+            if (player instanceof RemotePlayer) {
                 return WakesConfig.otherPlayersSpawning;
             }
             return EffectSpawningRule.DISABLED;
@@ -214,12 +208,12 @@ public class WakesUtils {
         return new int[] {(int) (pos >> 32), (int) pos};
     }
 
-    public static MutableText translatable(String ... subKeys) {
+    public static MutableComponent translatable(String ... subKeys) {
         StringBuilder translationKey = new StringBuilder(WakesClient.MOD_ID);
         for (String s : subKeys) {
            translationKey.append(".").append(s);
         }
-        return Text.translatable(translationKey.toString());
+        return Component.translatable(translationKey.toString());
     }
 
     public static int[] abgrInt2rgbaArr(int n) {
@@ -246,12 +240,12 @@ public class WakesUtils {
     //     return
     // }
 
-    public static float getFluidLevel(World world, Entity entityInFluid) {
-        Box box = entityInFluid.getBoundingBox();
+    public static float getFluidLevel(Level world, Entity entityInFluid) {
+        AABB box = entityInFluid.getBoundingBox();
         return getFluidLevel(world,
-                MathHelper.floor(box.minX), MathHelper.ceil(box.maxX),
-                MathHelper.floor(box.minY), MathHelper.ceil(box.maxY),
-                MathHelper.floor(box.minZ), MathHelper.ceil(box.maxZ));
+                Mth.floor(box.minX), Mth.ceil(box.maxX),
+                Mth.floor(box.minY), Mth.ceil(box.maxY),
+                Mth.floor(box.minZ), Mth.ceil(box.maxZ));
     }
 
 //    public static float getWaterLevel(ModelPart.Cuboid cuboidInWater) {
@@ -261,9 +255,9 @@ public class WakesUtils {
 //                (int) cuboidInWater.minZ, (int) cuboidInWater.maxZ);
 //    }
 
-    private static float getFluidLevel(World world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+    private static float getFluidLevel(Level world, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
         // Taken from BoatEntity$getWaterHeightBelow
-        BlockPos.Mutable blockPos = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
         yLoop:
         for (int y = minY; y < maxY; ++y) {
             float f = 0.0f;
@@ -271,7 +265,7 @@ public class WakesUtils {
                 for (int z = minZ; z < maxZ; ++z) {
                     blockPos.set(x, y, z);
                     FluidState fluidState = world.getFluidState(blockPos);
-                    if (fluidState.isStill()) {
+                    if (fluidState.isSource()) {
                         f = Math.max(f, fluidState.getHeight(world, blockPos));
                     }
                     if (f >= 1.0f) continue yLoop;

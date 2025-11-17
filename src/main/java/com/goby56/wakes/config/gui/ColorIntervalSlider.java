@@ -4,24 +4,22 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.text.Text;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class ColorIntervalSlider extends SliderWidget {
+public class ColorIntervalSlider extends AbstractSliderButton {
     private ArrayList<SliderHandle> handles;
     private final ColorPicker colorPicker;
     private Integer activeSection = null;
 
     public ColorIntervalSlider(ColorPickerScreen screenContext, int x, int y, int width, int height) {
-        super(x, y, width, height, Text.of(""), 0f);
+        super(x, y, width, height, Component.nullToEmpty(""), 0f);
         this.initHandles();
         this.colorPicker = new ColorPicker(screenContext, 10, screenContext.height / 2, 128, 128);
         colorPicker.registerListener(this::onColorPicked);
@@ -49,13 +47,13 @@ public class ColorIntervalSlider extends SliderWidget {
     }
 
     @Override
-    public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
         //RenderSystem.enableBlend();
         //RenderSystem.defaultBlendFunc();
         //RenderSystem.enableDepthTest();
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.getTexture(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
 
-        this.hovered = context.scissorContains(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
+        this.isHovered = context.containsPointInScissor(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
         int y = this.getY();
 
@@ -76,7 +74,7 @@ public class ColorIntervalSlider extends SliderWidget {
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
         for (SliderHandle handle : handles) {
             boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
         }
     }
 

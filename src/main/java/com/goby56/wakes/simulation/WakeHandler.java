@@ -1,12 +1,11 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -14,7 +13,7 @@ import java.util.Queue;
 
 public class WakeHandler {
     private static WakeHandler INSTANCE;
-    public World world;
+    public Level world;
 
     private QuadTree[] trees;
     private QueueSet<WakeNode>[] toBeInserted;
@@ -26,10 +25,10 @@ public class WakeHandler {
 
     public static boolean resolutionResetScheduled = false;
 
-    private WakeHandler(World world) {
+    private WakeHandler(Level world) {
         this.world = world;
-        this.minY = world.getBottomY();
-        this.maxY = world.getTopYInclusive();
+        this.minY = world.getMinY();
+        this.maxY = world.getMaxY();
         int worldHeight = this.maxY - this.minY;
         this.trees = new QuadTree[worldHeight];
         this.toBeInserted = new QueueSet[worldHeight];
@@ -41,15 +40,15 @@ public class WakeHandler {
 
     public static Optional<WakeHandler> getInstance() {
         if (INSTANCE == null) {
-            if (MinecraftClient.getInstance().world == null) {
+            if (Minecraft.getInstance().level == null) {
                 return Optional.empty();
             }
-            INSTANCE = new WakeHandler(MinecraftClient.getInstance().world);
+            INSTANCE = new WakeHandler(Minecraft.getInstance().level);
         }
         return Optional.of(INSTANCE);
     }
 
-    public static void init(World world) {
+    public static void init(Level world) {
         INSTANCE = new WakeHandler(world);
     }
 

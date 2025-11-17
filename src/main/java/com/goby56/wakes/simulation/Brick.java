@@ -1,19 +1,15 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.goby56.wakes.render.WakeTexture;
 import com.goby56.wakes.utils.WakesUtils;
-import com.ibm.icu.impl.number.MicroProps;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
@@ -28,7 +24,7 @@ public class Brick {
 
     public int occupied = 0;
 
-    public final Vec3d pos;
+    public final Vec3 pos;
 
     public Brick NORTH;
     public Brick EAST;
@@ -43,7 +39,7 @@ public class Brick {
         this.dim = width;
         this.capacity = dim * dim;
         this.nodes = new WakeNode[dim][dim];
-        this.pos = new Vec3d(x, y, z);
+        this.pos = new Vec3(x, y, z);
 
         initTexture(WakeHandler.resolution.res);
     }
@@ -87,7 +83,7 @@ public class Brick {
             for (int x = 0; x < dim; x++) {
                 var node = this.get(x, z);
                 if (node == null) continue;
-                Box b = node.toBox();
+                AABB b = node.toBox();
                 if (frustum.isVisible(b)) output.add(node);
             }
         }
@@ -170,15 +166,15 @@ public class Brick {
     }
 
     public void populatePixels() {
-        World world = MinecraftClient.getInstance().world;
+        Level world = Minecraft.getInstance().level;
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
                 WakeNode node = this.get(x, z);
-                int lightCol = LightmapTextureManager.MAX_LIGHT_COORDINATE;
+                int lightCol = LightTexture.FULL_BRIGHT;
                 int fluidColor = 0;
                 float opacity = 0;
                 if (node != null) {
-                    fluidColor = BiomeColors.getWaterColor(world, node.blockPos());
+                    fluidColor = BiomeColors.getAverageWaterColor(world, node.blockPos());
                     lightCol = WakesUtils.getLightColor(world, node.blockPos());
                     // TODO LERP LIGHT FROM SURROUNDING BLOCKS
                     opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);

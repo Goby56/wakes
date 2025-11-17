@@ -8,23 +8,21 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.world.entity.Entity;
+import com.mojang.math.Axis;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -33,8 +31,8 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
-    private static ArrayList<Vec3d> vertices;
-    private static ArrayList<Vec3d> normals;
+    private static ArrayList<Vec3> vertices;
+    private static ArrayList<Vec3> normals;
 
     public static Map<Resolution, WakeTexture> wakeTextures = null;
 
@@ -62,63 +60,63 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
     }
 
 
-    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, WorldRenderContext context, MatrixStack matrices) {
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, WorldRenderContext context, PoseStack matrices) {
         if (wakeTextures == null) initTextures();
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
 
-        matrices.push();
+        matrices.pushPose();
         splashPlane.translateMatrix(context, matrices);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(splashPlane.lerpedYaw + 180f));
+        matrices.mulPose(Axis.YP.rotationDegrees(splashPlane.lerpedYaw + 180f));
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
-        float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getWidth() * Math.max(1f, progress) + 1) / 3f);
+        float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getBbWidth() * Math.max(1f, progress) + 1) / 3f);
         matrices.scale(scalar, scalar, scalar);
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        Matrix4f matrix = matrices.last().pose();
 
         wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr, GlConst.GL_RGBA);
         renderSurface(matrix);
 
-        matrices.pop();
+        matrices.popPose();
     }
 
     private static void renderSurface(Matrix4f matrix) {
-        BufferBuilder bb = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
+        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.BLOCK);
         // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
-        int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
+        int light = LightTexture.FULL_BRIGHT;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
             for (int i = 0; i < vertices.size(); i++) {
-                Vec3d vertex = vertices.get(i);
-                Vec3d normal = normals.get(i);
-                bb.vertex(matrix,
+                Vec3 vertex = vertices.get(i);
+                Vec3 normal = normals.get(i);
+                bb.addVertex(matrix,
                                 (float) (s * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                                 (float) (vertex.z * WakesConfig.splashPlaneHeight),
                                 (float) (vertex.y * WakesConfig.splashPlaneDepth))
-                        .texture((float) (vertex.x), (float) (vertex.y))
-                        .light(LightmapTextureManager.MAX_LIGHT_COORDINATE)
-                        .color(1f, 1f, 1f, 1f)
-                        .normal((float) normal.x, (float) normal.y, (float) normal.z);
+                        .setUv((float) (vertex.x), (float) (vertex.y))
+                        .setLight(LightTexture.FULL_BRIGHT)
+                        .setColor(1f, 1f, 1f, 1f)
+                        .setNormal((float) normal.x, (float) normal.y, (float) normal.z);
             }
         }
 
-        BuiltBuffer built = bb.end();
+        MeshData built = bb.buildOrThrow();
 
-        GpuBuffer buffer = VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.uploadImmediateVertexBuffer(built.getBuffer());
-        GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES).getIndexBuffer(built.getDrawParameters().indexCount());
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", MinecraftClient.getInstance().getFramebuffer().getColorAttachmentView(), OptionalInt.empty(), MinecraftClient.getInstance().getFramebuffer().getDepthAttachmentView(), OptionalDouble.empty())) {
-            pass.setPipeline(RenderPipelines.RENDERTYPE_TRANSLUCENT_MOVING_BLOCK);
+        GpuBuffer buffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
+        GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).getBuffer(built.drawState().indexCount());
+        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
+            pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
             pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
             pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
             RenderSystem.bindDefaultUniforms(pass);
 
             pass.setVertexBuffer(0, buffer);
-            pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.DrawMode.TRIANGLES).getIndexType());
-            pass.drawIndexed(0, 0, built.getDrawParameters().indexCount(), 1);
+            pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).type());
+            pass.drawIndexed(0, 0, built.drawState().indexCount(), 1);
         }
         built.close();
     }
@@ -135,10 +133,10 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         return 4 * (x * (SQRT_8 - x) -y - x * x) / SQRT_8;
     }
 
-    private static Vec3d normal(double x, double y) {
+    private static Vec3 normal(double x, double y) {
         double nx = SQRT_8 / (4 * (4 * x + y - SQRT_8));
         double ny = SQRT_8 / (4 * (2 * x * x - SQRT_8 + 1));
-        return Vec3d.fromPolar((float) Math.tan(nx), (float) Math.tan(ny));
+        return Vec3.directionFromRotation((float) Math.tan(nx), (float) Math.tan(ny));
     }
 
     private static void distributePoints() {
@@ -169,7 +167,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         for (Triangle2D tri : triangles) {
             for (Vector2D vec : new Vector2D[] {tri.a, tri.b, tri.c}) {
                 double x = vec.x, y = vec.y;
-                vertices.add(new Vec3d(x, y, height(x, y)));
+                vertices.add(new Vec3(x, y, height(x, y)));
                 normals.add(normal(x, y));
             }
         }

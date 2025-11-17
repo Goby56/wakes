@@ -1,13 +1,13 @@
 accessWidener v1 named
 
-accessible field net/minecraft/entity/vehicle/AbstractBoatEntity paddlePhases [F
+accessible field net/minecraft/world/entity/vehicle/AbstractBoat paddlePositions [F
 
-accessible field net/minecraft/entity/vehicle/AbstractBoatEntity NEXT_PADDLE_PHASE F
+accessible field net/minecraft/world/entity/vehicle/AbstractBoat PADDLE_SPEED F
 
-accessible field net/minecraft/client/model/ModelPart$Cuboid sides [Lnet/minecraft/client/model/ModelPart$Quad;
+accessible field net/minecraft/client/model/geom/ModelPart$Cube polygons [Lnet/minecraft/client/model/geom/ModelPart$Polygon;
 
 
-accessible method net/minecraft/client/gui/widget/SliderWidget getTexture ()Lnet/minecraft/util/Identifier;
-accessible method net/minecraft/client/gui/widget/SliderWidget getHandleTexture ()Lnet/minecraft/util/Identifier;
-accessible method net/minecraft/client/gui/widget/ClickableWidget onDrag (DDDD)V
-extendable method net/minecraft/client/gui/widget/TextFieldWidget onChanged (Ljava/lang/String;)V
+accessible method net/minecraft/client/gui/components/AbstractSliderButton getSprite ()Lnet/minecraft/resources/ResourceLocation;
+accessible method net/minecraft/client/gui/components/AbstractSliderButton getHandleSprite ()Lnet/minecraft/resources/ResourceLocation;
+accessible method net/minecraft/client/gui/components/AbstractWidget onDrag (DDDD)V
+extendable method net/minecraft/client/gui/components/EditBox onValueChange (Ljava/lang/String;)V

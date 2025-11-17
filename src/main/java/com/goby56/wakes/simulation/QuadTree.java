@@ -1,9 +1,8 @@
 package com.goby56.wakes.simulation;
 
-import net.minecraft.client.render.Frustum;
-import net.minecraft.util.math.Box;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.world.phys.AABB;
 
-import java.nio.IntBuffer;
 import java.util.*;
 
 public class QuadTree {
@@ -171,8 +170,8 @@ public class QuadTree {
                     this.z + this.width == other.z);
         }
 
-        public Box toBox(int y) {
-            return new Box(this.x, y - 0.5, this.z,
+        public AABB toBox(int y) {
+            return new AABB(this.x, y - 0.5, this.z,
                     this.x + this.width, y + 0.5, this.z + this.width);
         }
     }

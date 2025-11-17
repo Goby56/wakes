@@ -5,8 +5,6 @@ import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.utils.WakesUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
-
 public abstract class SimulationNode {
     public float[][][] u;
     public float[][] initialValues;

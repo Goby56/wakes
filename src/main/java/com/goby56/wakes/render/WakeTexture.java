@@ -4,15 +4,12 @@ import com.goby56.wakes.simulation.QuadTree;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.textures.TextureFormat;
-import net.minecraft.client.texture.GlTexture;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL14;
+import com.mojang.blaze3d.opengl.GlTexture;
 
 public class WakeTexture {
     private final GpuTextureView textureView;
@@ -39,7 +36,7 @@ public class WakeTexture {
         GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
 
         int dim = resolutionScaling * WakeHandler.resolution.res;
-        GlStateManager._bindTexture(((GlTexture) texture).getGlId());
+        GlStateManager._bindTexture(((GlTexture) texture).glId());
         GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0,0,0,dim, dim, glFormat, GlConst.GL_UNSIGNED_BYTE, imgPtr);
 
         //RenderSystem.setShaderTexture(0, texture);

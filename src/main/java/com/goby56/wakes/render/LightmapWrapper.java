@@ -1,16 +1,11 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.duck.LightmapAccess;
-import com.mojang.blaze3d.opengl.GlConst;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.system.MemoryUtil;
 
 public class LightmapWrapper {
     private static int[][] color = new int[16][16];
@@ -80,16 +75,16 @@ public class LightmapWrapper {
         color = mix3(color, new Vector3f(0.75f), 0.04f);
         color = clamp3(color, 0.0, 1.0);
 
-        return ColorHelper.fromFloats(1.0f, color.x, color.y, color.z);
+        return ARGB.colorFromFloat(1.0f, color.x, color.y, color.z);
     }
 
     private static Vector3f clamp3(Vector3f color, double v, double v1) {
-        return color.set(MathHelper.clamp(color.x, v, v1), MathHelper.clamp(color.y, v, v1),
-                MathHelper.clamp(color.z, v, v1));
+        return color.set(Mth.clamp(color.x, v, v1), Mth.clamp(color.y, v, v1),
+                Mth.clamp(color.z, v, v1));
     }
 
     public static int readPixel(int block, int sky) {
-        LightmapInfo info = ((LightmapAccess) MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager())
+        LightmapInfo info = ((LightmapAccess) Minecraft.getInstance().gameRenderer.lightTexture())
                 .wakes$getLightmapInfo();
 
         // Added null check to avoid NullPointerException if info is null

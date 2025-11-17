@@ -2,27 +2,23 @@ package com.goby56.wakes.debug;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.debug.DebugRenderer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.awt.*;
 import java.util.Random;
 
 public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
-    public static final Identifier DEBUG_TEXTURE_LAYER = Identifier.of(WakesClient.MOD_ID, "debug-texture-layer");
+    public static final ResourceLocation DEBUG_TEXTURE_LAYER = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "debug-texture-layer");
 
     @Override
     public void beforeDebugRender(WorldRenderContext context) {
@@ -30,16 +26,16 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
         if (wakeHandler == null) return;
         if (WakesConfig.drawDebugBoxes) {
             for (var node : wakeHandler.getVisible(context.frustum(), WakeNode.class)) {
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
-                        node.toBox().offset(context.camera().getPos().negate()),
+                DebugRenderer.renderFilledBox(context.matrixStack(), context.consumers(),
+                        node.toBox().move(context.camera().getPosition().reverse()),
                         1, 0, 1, 0.5f);
             }
             for (var brick : wakeHandler.getVisible(context.frustum(), Brick.class)) {
-                Vec3d pos = brick.pos;
-                Box box = new Box(pos.x, pos.y - (1 - WakeNode.WATER_OFFSET), pos.z, pos.x + brick.dim, pos.y, pos.z + brick.dim);
+                Vec3 pos = brick.pos;
+                AABB box = new AABB(pos.x, pos.y - (1 - WakeNode.WATER_OFFSET), pos.z, pos.x + brick.dim, pos.y, pos.z + brick.dim);
                 var col = Color.getHSBColor(new Random(pos.hashCode()).nextFloat(), 1f, 1f).getRGBColorComponents(null);
-                DebugRenderer.drawBox(context.matrixStack(), context.consumers(),
-                        box.offset(context.camera().getPos().negate()),
+                DebugRenderer.renderFilledBox(context.matrixStack(), context.consumers(),
+                        box.move(context.camera().getPosition().reverse()),
                         col[0], col[1], col[2], 0.5f);
             }
         }
@@ -51,8 +47,8 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
         //});
     }
 
-    public static void renderOnHUD(DrawContext context, RenderTickCounter tickCounter) {
-        if (WakesConfig.showDebugInfo && MinecraftClient.getInstance().getDebugHud().shouldShowDebugHud()) {
+    public static void renderOnHUD(GuiGraphics context, DeltaTracker tickCounter) {
+        if (WakesConfig.showDebugInfo && Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
           //  LightmapWrapper.render(context.getMatrices().peek().getPositionMatrix());
         }
     }
