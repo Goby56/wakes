@@ -15,9 +15,10 @@ import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.entity.Entity;
@@ -27,7 +28,7 @@ import org.joml.Matrix4f;
 
 import java.util.*;
 
-public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
+public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
@@ -47,14 +48,14 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
     private static final double SQRT_8 = Math.sqrt(8);
 
     @Override
-    public void afterTranslucent(WorldRenderContext context) {
+    public void endMain(WorldRenderContext context) {
         if (WakeHandler.getInstance().isEmpty()) {
             return;
         }
         WakeHandler wakeHandler = WakeHandler.getInstance().get();
-        for (SplashPlaneParticle particle : wakeHandler.getVisible(context.frustum(), SplashPlaneParticle.class)) {
+        for (SplashPlaneParticle particle : wakeHandler.getVisible(SplashPlaneParticle.class)) {
             if (particle.isRenderReady) {
-                SplashPlaneRenderer.render(particle.owner, particle, context, context.matrixStack());
+                SplashPlaneRenderer.render(particle.owner, particle, context, context.matrices());
             }
         }
     }
@@ -65,9 +66,15 @@ public class SplashPlaneRenderer implements WorldRenderEvents.AfterTranslucent {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
+        if (Minecraft.getInstance().options.getCameraType().isFirstPerson() &&
+                !WakesConfig.firstPersonSplashPlane &&
+                splashPlane.owner instanceof LocalPlayer) {
+            return;
+        }
+        splashPlane.updateYaw(context.gameRenderer().getMainCamera().getPartialTickTime());
 
         matrices.pushPose();
-        splashPlane.translateMatrix(context, matrices);
+        splashPlane.translateMatrix(context.gameRenderer().getMainCamera(), matrices);
         matrices.mulPose(Axis.YP.rotationDegrees(splashPlane.lerpedYaw + 180f));
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);

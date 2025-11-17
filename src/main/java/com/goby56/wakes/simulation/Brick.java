@@ -2,6 +2,7 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
+import com.goby56.wakes.render.FrustumManager;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
@@ -78,13 +79,13 @@ public class Brick {
         return occupied != 0;
     }
 
-    public void query(Frustum frustum, ArrayList<WakeNode> output) {
+    public void query(ArrayList<WakeNode> output) {
         for (int z = 0; z < dim; z++) {
             for (int x = 0; x < dim; x++) {
                 var node = this.get(x, z);
                 if (node == null) continue;
                 AABB b = node.toBox();
-                if (frustum.isVisible(b)) output.add(node);
+                if (FrustumManager.isVisible(b)) output.add(node);
             }
         }
     }

@@ -9,7 +9,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,6 +19,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -138,15 +139,10 @@ public class SplashPlaneParticle extends Particle {
         this.hasPopulatedPixels = true;
     }
 
-    @Override
-    public void render(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
+
+    public void updateYaw(float tickDelta) {
         this.isRenderReady = false;
         if (this.removed) return;
-        if (Minecraft.getInstance().options.getCameraType().isFirstPerson() &&
-                !WakesConfig.firstPersonSplashPlane &&
-                this.owner instanceof LocalPlayer) {
-            return;
-        }
 
         float diff = this.yaw - this.prevYaw;
         if (diff > 180f) {
@@ -159,9 +155,9 @@ public class SplashPlaneParticle extends Particle {
         this.isRenderReady = true;
     }
 
-    public void translateMatrix(WorldRenderContext context, PoseStack matrices) {
-        Vec3 cameraPos = context.camera().getPosition();
-        float tickDelta = context.tickCounter().getGameTimeDeltaPartialTick(true);
+    public void translateMatrix(Camera camera, PoseStack matrices) {
+        Vec3 cameraPos = camera.getPosition();
+        float tickDelta = camera.getPartialTickTime();
         float x = (float) (Mth.lerp(tickDelta, this.xo, this.x) - cameraPos.x());
         float y = (float) (Mth.lerp(tickDelta, this.yo, this.y) - cameraPos.y());
         float z = (float) (Mth.lerp(tickDelta, this.zo, this.z) - cameraPos.z());
@@ -174,8 +170,8 @@ public class SplashPlaneParticle extends Particle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.CUSTOM;
+    public ParticleRenderType getGroup() {
+        return ParticleRenderType.NO_RENDER;
     }
 
     @Environment(EnvType.CLIENT)
@@ -184,9 +180,8 @@ public class SplashPlaneParticle extends Particle {
         public Factory(SpriteSet spriteSet) {
         }
 
-        @Nullable
         @Override
-        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ) {
+        public @Nullable Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ, RandomSource random) {
             SplashPlaneParticle splashPlane = new SplashPlaneParticle(world, x, y, z);
             if (parameters instanceof WithOwnerParticleType type) {
                 splashPlane.owner = type.owner;

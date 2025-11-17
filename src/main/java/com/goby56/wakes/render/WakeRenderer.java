@@ -11,18 +11,19 @@ import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.culling.Frustum;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.*;
 
-public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
+public class WakeRenderer implements WorldRenderEvents.EndMain {
     public static Map<Resolution, WakeTexture> wakeTextures = null;
 
     private void initTextures() {
@@ -36,7 +37,7 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
     public static long lightmapTexure = -1;
 
     @Override
-    public void afterTranslucent(WorldRenderContext context) {
+    public void endMain(WorldRenderContext context) {
         if (WakesConfig.disableMod) {
             WakesDebugInfo.quadsRendered = 0;
             return;
@@ -47,16 +48,15 @@ public class WakeRenderer implements WorldRenderEvents.AfterTranslucent {
 
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
+        ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
 
-        ArrayList<Brick> bricks = wakeHandler.getVisible(context.frustum(), Brick.class);
-
-        Matrix4f matrix = context.matrixStack().last().pose();
+        Matrix4f matrix = context.matrices().last().pose();
 
         Resolution resolution = WakeHandler.resolution;
         int n = 0;
         long tRendering = System.nanoTime();
         for (var brick : bricks) {
-            render(matrix, context.camera(), brick, wakeTextures.get(resolution));
+            render(matrix, context.gameRenderer().getMainCamera(), brick, wakeTextures.get(resolution));
             n++;
         }
         WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);

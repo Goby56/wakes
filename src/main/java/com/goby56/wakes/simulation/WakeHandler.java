@@ -3,6 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
+import com.goby56.wakes.render.FrustumManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.level.Level;
@@ -119,18 +120,18 @@ public class WakeHandler {
         }
     }
 
-    public <T> ArrayList<T> getVisible(Frustum frustum, Class<T> type) {
+    public <T> ArrayList<T> getVisible(Class<T> type) {
         ArrayList<T> visibleObjects = new ArrayList<>();
         if (type.equals(SplashPlaneParticle.class)) {
             for (SplashPlaneParticle particle : splashPlanes) {
-                if (frustum.isVisible(particle.getBoundingBox())) {
+                if (FrustumManager.isVisible(particle.getBoundingBox())) {
                     visibleObjects.add(type.cast(particle));
                 }
             }
         } else {
             for (int i = 0; i < this.maxY - this.minY; i++) {
                 if (this.trees[i] != null) {
-                    this.trees[i].query(frustum, visibleObjects, type);
+                    this.trees[i].query(visibleObjects, type);
                 }
             }
         }

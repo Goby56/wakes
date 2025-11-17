@@ -1,5 +1,6 @@
 package com.goby56.wakes.simulation;
 
+import com.goby56.wakes.render.FrustumManager;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.phys.AABB;
 
@@ -101,8 +102,8 @@ public class QuadTree {
         }
     }
 
-    public <T> void query(Frustum frustum, ArrayList<T> output, Class<T> type) {
-        if (!frustum.isVisible(this.bounds.toBox((int) yLevel))) {
+    public <T> void query(ArrayList<T> output, Class<T> type) {
+        if (!FrustumManager.isVisible(this.bounds.toBox((int) yLevel))) {
             return;
         }
         if (hasLeaf() && brick.occupied > 0) {
@@ -111,7 +112,7 @@ public class QuadTree {
             }
             if (type.equals(WakeNode.class)) {
                 ArrayList<WakeNode> nodes = new ArrayList<>();
-                brick.query(frustum, nodes);
+                brick.query(nodes);
                 for (var node : nodes) {
                     output.add(type.cast(node));
                 }
@@ -120,7 +121,7 @@ public class QuadTree {
         }
         if (children == null) return;
         for (var tree : children) {
-            tree.query(frustum, output, type);
+            tree.query(output, type);
         }
     }
 

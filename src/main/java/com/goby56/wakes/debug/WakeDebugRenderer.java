@@ -6,9 +6,13 @@ import com.goby56.wakes.simulation.Brick;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
@@ -25,20 +29,22 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null) return;
         if (WakesConfig.drawDebugBoxes) {
-            for (var node : wakeHandler.getVisible(context.frustum(), WakeNode.class)) {
-                DebugRenderer.renderFilledBox(context.matrixStack(), context.consumers(),
-                        node.toBox().move(context.camera().getPosition().reverse()),
+            Camera camera = context.gameRenderer().getMainCamera();
+            for (var node : wakeHandler.getVisible(WakeNode.class)) {
+                DebugRenderer.renderFilledBox(context.matrices(), context.consumers(),
+                        node.toBox().move(camera.getPosition().reverse()),
                         1, 0, 1, 0.5f);
             }
-            for (var brick : wakeHandler.getVisible(context.frustum(), Brick.class)) {
+            for (var brick : wakeHandler.getVisible(Brick.class)) {
                 Vec3 pos = brick.pos;
                 AABB box = new AABB(pos.x, pos.y - (1 - WakeNode.WATER_OFFSET), pos.z, pos.x + brick.dim, pos.y, pos.z + brick.dim);
                 var col = Color.getHSBColor(new Random(pos.hashCode()).nextFloat(), 1f, 1f).getRGBColorComponents(null);
-                DebugRenderer.renderFilledBox(context.matrixStack(), context.consumers(),
-                        box.move(context.camera().getPosition().reverse()),
+                DebugRenderer.renderFilledBox(context.matrices(), context.consumers(),
+                        box.move(camera.getPosition().reverse()),
                         col[0], col[1], col[2], 0.5f);
             }
         }
+
     }
 
     public static void registerDebugTextureRenderer() {

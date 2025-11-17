@@ -32,11 +32,11 @@ public record HsvQuadGuiElementRenderState(
     }
 
     @Override
-    public void buildVertices(VertexConsumer vertices, float depth) {
-        vertices.addVertexWith2DPose(this.pose(), (float) this.x, (float) this.y, depth).setUv(0, 0).setColor(color1);
-        vertices.addVertexWith2DPose(this.pose(), (float) this.x, (float) this.y + this.height, depth).setUv(0, 1).setColor(color2);
-        vertices.addVertexWith2DPose(this.pose(), (float) this.x + this.width, (float) this.y + this.height, depth).setUv(1, 1).setColor(color3);
-        vertices.addVertexWith2DPose(this.pose(), (float) this.x + this.width, (float) this.y, depth).setUv(1, 0).setColor(color4);
+    public void buildVertices(VertexConsumer vertices) {
+        vertices.addVertexWith2DPose(this.pose(), (float) this.x, (float) this.y).setUv(0, 0).setColor(color1);
+        vertices.addVertexWith2DPose(this.pose(), (float) this.x, (float) this.y + this.height).setUv(0, 1).setColor(color2);
+        vertices.addVertexWith2DPose(this.pose(), (float) this.x + this.width, (float) this.y + this.height).setUv(1, 1).setColor(color3);
+        vertices.addVertexWith2DPose(this.pose(), (float) this.x + this.width, (float) this.y).setUv(1, 0).setColor(color4);
     }
 
     @Override

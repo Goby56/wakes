@@ -4,9 +4,9 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;
 
@@ -79,9 +79,9 @@ public class ColorIntervalSlider extends AbstractSliderButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
-        boolean shiftDown = Screen.hasShiftDown();
-        float value = valueFromMousePos(mouseX);
+    public void onClick(MouseButtonEvent mouseButtonEvent, boolean bl) {
+        boolean shiftDown = mouseButtonEvent.hasShiftDown();
+        float value = valueFromMousePos(mouseButtonEvent.x());
         SliderHandle handle = closestHandle(value);
         unfocusHandles();
         if (handle != null && handle.inProximity(value, width, 8)) {
@@ -127,16 +127,16 @@ public class ColorIntervalSlider extends AbstractSliderButton {
     }
 
     @Override
-    public void onRelease(double mouseX, double mouseY) {
+    public void onRelease(MouseButtonEvent mouseButtonEvent) {
         unfocusHandles();
-        super.onRelease(mouseX, mouseY);
+        super.onRelease(mouseButtonEvent);
     }
 
     @Override
-    public void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
+    public void onDrag(MouseButtonEvent mouseButtonEvent, double deltaX, double deltaY) {
         Collections.sort(handles);
 
-        float value = valueFromMousePos(mouseX);
+        float value = valueFromMousePos(mouseButtonEvent.x());
         for (SliderHandle handle : handles) {
             if (handle.focused) {
                 if (handle.setValue(value)) {

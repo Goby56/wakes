@@ -2,21 +2,26 @@ package com.goby56.wakes.particle.custom;
 
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeNode;
-import net.minecraft.client.particle.*;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.BlockPos;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SplashCloudParticle extends TextureSheetParticle {
+public class SplashCloudParticle extends SingleQuadParticle {
     Entity owner;
     final double offset;
     final boolean isFromPaddles;
 
     public SplashCloudParticle(ClientLevel world, double x, double y, double z, SpriteSet sprites, double velocityX, double velocityY, double velocityZ) {
-        super(world, x, y, z, velocityX, velocityY, velocityZ);
+        super(world, x, y, z, velocityX, velocityY, velocityZ, sprites.first());
         this.xd = velocityX;
         this.yd = velocityY;
         this.zd = velocityZ;
@@ -74,8 +79,8 @@ public class SplashCloudParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    protected @NotNull Layer getLayer() {
+        return Layer.TRANSLUCENT;
     }
 
     public static class Factory implements ParticleProvider<SimpleParticleType> {
@@ -85,9 +90,8 @@ public class SplashCloudParticle extends TextureSheetParticle {
             this.sprites = spriteSet;
         }
 
-        @Nullable
         @Override
-        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
+        public @Nullable Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, RandomSource random) {
             SplashCloudParticle cloud = new SplashCloudParticle(world, x, y, z, this.sprites, velocityX, velocityY, velocityZ);
             if (parameters instanceof WithOwnerParticleType type) {
                 cloud.owner = type.owner;

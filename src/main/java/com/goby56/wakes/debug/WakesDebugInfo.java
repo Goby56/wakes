@@ -1,11 +1,17 @@
 package com.goby56.wakes.debug;
 
+import com.goby56.wakes.config.WakesConfig;
+import net.minecraft.client.gui.components.debug.DebugScreenDisplayer;
+import net.minecraft.client.gui.components.debug.DebugScreenEntry;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WakesDebugInfo {
+public class WakesDebugInfo implements DebugScreenEntry {
     public static double nodeLogicTime = 0;
     public static double texturingTime = 0;
     public static ArrayList<Long> renderingTime = new ArrayList<>(); // Frames averaged each tick
@@ -19,10 +25,22 @@ public class WakesDebugInfo {
         renderingTime = new ArrayList<>();
     }
 
-    public static void show(CallbackInfoReturnable<List<String>> info) {
-        info.getReturnValue().add(String.format("[Wakes] Rendering %d quads for %d wake nodes", WakesDebugInfo.quadsRendered, WakesDebugInfo.nodeCount));
-        info.getReturnValue().add(String.format("[Wakes] Node logic: %.2fms/t", 10e-6 * WakesDebugInfo.nodeLogicTime));
-        info.getReturnValue().add(String.format("[Wakes] Texturing: %.2fms/t", 10e-6 * WakesDebugInfo.texturingTime));
-        info.getReturnValue().add(String.format("[Wakes] Rendering: %.3fms/f", 10e-6 * WakesDebugInfo.renderingTime.stream().reduce(0L, Long::sum) / WakesDebugInfo.renderingTime.size()));
+    @Override
+    public void display(DebugScreenDisplayer debugScreenDisplayer, @Nullable Level level, @Nullable LevelChunk levelChunk, @Nullable LevelChunk levelChunk2) {
+        if (level != null) {
+            if (WakesConfig.disableMod) {
+                debugScreenDisplayer.addLine("[Wakes] Mod disabled!");
+            } else {
+                debugScreenDisplayer.addLine(String.format("[Wakes] Rendering %d quads for %d wake nodes", WakesDebugInfo.quadsRendered, WakesDebugInfo.nodeCount));
+                debugScreenDisplayer.addLine(String.format("[Wakes] Node logic: %.2fms/t", 10e-6 * WakesDebugInfo.nodeLogicTime));
+                debugScreenDisplayer.addLine(String.format("[Wakes] Texturing: %.2fms/t", 10e-6 * WakesDebugInfo.texturingTime));
+                debugScreenDisplayer.addLine(String.format("[Wakes] Rendering: %.3fms/f", 10e-6 * WakesDebugInfo.renderingTime.stream().reduce(0L, Long::sum) / WakesDebugInfo.renderingTime.size()));
+            }
+        }
+    }
+
+    @Override
+    public boolean isAllowed(boolean bl) {
+        return WakesConfig.showDebugInfo;
     }
 }

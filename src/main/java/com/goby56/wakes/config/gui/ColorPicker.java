@@ -5,6 +5,9 @@ import com.goby56.wakes.render.WakeColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -84,54 +87,55 @@ public class ColorPicker extends AbstractWidget {
         this.changedColorListener = changedListener;
     }
 
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
-        if (hexInput.isFocused()) {
-            return hexInput.keyPressed(keyCode, scanCode, modifiers);
-        }
-        return super.keyPressed(keyCode, scanCode, modifiers);
-    }
+    // @Override
+    // public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    //     AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
+    //     if (hexInput.isFocused()) {
+    //         return hexInput.keyPressed(keyCode, scanCode, modifiers);
+    //     }
+    //     return super.keyPressed(keyCode, scanCode, modifiers);
+    // }
+
+    // @Override
+    // public boolean charTyped(char chr, int modifiers) {
+    //     AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
+    //     if (hexInput.isFocused()) {
+    //         return hexInput.charTyped(chr, modifiers);
+    //     }
+    //     return super.charTyped(chr, modifiers);
+    // }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        AbstractWidget hexInput = this.widgets.get("hexInputField").getWidget();
-        if (hexInput.isFocused()) {
-            return hexInput.charTyped(chr, modifiers);
-        }
-        return super.charTyped(chr, modifiers);
-    }
-
-    @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent mouseButtonEvent, boolean bl) {
+        double x = mouseButtonEvent.x(), y = mouseButtonEvent.y();
         AbstractWidget focusedWidget = null;
         for (var widget : this.widgets.values()) {
             widget.getWidget().setFocused(false);
-            if (widget.getBounds().contains((int) mouseX, (int) mouseY)) {
+            if (widget.getBounds().contains((int) x, (int) y)) {
                 focusedWidget = widget.getWidget();
             }
         }
         if (focusedWidget != null) {
             focusedWidget.setFocused(true);
-            focusedWidget.onClick(mouseX, mouseY);
+            focusedWidget.onClick(mouseButtonEvent, bl);
             return;
         }
-        this.updatePickerPos(mouseX, mouseY);
-        super.onClick(mouseX, mouseY);
+        this.updatePickerPos(x, y);
+        super.onClick(mouseButtonEvent, bl);
     }
 
     @Override
-    public void onDrag(double mouseX, double mouseY, double deltaX, double deltaY) {
-        mouseX = Math.min(this.getX() + width, Math.max(this.getX(), mouseX));
-        mouseY = Math.min(this.getY() + height, Math.max(this.getY(), mouseY));
+    public void onDrag(MouseButtonEvent mouseButtonEvent, double deltaX, double deltaY) {
+        double mouseX = Math.min(this.getX() + width, Math.max(this.getX(), mouseButtonEvent.x()));
+        double mouseY = Math.min(this.getY() + height, Math.max(this.getY(), mouseButtonEvent.y()));
         for (var widget : this.widgets.values()) {
             if (widget.getWidget().isFocused()) {
-                widget.getWidget().onDrag(mouseX, mouseY, deltaX, deltaY);
+                widget.getWidget().onDrag(mouseButtonEvent, deltaX, deltaY);
                 return;
             }
         }
         this.updatePickerPos(mouseX, mouseY);
-        super.onDrag(mouseX, mouseY, deltaX, deltaY);
+        super.onDrag(mouseButtonEvent, deltaX, deltaY);
     }
 
     public Vector2f getPolarPos(double mouseX, double mouseY) {
@@ -269,15 +273,15 @@ public class ColorPicker extends AbstractWidget {
         }
 
         @Override
-        public boolean charTyped(char chr, int modifiers) {
+        public boolean charTyped(CharacterEvent characterEvent) {
             this.autoUpdate = false;
-            return super.charTyped(chr, modifiers);
+            return super.charTyped(characterEvent);
         }
 
         @Override
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        public boolean keyPressed(KeyEvent keyEvent) {
             this.autoUpdate = false;
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(keyEvent);
         }
 
         @Override

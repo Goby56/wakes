@@ -9,5 +9,5 @@ accessible field net/minecraft/client/model/geom/ModelPart$Cube polygons [Lnet/m
 
 accessible method net/minecraft/client/gui/components/AbstractSliderButton getSprite ()Lnet/minecraft/resources/ResourceLocation;
 accessible method net/minecraft/client/gui/components/AbstractSliderButton getHandleSprite ()Lnet/minecraft/resources/ResourceLocation;
-accessible method net/minecraft/client/gui/components/AbstractWidget onDrag (DDDD)V
+accessible method net/minecraft/client/gui/components/AbstractWidget onDrag (Lnet/minecraft/client/input/MouseButtonEvent;DD)V
 extendable method net/minecraft/client/gui/components/EditBox onValueChange (Ljava/lang/String;)V
