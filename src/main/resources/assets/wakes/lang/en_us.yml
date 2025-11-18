@@ -60,6 +60,7 @@ wakes:
         debugColors: Render wakes with debug colors
         drawDebugBoxes: Draw debug boxes
         showDebugInfo: Show debug info in F3
+        showDebugInfo.tooltip: You also need to enable it in F3+F6
         floodFillDistance: Flood fill distance
         floodFillTickDelay: Ticks until flood fill
         renderType: Render type

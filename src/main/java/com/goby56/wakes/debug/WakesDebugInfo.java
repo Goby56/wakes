@@ -1,11 +1,14 @@
 package com.goby56.wakes.debug;
 
 import com.goby56.wakes.config.WakesConfig;
+import net.minecraft.client.gui.components.debug.DebugEntryCategory;
 import net.minecraft.client.gui.components.debug.DebugScreenDisplayer;
 import net.minecraft.client.gui.components.debug.DebugScreenEntry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
@@ -31,10 +34,12 @@ public class WakesDebugInfo implements DebugScreenEntry {
             if (WakesConfig.disableMod) {
                 debugScreenDisplayer.addLine("[Wakes] Mod disabled!");
             } else {
-                debugScreenDisplayer.addLine(String.format("[Wakes] Rendering %d quads for %d wake nodes", WakesDebugInfo.quadsRendered, WakesDebugInfo.nodeCount));
-                debugScreenDisplayer.addLine(String.format("[Wakes] Node logic: %.2fms/t", 10e-6 * WakesDebugInfo.nodeLogicTime));
-                debugScreenDisplayer.addLine(String.format("[Wakes] Texturing: %.2fms/t", 10e-6 * WakesDebugInfo.texturingTime));
-                debugScreenDisplayer.addLine(String.format("[Wakes] Rendering: %.3fms/f", 10e-6 * WakesDebugInfo.renderingTime.stream().reduce(0L, Long::sum) / WakesDebugInfo.renderingTime.size()));
+                debugScreenDisplayer.addToGroup(ResourceLocation.fromNamespaceAndPath("wakes", "debug_category"),
+                        List.of(
+                                String.format("[Wakes] Rendering %d quads for %d wake nodes", WakesDebugInfo.quadsRendered, WakesDebugInfo.nodeCount),
+                                String.format("[Wakes] Node logic: %.2fms/t", 10e-6 * WakesDebugInfo.nodeLogicTime),
+                                String.format("[Wakes] Texturing: %.2fms/t", 10e-6 * WakesDebugInfo.texturingTime),
+                                String.format("[Wakes] Rendering: %.3fms/f", 10e-6 * WakesDebugInfo.renderingTime.stream().reduce(0L, Long::sum) / WakesDebugInfo.renderingTime.size())));
             }
         }
     }

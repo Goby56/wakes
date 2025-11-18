@@ -8,6 +8,7 @@ import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
@@ -53,12 +54,10 @@ public class WakesClient implements ClientModInitializer {
 		WorldRenderEvents.END_MAIN.register(new WakeRenderer());
 		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
-		WakeDebugRenderer.registerDebugTextureRenderer();
 
 		SplashPlaneRenderer.initSplashPlane();
-
         DebugScreenEntries.register(
-                ResourceLocation.fromNamespaceAndPath("wake", "debug_entry"),
+                ResourceLocation.fromNamespaceAndPath("wakes", "debug_entry"),
                 new WakesDebugInfo());
 	}
 
