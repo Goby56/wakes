@@ -1,5 +1,6 @@
 package com.goby56.wakes.render;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.duck.ProducesWake;
@@ -8,6 +9,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.opengl.GlConst;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -54,9 +56,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         }
         WakeHandler wakeHandler = WakeHandler.getInstance().get();
         for (SplashPlaneParticle particle : wakeHandler.getVisible(SplashPlaneParticle.class)) {
-            if (particle.isRenderReady) {
-                SplashPlaneRenderer.render(particle.owner, particle, context, context.matrices());
-            }
+            SplashPlaneRenderer.render(particle.owner, particle, context, context.matrices());
         }
     }
 
@@ -94,7 +94,6 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
         // MAYBE ADD TO BLAZINGLY FAST BOATS?
         // https://streamable.com/tz0gp
-        int light = LightTexture.FULL_BRIGHT;
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
             for (int i = 0; i < vertices.size(); i++) {
@@ -116,11 +115,10 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         GpuBuffer buffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
         GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).getBuffer(built.drawState().indexCount());
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
-            pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
+            pass.setPipeline(WakesClient.SPLASH_PLANE_PIPELINE);
             pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
             pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
             RenderSystem.bindDefaultUniforms(pass);
-
             pass.setVertexBuffer(0, buffer);
             pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).type());
             pass.drawIndexed(0, 0, built.drawState().indexCount(), 1);

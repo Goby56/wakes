@@ -9,7 +9,11 @@ import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.utils.WakesUtils;
+import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -35,6 +39,15 @@ public class WakesClient implements ClientModInitializer {
 					.withFragmentShader(ResourceLocation.fromNamespaceAndPath("wakes", "gui_hsv"))
 					.build()
 	);
+	public static final RenderPipeline SPLASH_PLANE_PIPELINE = RenderPipelines.register(
+			RenderPipeline.builder(RenderPipelines.BEACON_BEAM_SNIPPET)
+					.withLocation("pipeline/beacon_beam_translucent")
+					.withVertexFormat(DefaultVertexFormat.BLOCK, VertexFormat.Mode.TRIANGLES)
+					.withDepthWrite(false)
+					.withCull(false)
+					.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
+					.withBlend(BlendFunction.TRANSLUCENT)
+					.build());
 
 	@Override
 	public void onInitializeClient() {

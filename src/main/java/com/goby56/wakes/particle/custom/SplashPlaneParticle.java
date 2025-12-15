@@ -42,9 +42,7 @@ public class SplashPlaneParticle extends Particle {
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
-    public boolean isRenderReady = false;
     public float lerpedYaw = 0;
-
 
     protected SplashPlaneParticle(ClientLevel world, double x, double y, double z) {
         super(world, x, y, z);
@@ -141,9 +139,6 @@ public class SplashPlaneParticle extends Particle {
 
 
     public void updateYaw(float tickDelta) {
-        this.isRenderReady = false;
-        if (this.removed) return;
-
         float diff = this.yaw - this.prevYaw;
         if (diff > 180f) {
             diff -= 360;
@@ -152,7 +147,6 @@ public class SplashPlaneParticle extends Particle {
         }
 
         this.lerpedYaw = (this.prevYaw + diff * tickDelta) % 360f;
-        this.isRenderReady = true;
     }
 
     public void translateMatrix(Camera camera, PoseStack matrices) {

@@ -18,6 +18,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -34,8 +37,6 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         );
     }
 
-    public static long lightmapTexure = -1;
-
     @Override
     public void endMain(WorldRenderContext context) {
         if (WakesConfig.disableMod) {
@@ -50,26 +51,32 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
         ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
 
-        Matrix4f matrix = context.matrices().last().pose();
+        Vec3 cameraPos = context.gameRenderer().getMainCamera().getPosition();
+        PoseStack matrices = context.matrices();
+        matrices.pushPose();
+        matrices.translate(cameraPos.reverse());
+
+        Matrix4f matrix = matrices.last().pose();
 
         Resolution resolution = WakeHandler.resolution;
         int n = 0;
         long tRendering = System.nanoTime();
         for (var brick : bricks) {
-            render(matrix, context.gameRenderer().getMainCamera(), brick, wakeTextures.get(resolution));
+            render(matrix, brick, wakeTextures.get(resolution));
             n++;
         }
         WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
         WakesDebugInfo.quadsRendered = n;
+
+        matrices.popPose();
     }
 
-    private void render(Matrix4f matrix, Camera camera, Brick brick, WakeTexture texture) {
+    private void render(Matrix4f matrix, Brick brick, WakeTexture texture) {
         if (!brick.hasPopulatedPixels) return;
         texture.loadTexture(brick.imgPtr, GlConst.GL_RGBA);
 
         BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
-
-        Vector3f pos = brick.pos.add(camera.getPosition().reverse()).toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
+        Vector3f pos = brick.pos.toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
         bb.addVertex(matrix, pos.x, pos.y, pos.z)
                 .setUv(0, 0)
                 .setColor(1f, 1f, 1f, 1f)
