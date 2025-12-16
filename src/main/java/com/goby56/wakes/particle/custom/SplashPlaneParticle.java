@@ -99,8 +99,8 @@ public class SplashPlaneParticle extends Particle {
             Vec3 particleOffset = new Vec3(-direction.z, 0, direction.x).scale(random.nextDouble() * this.owner.getBbWidth() / 4);
             Vec3 particlePos = this.owner.position().add(direction.scale(this.owner.getBbWidth() - 0.3));
             Vec3 particleVelocity = Vec3.directionFromRotation((float) (45 * random.nextDouble()), (float) (-this.yaw + 30 * (random.nextDouble() - 0.5f))).scale(1.5 * vel.length());
-            this.level.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
-            this.level.addParticle(ModParticles.SPLASH_CLOUD, particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+            this.level.addParticle(ModParticles.SPLASH_CLOUD.withOwner(this.owner), particlePos.x + particleOffset.x, this.y, particlePos.z + particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
+            this.level.addParticle(ModParticles.SPLASH_CLOUD.withOwner(this.owner), particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
         }
 
         this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);

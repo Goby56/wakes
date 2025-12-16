@@ -60,7 +60,7 @@ public class WakesUtils {
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
                     Vec3 pos = new Vec3(x, ((ProducesWake) boat).wakes$wakeHeight(), z);
-                    world.addParticle(ModParticles.SPLASH_CLOUD, pos.x, pos.y, pos.z, 0, 0, 0);
+                    world.addParticle(ModParticles.SPLASH_CLOUD.withOwner(boat), pos.x, pos.y, pos.z, 0, 0, 0);
                 }
             }
         }

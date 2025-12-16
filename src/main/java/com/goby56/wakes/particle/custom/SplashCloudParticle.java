@@ -1,12 +1,15 @@
 package com.goby56.wakes.particle.custom;
 
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.particle.WithOwnerParticleType;
 import com.goby56.wakes.simulation.WakeNode;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -20,8 +23,9 @@ public class SplashCloudParticle extends SingleQuadParticle {
     final double offset;
     final boolean isFromPaddles;
 
-    public SplashCloudParticle(ClientLevel world, double x, double y, double z, SpriteSet sprites, double velocityX, double velocityY, double velocityZ) {
+    public SplashCloudParticle(ClientLevel world, Entity owner, double x, double y, double z, SpriteSet sprites, double velocityX, double velocityY, double velocityZ) {
         super(world, x, y, z, velocityX, velocityY, velocityZ, sprites.first());
+        this.owner = owner;
         this.xd = velocityX;
         this.yd = velocityY;
         this.zd = velocityZ;
@@ -30,31 +34,36 @@ public class SplashCloudParticle extends SingleQuadParticle {
         this.yo = y;
         this.zo = z;
 
-        this.lifetime = (int) (WakeNode.maxAge * 1.5);
+        this.isFromPaddles = velocityX == 0;
+
+        this.lifetime = this.isFromPaddles ? (int) (WakeNode.maxAge * 1.5) : WakeNode.maxAge / 3;
+
         this.setSprite(sprites.get(world.random));
 
         this.offset = velocityX;
-        this.isFromPaddles = velocityX == 0;
         this.quadSize = isFromPaddles ? quadSize * 2 : 0.3f;
+
+        this.alpha = getAlpha();
+    }
+
+    public float getAlpha() {
+        if (Minecraft.getInstance().options.getCameraType().isFirstPerson() &&
+                !WakesConfig.firstPersonEffects && this.owner instanceof LocalPlayer) {
+            return 0;
+        }
+        return 1f - (float) this.age / this.lifetime;
     }
 
     @Override
     public void tick() {
         this.age++;
-        if (this.isFromPaddles) {
-            if (this.age > lifetime) {
-                this.remove();
-                return;
-            }
-            this.alpha = 1f - (float) this.age / this.lifetime;
+        if (this.age > this.lifetime) {
+            this.remove();
             return;
-        } else {
-            if (this.age > lifetime / 3) {
-                this.remove();
-                return;
-            }
-            this.alpha = 1f - (float) this.age / (this.lifetime / 3f);
         }
+
+        this.alpha = getAlpha();
+
         this.xo = this.x;
         this.yo = this.y;
         this.zo = this.z;
@@ -76,6 +85,7 @@ public class SplashCloudParticle extends SingleQuadParticle {
         this.y += yd;
         this.z += zd;
         this.setPos(this.x, this.y, this.z);
+
     }
 
     @Override
@@ -92,11 +102,10 @@ public class SplashCloudParticle extends SingleQuadParticle {
 
         @Override
         public @Nullable Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, RandomSource random) {
-            SplashCloudParticle cloud = new SplashCloudParticle(world, x, y, z, this.sprites, velocityX, velocityY, velocityZ);
             if (parameters instanceof WithOwnerParticleType type) {
-                cloud.owner = type.owner;
+                return new SplashCloudParticle(world, type.owner, x, y, z, this.sprites, velocityX, velocityY, velocityZ);
             }
-            return cloud;
+            return null;
         }
     }
 }

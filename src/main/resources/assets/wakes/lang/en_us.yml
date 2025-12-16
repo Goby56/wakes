@@ -20,8 +20,8 @@ wakes:
             debug: Debug
 
         spawnParticles: Wake particles
-        firstPersonSplashPlane: First person splash plane
-        firstPersonSplashPlane.tooltip: Should the player's splash plane be seen while in first person?
+        firstPersonEffects: First person effects
+        firstPersonEffects.tooltip: Should water effects be shown in first person?
         wakeOpacity: Wake opacity
         blendStrength: Blend strength
         wakeResolution: Wake resolution
