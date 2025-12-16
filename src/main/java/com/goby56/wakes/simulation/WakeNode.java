@@ -57,9 +57,13 @@ public class WakeNode {
     }
 
     public boolean tick(WakeHandler wakeHandler) {
-        if (this.isDead()) return false;
+        if (!this.validPos(wakeHandler.world)) {
+            this.markDead();
+        }
         if (this.age++ >= WakeNode.maxAge) {
             this.markDead();
+        }
+        if (this.isDead()) {
             return false;
         }
         this.t = this.age / (float) WakeNode.maxAge;
