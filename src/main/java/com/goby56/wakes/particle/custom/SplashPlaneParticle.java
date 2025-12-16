@@ -21,6 +21,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.vehicle.AbstractBoat;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.phys.Vec3;
@@ -84,7 +85,7 @@ public class SplashPlaneParticle extends Particle {
     private void aliveTick(ProducesWake wakeProducer) {
         // Vec3d vel = wakeProducer.wakes$getNumericalVelocity(); // UNCOMMENT IF WEIRD SPLASH BEHAVIOR
         Vec3 vel = this.owner.getDeltaMovement();
-        if (this.owner instanceof Boat) {
+        if (this.owner instanceof AbstractBoat) {
             this.yaw = -this.owner.getYRot();
         } else {
             this.yaw = 90f - (float) (180f / Math.PI * Math.atan2(vel.z, vel.x));

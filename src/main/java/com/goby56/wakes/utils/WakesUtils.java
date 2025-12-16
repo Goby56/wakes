@@ -50,12 +50,12 @@ public class WakesUtils {
         }
     }
 
-    public static void spawnPaddleSplashCloudParticle(Level world, Boat boat) {
+    public static void spawnPaddleSplashCloudParticle(Level world, AbstractBoat boat) {
         // TODO MORE OBJECT ORIENTED APPROACH TO PARTICLE SPAWNING
         for (int i = 0; i < 2; i++) {
             if (boat.getPaddleState(i)) {
                 double phase = boat.paddlePositions[i] % (2*Math.PI);
-                if (Boat.PADDLE_SPEED / 2 <= phase && phase <= Boat.PADDLE_SOUND_TIME + Boat.PADDLE_SPEED) {
+                if (AbstractBoat.PADDLE_SPEED / 2 <= phase && phase <= AbstractBoat.PADDLE_SOUND_TIME + AbstractBoat.PADDLE_SPEED) {
                     Vec3 rot = boat.getViewVector(1.0f);
                     double x = boat.getX() + (i == 1 ? -rot.z : rot.z);
                     double z = boat.getZ() + (i == 1 ? rot.x : -rot.x);
@@ -80,7 +80,7 @@ public class WakesUtils {
         double velocity = producer.wakes$getHorizontalVelocity();
         int y = (int) Math.floor(producer.wakes$wakeHeight());
 
-        if (entity instanceof Boat boat) {
+        if (entity instanceof AbstractBoat boat) {
             for (WakeNode node : WakeNode.Factory.rowingNodes(boat, y)) {
                 wakeHandler.insert(node);
             }
