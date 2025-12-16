@@ -34,9 +34,9 @@ public abstract class LightmapTextureManagerMixin implements LightmapAccess {
 
     @Inject(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/CommandEncoder;createRenderPass(Ljava/util/function/Supplier;Lcom/mojang/blaze3d/textures/GpuTextureView;Ljava/util/OptionalInt;)Lcom/mojang/blaze3d/systems/RenderPass;"))
     private void wakes$onUpdate(float tickProgress, CallbackInfo ci, @Local ClientLevel world, @Local(ordinal = 1) Vector3f skyColor) {
-        float f = world.getSkyDarken(1.0F);
+        float f = world.getSkyDarken();
         float g;
-        if (world.getSkyFlashTime() > 0) {
+        if (world.skyFlashTime > 0) {
             g = 1.0F;
         } else {
             g = f * 0.95F + 0.05F;
@@ -61,7 +61,7 @@ public abstract class LightmapTextureManagerMixin implements LightmapAccess {
 
 
         info = new LightmapInfo(world.dimensionType().ambientLight(), g, this.blockLightRedFlicker + 1.5f,
-                world.effects().constantAmbientLight(), l, j, this.renderer.getDarkenWorldAmount(tickProgress), Math.max(0.0F, o - i), skyColor, currentTick++);
+                world.light()AmbientLight(), l, j, this.renderer.getDarkenWorldAmount(tickProgress), Math.max(0.0F, o - i), skyColor, currentTick++);
     }
 
     @Override

@@ -23,7 +23,7 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ public class WakesClient implements ClientModInitializer {
 	public static boolean areShadersEnabled = false;
 	public static final RenderPipeline GUI_HSV_PIPELINE = RenderPipelines.register(
 			RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
-					.withLocation(ResourceLocation.fromNamespaceAndPath("wakes", "pipeline/gui_hsv"))
-					.withFragmentShader(ResourceLocation.fromNamespaceAndPath("wakes", "gui_hsv"))
+					.withLocation(Identifier.fromNamespaceAndPath("wakes", "pipeline/gui_hsv"))
+					.withFragmentShader(Identifier.fromNamespaceAndPath("wakes", "gui_hsv"))
 					.build()
 	);
 	public static final RenderPipeline SPLASH_PLANE_PIPELINE = RenderPipelines.register(
@@ -71,7 +71,7 @@ public class WakesClient implements ClientModInitializer {
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(
-                ResourceLocation.fromNamespaceAndPath("wakes", "debug_entry"),
+                Identifier.fromNamespaceAndPath("wakes", "debug_entry"),
                 new WakesDebugInfo());
 	}
 

@@ -40,14 +40,14 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
             return;
         }
 
-        context.gameRenderer().lightTexture().turnOnLightLayer();
+        // context.gameRenderer().lightTexture().turnOnLightLayer();
         if (wakeTextures == null) initTextures();
 
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
         ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
 
-        Vec3 cameraPos = context.gameRenderer().getMainCamera().getPosition();
+        Vec3 cameraPos = context.gameRenderer().getMainCamera().position();
         PoseStack matrices = context.matrices();
         matrices.pushPose();
         matrices.translate(cameraPos.reverse());
@@ -100,8 +100,8 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(built.drawState().indexCount());
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Wake", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
             pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
-            pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
-            pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
+            // pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
+            // pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
             RenderSystem.bindDefaultUniforms(pass);
 
             pass.setVertexBuffer(0, buffer);

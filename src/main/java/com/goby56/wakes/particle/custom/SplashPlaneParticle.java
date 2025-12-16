@@ -17,8 +17,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.AbstractBoat;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
@@ -146,7 +146,7 @@ public class SplashPlaneParticle extends Particle {
     }
 
     public void translateMatrix(Camera camera, PoseStack matrices) {
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.position();
         float tickDelta = camera.getPartialTickTime();
         float x = (float) (Mth.lerp(tickDelta, this.xo, this.x) - cameraPos.x());
         float y = (float) (Mth.lerp(tickDelta, this.yo, this.y) - cameraPos.y());

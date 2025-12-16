@@ -24,7 +24,7 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
             Camera camera = context.gameRenderer().getMainCamera();
             for (var node : wakeHandler.getVisible(WakeNode.class)) {
                 DebugRenderer.renderFilledBox(context.matrices(), context.consumers(),
-                        node.toBox().move(camera.getPosition().reverse()),
+                        node.toBox().move(camera.position().reverse()),
                         1, 0, 1, 0.5f);
             }
             for (var brick : wakeHandler.getVisible(Brick.class)) {
@@ -32,7 +32,7 @@ public class WakeDebugRenderer implements WorldRenderEvents.DebugRender {
                 AABB box = new AABB(pos.x, pos.y - (1 - WakeNode.WATER_OFFSET), pos.z, pos.x + brick.dim, pos.y, pos.z + brick.dim);
                 var col = Color.getHSBColor(new Random(pos.hashCode()).nextFloat(), 1f, 1f).getRGBColorComponents(null);
                 DebugRenderer.renderFilledBox(context.matrices(), context.consumers(),
-                        box.move(camera.getPosition().reverse()),
+                        box.move(camera.position().reverse()),
                         col[0], col[1], col[2], 0.5f);
             }
         }

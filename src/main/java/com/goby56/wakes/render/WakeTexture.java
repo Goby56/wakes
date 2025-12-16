@@ -25,7 +25,7 @@ public class WakeTexture {
 
         this.texture = RenderSystem.getDevice().createTexture(() -> "Wake Texture", GpuTexture.USAGE_COPY_DST | GpuTexture.USAGE_TEXTURE_BINDING,
                 TextureFormat.RGBA8, resolutionScaling * res, resolutionScaling * res, 1, 1);
-        texture.setTextureFilter(FilterMode.NEAREST, false);
+        // texture.setTextureFilter(FilterMode.NEAREST, false);
         this.textureView = RenderSystem.getDevice().createTextureView(texture);
     }
 
@@ -43,7 +43,8 @@ public class WakeTexture {
         //RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
         //RenderSystem.enableDepthTest(); // Is it THIS simple? https://github.com/Goby56/wakes/issues/46
         //RenderSystem.disableCull();
-        RenderSystem.setShaderTexture(0, textureView);
+        RenderSystem.outputColorTextureOverride = textureView;
+        // RenderSystem.setShaderTexture(0, textureView);
     }
 
     public GpuTexture getTexture() {

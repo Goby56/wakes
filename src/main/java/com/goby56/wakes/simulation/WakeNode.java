@@ -3,7 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.AbstractBoat;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.core.BlockPos;

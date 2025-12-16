@@ -114,8 +114,8 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).getBuffer(built.drawState().indexCount());
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
             pass.setPipeline(WakesClient.SPLASH_PLANE_PIPELINE);
-            pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
-            pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
+            // pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
+            // pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
             RenderSystem.bindDefaultUniforms(pass);
             pass.setVertexBuffer(0, buffer);
             pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).type());

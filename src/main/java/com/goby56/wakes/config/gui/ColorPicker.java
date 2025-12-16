@@ -14,7 +14,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
@@ -26,9 +26,9 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class ColorPicker extends AbstractWidget {
-    private static final ResourceLocation FRAME_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/sprites/widget/slot_frame.png");
-    private static final ResourceLocation PICKER_BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_background.png");
-    private static final ResourceLocation PICKER_KNOB_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_knob.png");
+    private static final Identifier FRAME_TEXTURE = Identifier.withDefaultNamespace("textures/gui/sprites/widget/slot_frame.png");
+    private static final Identifier PICKER_BG_TEXTURE = Identifier.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_background.png");
+    private static final Identifier PICKER_KNOB_TEXTURE = Identifier.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/picker_knob.png");
     private static final int pickerKnobDim = 7;
 
     private final Map<String, Bounded> widgets = new HashMap<>();
@@ -355,7 +355,7 @@ public class ColorPicker extends AbstractWidget {
             }
             context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleSprite(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
             int i = this.active ? 0xFFFFFF : 0xA0A0A0;
-            this.renderScrollingString(context, Minecraft.getInstance().font, 2, i | Mth.ceil(this.alpha * 255.0f) << 24);
+            this.renderScrollingStringOverContents(context.textRenderer(), this.message, i | Mth.ceil(this.alpha * 255.0f) << 24);
         }
 
         @Override

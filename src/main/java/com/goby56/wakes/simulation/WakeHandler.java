@@ -15,11 +15,11 @@ public class WakeHandler {
     private static WakeHandler INSTANCE;
     public Level world;
 
-    private QuadTree[] trees;
-    private QueueSet<WakeNode>[] toBeInserted;
+    private final QuadTree[] trees;
+    private final QueueSet<WakeNode>[] toBeInserted;
     private final int minY;
     private final int maxY;
-    private ArrayList<SplashPlaneParticle> splashPlanes;
+    private final ArrayList<SplashPlaneParticle> splashPlanes;
 
     public static Resolution resolution = WakesConfig.wakeResolution;
 
