@@ -1,7 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.render.FrustumManager;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.phys.AABB;
 
 import java.util.*;

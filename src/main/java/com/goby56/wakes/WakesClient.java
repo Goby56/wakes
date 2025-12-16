@@ -8,7 +8,6 @@ import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
-import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;

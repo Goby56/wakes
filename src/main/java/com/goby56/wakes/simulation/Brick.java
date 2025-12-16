@@ -6,7 +6,6 @@ import com.goby56.wakes.render.FrustumManager;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;

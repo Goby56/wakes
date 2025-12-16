@@ -13,14 +13,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3x2f;
-import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

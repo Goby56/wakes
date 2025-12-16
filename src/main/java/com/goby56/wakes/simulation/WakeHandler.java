@@ -5,7 +5,6 @@ import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.render.FrustumManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
