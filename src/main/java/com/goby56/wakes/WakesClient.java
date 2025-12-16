@@ -67,7 +67,6 @@ public class WakesClient implements ClientModInitializer {
 		// Rendering events
 		WorldRenderEvents.END_MAIN.register(new WakeRenderer());
 		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
-		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(new WakeDebugRenderer());
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(
