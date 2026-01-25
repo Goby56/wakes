@@ -7,9 +7,12 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
@@ -19,6 +22,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.*;
 
@@ -46,19 +50,26 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
         ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
-
-        Vec3 cameraPos = context.gameRenderer().getMainCamera().position();
+        Vec3 cameraPos = context.worldState().cameraRenderState.pos;
         PoseStack matrices = context.matrices();
         matrices.pushPose();
         matrices.translate(cameraPos.reverse());
 
         Matrix4f matrix = matrices.last().pose();
+        // Matrix4f matrix = new Matrix4f();
+
+        GpuBufferSlice dynamicUniforms = RenderSystem.getDynamicUniforms().writeTransform(
+                RenderSystem.getModelViewMatrix(),
+                new Vector4f(1,1,1,1),
+                new Vector3f(),
+                new Matrix4f()
+        );
 
         Resolution resolution = WakeHandler.resolution;
         int n = 0;
         long tRendering = System.nanoTime();
         for (var brick : bricks) {
-            render(matrix, brick, wakeTextures.get(resolution));
+            render(matrix, brick, wakeTextures.get(resolution), dynamicUniforms);
             n++;
         }
         WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
@@ -67,7 +78,7 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         matrices.popPose();
     }
 
-    private void render(Matrix4f matrix, Brick brick, WakeTexture texture) {
+    private void render(Matrix4f matrix, Brick brick, WakeTexture texture, GpuBufferSlice dynamicUniforms) {
         if (!brick.hasPopulatedPixels) return;
         texture.loadTexture(brick.imgPtr, GlConst.GL_RGBA);
 
@@ -98,11 +109,13 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
 
         GpuBuffer buffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
         GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(built.drawState().indexCount());
+        GpuSampler sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Wake", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
             pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
-            // pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
-            // pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
+            pass.bindTexture("Sampler0", texture.getTextureView(), sampler);
+            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
             RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("DynamicTransforms", dynamicUniforms);
 
             pass.setVertexBuffer(0, buffer);
             pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type());
