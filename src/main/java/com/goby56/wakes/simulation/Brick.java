@@ -1,8 +1,10 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.FrustumManager;
+import com.goby56.wakes.render.WakeTexture;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
@@ -14,6 +16,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -35,6 +38,8 @@ public class Brick {
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
+    public WakeTexture wakeTexture;
+
     public Brick(int x, float y, int z, int width) {
         this.dim = width;
         this.capacity = dim * dim;
@@ -45,6 +50,7 @@ public class Brick {
     }
 
     public void initTexture(int res) {
+        this.wakeTexture = new WakeTexture(res, true);
         long size = 4L * dim * dim * res * res;
         if (imgPtr == -1) {
             this.imgPtr = MemoryUtil.nmemAlloc(size);
@@ -53,6 +59,7 @@ public class Brick {
         }
         this.texRes = res;
         this.hasPopulatedPixels = false;
+
     }
 
     public void deallocTexture() {

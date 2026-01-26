@@ -14,8 +14,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.vertex.*;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldExtractionContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -27,63 +29,98 @@ import org.joml.Vector4f;
 import java.util.*;
 
 public class WakeRenderer implements WorldRenderEvents.EndMain {
-    public static Map<Resolution, WakeTexture> wakeTextures = null;
 
-    private void initTextures() {
-        wakeTextures = Map.of(
-                Resolution.EIGHT, new WakeTexture(Resolution.EIGHT.res, true),
-                Resolution.SIXTEEN, new WakeTexture(Resolution.SIXTEEN.res, true),
-                Resolution.THIRTYTWO, new WakeTexture(Resolution.THIRTYTWO.res, true)
-        );
+    private record PreparedDraw(GpuBuffer vbo, GpuBuffer ibo, int indexCount, VertexFormat.IndexType indexType, WakeTexture texture) {
+
     }
 
     @Override
     public void endMain(WorldRenderContext context) {
+        // ===== Prepare =====
         if (WakesConfig.disableMod) {
             WakesDebugInfo.quadsRendered = 0;
             return;
         }
 
-        // context.gameRenderer().lightTexture().turnOnLightLayer();
-        if (wakeTextures == null) initTextures();
-
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
+
         ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
+
         Vec3 cameraPos = context.worldState().cameraRenderState.pos;
-        PoseStack matrices = context.matrices();
-        matrices.pushPose();
-        matrices.translate(cameraPos.reverse());
+        // PoseStack matrices = context.matrices();
+        // matrices.pushPose();
+        // matrices.translate(cameraPos.reverse());
+        // Matrix4f matrix = matrices.last().pose();
 
-        Matrix4f matrix = matrices.last().pose();
-        // Matrix4f matrix = new Matrix4f();
+        VertexFormat vertexFormat = RenderPipelines.TRANSLUCENT_MOVING_BLOCK.getVertexFormat();
 
+        ArrayList<PreparedDraw> preparedDraws = new ArrayList<>();
+        for (Brick brick : bricks) {
+            if (!brick.hasPopulatedPixels) continue;
+
+            MeshData mesh = createBrickMesh(cameraPos.toVector3f(), brick);
+            GpuBuffer buffer = vertexFormat.uploadImmediateVertexBuffer(mesh.vertexBuffer());
+            GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(mesh.drawState().indexCount());
+            //GpuBuffer indices = vertexFormat.uploadImmediateIndexBuffer(mesh.indexBuffer());
+
+            int indexCount = mesh.drawState().indexCount();
+
+            VertexFormat.IndexType indexType = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type();
+            //VertexFormat.IndexType indexType = mesh.drawState().indexType();
+
+            brick.wakeTexture.loadTexture(brick.imgPtr, GlConst.GL_RGBA);
+
+            preparedDraws.add(new PreparedDraw(buffer, indices, indexCount, indexType, brick.wakeTexture));
+
+            mesh.close();
+        }
+        //matrices.popPose();
+
+        // ===== Draw =====
         GpuBufferSlice dynamicUniforms = RenderSystem.getDynamicUniforms().writeTransform(
                 RenderSystem.getModelViewMatrix(),
                 new Vector4f(1,1,1,1),
                 new Vector3f(),
                 new Matrix4f()
         );
+        GpuSampler sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
 
-        Resolution resolution = WakeHandler.resolution;
-        int n = 0;
-        long tRendering = System.nanoTime();
-        for (var brick : bricks) {
-            render(matrix, brick, wakeTextures.get(resolution), dynamicUniforms);
-            n++;
+        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+                () -> "Wake", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(),
+                OptionalInt.empty(),
+                Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(),
+                OptionalDouble.empty()))
+        {
+            pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
+            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
+            RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("DynamicTransforms", dynamicUniforms);
+
+            int n = 0;
+            long tRendering = System.nanoTime();
+            for (PreparedDraw draw : preparedDraws) {
+                pass.bindTexture("Sampler0", draw.texture.getTextureView(), sampler);
+
+                pass.setVertexBuffer(0, draw.vbo);
+                pass.setIndexBuffer(draw.ibo, draw.indexType);
+                pass.drawIndexed(0, 0, draw.indexCount, 1);
+
+                n++;
+            }
+            WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
+            WakesDebugInfo.quadsRendered = n;
         }
-        WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
-        WakesDebugInfo.quadsRendered = n;
-
-        matrices.popPose();
     }
 
-    private void render(Matrix4f matrix, Brick brick, WakeTexture texture, GpuBufferSlice dynamicUniforms) {
-        if (!brick.hasPopulatedPixels) return;
-        texture.loadTexture(brick.imgPtr, GlConst.GL_RGBA);
+    private MeshData createBrickMesh(Vector3f cameraPos, Brick brick) {
+        Vector3f pos = new Vector3f(
+                (float) (brick.pos.x - cameraPos.x),
+                (float) (brick.pos.y - cameraPos.y + WakeNode.WATER_OFFSET),
+                (float) (brick.pos.z - cameraPos.z));
+        Matrix4f matrix = new Matrix4f();
 
         BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
-        Vector3f pos = brick.pos.toVector3f().add(0, WakeNode.WATER_OFFSET, 0);
         bb.addVertex(matrix, pos.x, pos.y, pos.z)
                 .setUv(0, 0)
                 .setColor(1f, 1f, 1f, 1f)
@@ -105,22 +142,6 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
                 .setLight(LightTexture.FULL_BRIGHT)
                 .setNormal(0f, 1f, 0f);
 
-        MeshData built = bb.buildOrThrow();
-
-        GpuBuffer buffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
-        GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(built.drawState().indexCount());
-        GpuSampler sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Wake", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
-            pass.setPipeline(RenderPipelines.TRANSLUCENT_MOVING_BLOCK);
-            pass.bindTexture("Sampler0", texture.getTextureView(), sampler);
-            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
-            RenderSystem.bindDefaultUniforms(pass);
-            pass.setUniform("DynamicTransforms", dynamicUniforms);
-
-            pass.setVertexBuffer(0, buffer);
-            pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type());
-            pass.drawIndexed(0, 0, built.drawState().indexCount(), 1);
-        }
-        built.close();
+        return bb.buildOrThrow();
     }
 }
