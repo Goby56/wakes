@@ -49,6 +49,8 @@ public class WakesClient implements ClientModInitializer {
 					.withBlend(BlendFunction.TRANSLUCENT)
 					.build());
 
+	public static WakeRenderer wakeRenderer;
+
 	@Override
 	public void onInitializeClient() {
 		FabricLoader.getInstance().getModContainer(MOD_ID).ifPresent(container -> METADATA = container.getMetadata());
@@ -65,7 +67,8 @@ public class WakesClient implements ClientModInitializer {
 		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(new WakeWorldTicker());
 
 		// Rendering events
-		WorldRenderEvents.END_MAIN.register(new WakeRenderer());
+		wakeRenderer = new WakeRenderer();
+		WorldRenderEvents.BEFORE_TRANSLUCENT.register(wakeRenderer);
 		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
 
 		SplashPlaneRenderer.initSplashPlane();

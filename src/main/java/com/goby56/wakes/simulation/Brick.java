@@ -1,7 +1,6 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.FrustumManager;
 import com.goby56.wakes.render.WakeTexture;
@@ -16,7 +15,6 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
