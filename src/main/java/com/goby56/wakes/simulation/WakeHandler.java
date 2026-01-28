@@ -7,18 +7,14 @@ import com.goby56.wakes.render.FrustumManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 
 public class WakeHandler {
     private static WakeHandler INSTANCE;
     public Level world;
 
-    private final QuadTree[] trees;
-    private final QueueSet<WakeNode>[] toBeInserted;
-    private final int minY;
-    private final int maxY;
+    private final HashMap<WakeChunkPos, WakeChunk> wakeChunks = new HashMap<>();
+    private final QueueSet<WakeNode> toBeInserted;
     private final ArrayList<SplashPlaneParticle> splashPlanes;
 
     public static Resolution resolution = WakesConfig.wakeResolution;
@@ -27,14 +23,7 @@ public class WakeHandler {
 
     private WakeHandler(Level world) {
         this.world = world;
-        this.minY = world.getMinY();
-        this.maxY = world.getMaxY();
-        int worldHeight = this.maxY - this.minY;
-        this.trees = new QuadTree[worldHeight];
-        this.toBeInserted = new QueueSet[worldHeight];
-        for (int i = 0; i < worldHeight; i++) {
-            toBeInserted[i] = new QueueSet<>();
-        }
+        this.toBeInserted = new QueueSet<>();
         this.splashPlanes = new ArrayList<>();
     }
 
@@ -53,6 +42,7 @@ public class WakeHandler {
     }
 
     public static void kill() {
+        getInstance().ifPresent(wakeHandler -> wakeHandler.wakeChunks.clear());
         INSTANCE = null;
     }
 
@@ -60,21 +50,32 @@ public class WakeHandler {
         if (WakesConfig.wakeResolution.res != WakeHandler.resolution.res) {
             scheduleResolutionChange(WakesConfig.wakeResolution);
         }
-        for (int i = 0; i < this.maxY - this.minY; i++) {
-            Queue<WakeNode> pendingNodes = this.toBeInserted[i];
-            if (resolutionResetScheduled) {
-                if (pendingNodes != null)
-                    pendingNodes.clear();
-                continue;
-            }
-            QuadTree tree = this.trees[i];
-            if (tree != null) {
-                tree.tick(this);
-                while (pendingNodes.peek() != null) {
-                    tree.insert(pendingNodes.poll());
-                }
+        if (resolutionResetScheduled) {
+            toBeInserted.clear();
+        }
+
+        ArrayList<WakeChunkPos> toBeRemovedChunks = new ArrayList<>();
+        for (WakeChunk chunk : wakeChunks.values()) {
+            boolean wakesPresent = chunk.tick(this);
+            if (!wakesPresent) {
+                toBeRemovedChunks.add(chunk.chunkPos);
             }
         }
+        for (WakeChunkPos pos : toBeRemovedChunks) {
+            wakeChunks.remove(pos);
+        }
+
+        while (toBeInserted.peek() != null) {
+            WakeNode node = toBeInserted.poll();
+            WakeChunkPos pos = WakeChunkPos.fromWakeNode(node);
+            WakeChunk chunk = wakeChunks.get(pos);
+            if (chunk == null) {
+                chunk = new WakeChunk(pos);
+                wakeChunks.put(pos, new WakeChunk(pos));
+            }
+            chunk.insert(node);
+        }
+
         for (int i = this.splashPlanes.size() - 1; i >= 0; i--) {
             if (!this.splashPlanes.get(i).isAlive()) {
                 this.splashPlanes.remove(i);
@@ -86,11 +87,8 @@ public class WakeHandler {
     }
 
     public void recolorWakes() {
-        for (int i = 0; i < this.maxY - this.minY; i++) {
-            QuadTree tree = this.trees[i];
-            if (tree != null) {
-                tree.recolorWakes();
-            }
+        for (WakeChunk chunk : wakeChunks.values()) {
+            chunk.populatePixels();
         }
         for (var splashPlane : this.splashPlanes) {
             if (splashPlane != null) {
@@ -104,44 +102,41 @@ public class WakeHandler {
     }
 
     public void insert(WakeNode node) {
-        if (resolutionResetScheduled)
-            return;
-        int i = this.getArrayIndex(node.y);
-        if (i < 0)
-            return;
-
-        if (this.trees[i] == null) {
-            this.trees[i] = new QuadTree(node.y);
-        }
+        if (resolutionResetScheduled) return;
 
         if (node.validPos(world)) {
-            this.toBeInserted[i].add(node);
+            this.toBeInserted.add(node);
         }
     }
 
-    public <T> ArrayList<T> getVisible(Class<T> type) {
-        ArrayList<T> visibleObjects = new ArrayList<>();
-        if (type.equals(SplashPlaneParticle.class)) {
-            for (SplashPlaneParticle particle : splashPlanes) {
-                if (FrustumManager.isVisible(particle.getBoundingBox())) {
-                    visibleObjects.add(type.cast(particle));
-                }
-            }
-        } else {
-            for (int i = 0; i < this.maxY - this.minY; i++) {
-                if (this.trees[i] != null) {
-                    this.trees[i].query(visibleObjects, type);
-                }
+    public List<WakeNode> getVisibleNodes() {
+        ArrayList<WakeNode> nodes = new ArrayList<>();
+        for (WakeChunk chunk : wakeChunks.values()) {
+            if (FrustumManager.isVisible(chunk.boundingBox)) {
+                chunk.query(nodes);
             }
         }
-        return visibleObjects;
+        return nodes;
     }
 
-    private int getArrayIndex(int y) {
-        if (y < this.minY || y >= this.maxY) {
-            return -1;
+    public List<WakeChunk> getVisibleChunks() {
+        ArrayList<WakeChunk> chunks = new ArrayList<>();
+        for (WakeChunk chunk : wakeChunks.values()) {
+            if (FrustumManager.isVisible(chunk.boundingBox)) {
+                chunks.add(chunk);
+            }
         }
-        return y - this.minY;
+        return chunks;
+    }
+
+    public List<SplashPlaneParticle> getVisibleSplashPlanes() {
+        ArrayList<SplashPlaneParticle> splashPlanes = new ArrayList<>();
+        for (SplashPlaneParticle particle : this.splashPlanes) {
+            if (FrustumManager.isVisible(particle.getBoundingBox())) {
+                splashPlanes.add(particle);
+            }
+        }
+        return splashPlanes;
     }
 
     public static void scheduleResolutionChange(Resolution newRes) {
@@ -155,12 +150,7 @@ public class WakeHandler {
     }
 
     private void reset() {
-        for (int i = 0; i < this.maxY - this.minY; i++) {
-            QuadTree tree = this.trees[i];
-            if (tree != null) {
-                tree.prune();
-            }
-            toBeInserted[i].clear();
-        }
+        wakeChunks.clear();
+        toBeInserted.clear();
     }
 }

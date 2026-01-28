@@ -2,12 +2,14 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.simulation.Brick;
+import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.simulation.WakeChunk;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
@@ -18,6 +20,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -43,6 +46,16 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
 
     private final RenderPipeline PIPELINE = RenderPipelines.TRANSLUCENT_MOVING_BLOCK;
 
+    private Map<Resolution, WakeTextureAtlas> textureAtlases = null;
+
+    private void initTextures() {
+        textureAtlases = Map.of(
+                Resolution.EIGHT, new WakeTextureAtlas(Resolution.EIGHT.res),
+                Resolution.SIXTEEN, new WakeTextureAtlas(Resolution.SIXTEEN.res),
+                Resolution.THIRTYTWO, new WakeTextureAtlas(Resolution.THIRTYTWO.res)
+        );
+    }
+
     @Override
     public void beforeTranslucent(WorldRenderContext context) {
         if (WakesConfig.disableMod) {
@@ -50,12 +63,14 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
             return;
         }
 
+        if (textureAtlases == null) initTextures();
+
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null || WakeHandler.resolutionResetScheduled) return;
 
-        ArrayList<Brick> bricks = wakeHandler.getVisible(Brick.class);
+        List<WakeChunk> wakeChunks = wakeHandler.getVisibleChunks();
 
-        if (bricks.isEmpty()) return;
+        if (wakeChunks.isEmpty()) return;
 
         if (buffer == null) {
             buffer = new BufferBuilder(allocator, PIPELINE.getVertexFormatMode(), PIPELINE.getVertexFormat());
@@ -67,7 +82,8 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
         matrices.pushPose();
         matrices.translate(-camera.x, -camera.y, -camera.z);
 
-        addVertices(matrices.last().pose(), buffer, bricks);
+        WakeTextureAtlas atlas = textureAtlases.get(WakeHandler.resolution);
+        addVertices(matrices.last().pose(), buffer, wakeChunks, atlas);
 
         matrices.popPose();
 
@@ -77,41 +93,44 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
 
         GpuBuffer vertices = uploadMesh(drawParameters, format, builtBuffer);
 
-        draw(builtBuffer, drawParameters, vertices, format);
+        draw(builtBuffer, drawParameters, vertices, format, atlas);
 
         // Rotate the vertex buffer so we are less likely to use buffers that the GPU is using
         vertexBuffer.rotate();
         buffer = null;
     }
 
-    private void addVertices(Matrix4fc matrix, BufferBuilder bb, List<Brick> bricks) {
-        for (Brick brick : bricks) {
-            if (!brick.hasPopulatedPixels) continue;
+    private void addVertices(Matrix4fc matrix, BufferBuilder bb, List<WakeChunk> chunks, WakeTextureAtlas textureAtlas) {
+        for (WakeChunk wakeChunk : chunks) {
+            //if (!wakeChunk.hasPopulatedPixels) continue;
 
-            float x0 = (float) brick.pos.x;
-            float y = (float) (brick.pos.y + WakeNode.WATER_OFFSET);
-            float z0 = (float) brick.pos.z;
+            UVPair uv = textureAtlas.loadTexture(wakeChunk.imgPtr, GlConst.GL_RGBA);
+            float uvOffset = textureAtlas.chunkResolution / (float) textureAtlas.resolution;
 
-            float x1 = x0 + brick.dim;
-            float z1 = z0 + brick.dim;
+            float x0 = (float) wakeChunk.pos.x;
+            float y = (float) (wakeChunk.pos.y + WakeNode.WATER_OFFSET);
+            float z0 = (float) wakeChunk.pos.z;
+
+            float x1 = x0 + WakeChunk.WIDTH;
+            float z1 = z0 + WakeChunk.WIDTH;
 
             bb.addVertex(matrix, x0, y, z0)
-                    .setUv(0, 0)
+                    .setUv(uv.u(), uv.v())
                     .setColor(1f, 1f, 1f, 1f)
                     .setLight(LightTexture.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x0, y, z1)
-                    .setUv(0, 1)
+                    .setUv(uv.u(), uv.v() + uvOffset)
                     .setColor(1f, 1f, 1f, 1f)
                     .setLight(LightTexture.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x1, y, z1)
-                    .setUv(1, 1)
+                    .setUv(uv.u() + uvOffset, uv.v() + uvOffset)
                     .setColor(1f, 1f, 1f, 1f)
                     .setLight(LightTexture.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x1, y, z0)
-                    .setUv(1, 0)
+                    .setUv(uv.u() + uvOffset, uv.v())
                     .setColor(1f, 1f, 1f, 1f)
                     .setLight(LightTexture.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
@@ -141,7 +160,7 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
         return vertexBuffer.currentBuffer();
     }
 
-    private void draw(MeshData builtBuffer, MeshData.DrawState drawParameters, GpuBuffer vertices, VertexFormat format) {
+    private void draw(MeshData builtBuffer, MeshData.DrawState drawParameters, GpuBuffer vertices, VertexFormat format, WakeTextureAtlas texture) {
         GpuBuffer indices;
         VertexFormat.IndexType indexType;
 
@@ -177,7 +196,7 @@ public class WakeRenderer implements WorldRenderEvents.BeforeTranslucent {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", dynamicTransforms);
 
-            pass.bindTexture("Sampler0", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
+            pass.bindTexture("Sampler0", texture.getTextureView(), sampler);
             pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
 
             pass.setVertexBuffer(0, vertices);

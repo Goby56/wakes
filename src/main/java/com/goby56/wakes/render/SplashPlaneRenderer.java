@@ -29,19 +29,18 @@ import org.joml.Matrix4f;
 import java.util.*;
 
 public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
-
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
     private static ArrayList<Vec3> vertices;
     private static ArrayList<Vec3> normals;
 
-    public static Map<Resolution, WakeTexture> wakeTextures = null;
+    public static Map<Resolution, SplashPlaneTexture> wakeTextures = null;
 
     private static void initTextures() {
         wakeTextures = Map.of(
-                Resolution.EIGHT, new WakeTexture(Resolution.EIGHT.res, false),
-                Resolution.SIXTEEN, new WakeTexture(Resolution.SIXTEEN.res, false),
-                Resolution.THIRTYTWO, new WakeTexture(Resolution.THIRTYTWO.res, false)
+                Resolution.EIGHT, new SplashPlaneTexture(Resolution.EIGHT.res),
+                Resolution.SIXTEEN, new SplashPlaneTexture(Resolution.SIXTEEN.res),
+                Resolution.THIRTYTWO, new SplashPlaneTexture(Resolution.THIRTYTWO.res)
         );
     }
 
@@ -53,7 +52,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
             return;
         }
         WakeHandler wakeHandler = WakeHandler.getInstance().get();
-        for (SplashPlaneParticle particle : wakeHandler.getVisible(SplashPlaneParticle.class)) {
+        for (SplashPlaneParticle particle : wakeHandler.getVisibleSplashPlanes()) {
             SplashPlaneRenderer.render(particle.owner, particle, context, context.matrices());
         }
     }
