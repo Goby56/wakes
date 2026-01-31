@@ -56,7 +56,7 @@ public class WakeHandler {
 
         ArrayList<WakeChunkPos> toBeRemovedChunks = new ArrayList<>();
         for (WakeChunk chunk : wakeChunks.values()) {
-            boolean wakesPresent = chunk.tick(this);
+            boolean wakesPresent = chunk.tick();
             if (!wakesPresent) {
                 toBeRemovedChunks.add(chunk.chunkPos);
             }
@@ -70,8 +70,8 @@ public class WakeHandler {
             WakeChunkPos pos = WakeChunkPos.fromWakeNode(node);
             WakeChunk chunk = wakeChunks.get(pos);
             if (chunk == null) {
-                chunk = new WakeChunk(pos);
-                wakeChunks.put(pos, new WakeChunk(pos));
+                chunk = new WakeChunk(pos, this);
+                wakeChunks.put(pos, chunk);
             }
             chunk.insert(node);
         }
@@ -84,6 +84,10 @@ public class WakeHandler {
         if (resolutionResetScheduled) {
             this.changeResolution();
         }
+    }
+
+    public WakeChunk getChunk(WakeChunkPos pos) {
+        return wakeChunks.get(pos);
     }
 
     public void recolorWakes() {

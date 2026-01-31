@@ -12,12 +12,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.system.MemoryUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class WakeChunk {
+    private final WakeHandler wakeHandler;
+
     public static final int WIDTH = 16;
     private final WakeNode[][] nodes;
     public final int capacity;
@@ -28,22 +28,21 @@ public class WakeChunk {
     public final WakeChunkPos chunkPos;
     public final AABB boundingBox;
 
-    public WakeChunk NORTH;
-    public WakeChunk EAST;
-    public WakeChunk SOUTH;
-    public WakeChunk WEST;
+    public final Map<WakeChunkPos.Direction, WakeChunk> neighbors;
 
     public long imgPtr = -1;
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
 
-    public WakeChunk(WakeChunkPos chunkPos) {
+    public WakeChunk(WakeChunkPos chunkPos, WakeHandler wakeHandler) {
         this.capacity = WIDTH * WIDTH;
         this.nodes = new WakeNode[WIDTH][WIDTH];
         this.chunkPos = chunkPos;
         this.pos = new Vec3(chunkPos.cx() * WIDTH, chunkPos.y(), chunkPos.cz() * WIDTH);
         this.boundingBox = new AABB(pos.x, pos.y, pos.z, pos.x + WIDTH, pos.y + 1, pos.z + WIDTH);
+        this.neighbors = new HashMap<>();
+        this.wakeHandler = wakeHandler;
 
         initTexture(WakeHandler.resolution.res);
     }
@@ -63,7 +62,7 @@ public class WakeChunk {
         MemoryUtil.nmemFree(imgPtr);
     }
 
-    public boolean tick(WakeHandler wakeHandler) {
+    public boolean tick() {
         long tNode = System.nanoTime();
         for (int z = 0; z < WIDTH; z++) {
             for (int x = 0; x < WIDTH; x++) {
@@ -95,22 +94,33 @@ public class WakeChunk {
 
     public WakeNode get(int x, int z) {
         if (x >= 0 && x < WIDTH) {
-            if (z < 0 && NORTH != null) {
-                return NORTH.nodes[Math.floorMod(z, WIDTH)][x];
-            } else if (z >= WIDTH && SOUTH != null) {
-                return SOUTH.nodes[Math.floorMod(z, WIDTH)][x];
-            } else if (z >= 0 && z < WIDTH){
+            if (z < 0) {
+                return getNeighbor(WakeChunkPos.Direction.NORTH).map(
+                        wakeChunk -> wakeChunk.nodes[Math.floorMod(z, WIDTH)][x]).orElse(null);
+            } else if (z >= WIDTH) {
+                return getNeighbor(WakeChunkPos.Direction.SOUTH).map(
+                        wakeChunk -> wakeChunk.nodes[Math.floorMod(z, WIDTH)][x]).orElse(null);
+            } else {
                 return nodes[z][x];
             }
         }
         if (z >= 0 && z < WIDTH) {
-            if (x < 0 && WEST != null) {
-                return WEST.nodes[z][Math.floorMod(x, WIDTH)];
-            } else if (x >= WIDTH && EAST != null) {
-                return EAST.nodes[z][Math.floorMod(x, WIDTH)];
+            if (x < 0) {
+                return getNeighbor(WakeChunkPos.Direction.WEST).map(
+                        wakeChunk -> wakeChunk.nodes[z][Math.floorMod(x, WIDTH)]).orElse(null);
+            } else {
+                return getNeighbor(WakeChunkPos.Direction.EAST).map(
+                        wakeChunk -> wakeChunk.nodes[z][Math.floorMod(x, WIDTH)]).orElse(null);
             }
         }
         return null;
+    }
+
+    private Optional<WakeChunk> getNeighbor(WakeChunkPos.Direction direction) {
+        if (neighbors.get(direction) == null) {
+            neighbors.put(direction, wakeHandler.getChunk(chunkPos.offset(direction)));
+        }
+        return Optional.ofNullable(neighbors.get(direction));
     }
 
     public void insert(WakeNode node) {
@@ -145,28 +155,6 @@ public class WakeChunk {
                 this.get(x + 1, z),
                 this.get(x, z - 1),
                 this.get(x - 1, z)).filter(Objects::nonNull).toList();
-    }
-
-    public void updateAdjacency(WakeChunk newChunk) {
-        if (newChunk.pos.x == this.pos.x && newChunk.pos.z == this.pos.z - WIDTH) {
-            this.NORTH = newChunk;
-            newChunk.SOUTH = this;
-            return;
-        }
-        if (newChunk.pos.x == this.pos.x + WIDTH && newChunk.pos.z == this.pos.z) {
-            this.EAST = newChunk;
-            newChunk.WEST = this;
-            return;
-        }
-        if (newChunk.pos.x == this.pos.x && newChunk.pos.z == this.pos.z + WIDTH) {
-            this.SOUTH = newChunk;
-            newChunk.NORTH = this;
-            return;
-        }
-        if (newChunk.pos.x == this.pos.x - WIDTH && newChunk.pos.z == this.pos.z) {
-            this.WEST = newChunk;
-            newChunk.EAST = this;
-        }
     }
 
     public void populatePixels() {
