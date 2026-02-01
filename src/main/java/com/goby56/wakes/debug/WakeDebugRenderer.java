@@ -32,10 +32,4 @@ public class WakeDebugRenderer {
             }
         }
     }
-
-    public static HudElement wakeAtlasHudLayer() {
-        return (guiGraphics, deltaTracker) -> {
-
-        };
-    }
 }

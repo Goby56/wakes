@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 
 public class BetterDynamicTexture extends AbstractTexture {
     private NativeImage pixels;
+    public boolean dirty = true;
 
     public BetterDynamicTexture(Supplier<String> supplier, NativeImage nativeImage) {
         this.pixels = nativeImage;
@@ -25,9 +26,11 @@ public class BetterDynamicTexture extends AbstractTexture {
         this.textureView = gpuDevice.createTextureView(this.texture);
     }
 
-    public void upload() {
+    public void uploadIfDirty() {
+        if (!dirty) return;
         if (this.texture != null) {
             RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, this.pixels);
+            dirty = false;
         } else {
             WakesClient.LOGGER.warn("Trying to upload disposed texture {}", this.getTexture().getLabel());
         }

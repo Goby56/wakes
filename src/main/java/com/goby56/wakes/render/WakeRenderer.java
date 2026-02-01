@@ -2,14 +2,12 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
-import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.simulation.WakeChunk;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
@@ -26,7 +24,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -62,9 +59,12 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
 
         if (wakeChunks.isEmpty()) return;
 
+        long tRendering = System.nanoTime();
+
         if (buffer == null) {
             buffer = new BufferBuilder(allocator, PIPELINE.getVertexFormatMode(), PIPELINE.getVertexFormat());
         }
+
 
         PoseStack matrices = context.matrices();
         Vec3 camera = context.worldState().cameraRenderState.pos;
@@ -83,12 +83,15 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         GpuBuffer vertices = uploadMesh(drawParameters, format, builtBuffer);
 
         BetterDynamicTexture texture = wakeHandler.getActiveTextureAtlas().dynamicTexture;
-        texture.upload();
+        texture.uploadIfDirty();
         draw(builtBuffer, drawParameters, vertices, format, texture.getTextureView());
 
         // Rotate the vertex buffer so we are less likely to use buffers that the GPU is using
         vertexBuffer.rotate();
         buffer = null;
+
+        WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
+        WakesDebugInfo.quadsRendered = wakeChunks.size();
     }
 
     private void addVertices(Matrix4fc matrix, BufferBuilder bb, List<WakeChunk> chunks) {
@@ -179,7 +182,6 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
                         OptionalInt.empty(),
                         client.getMainRenderTarget().getDepthTextureView(),
                         OptionalDouble.empty())) {
-            long tRendering = System.nanoTime();
 
             pass.setPipeline(PIPELINE);
             RenderSystem.bindDefaultUniforms(pass);
@@ -195,7 +197,6 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
             //noinspection ConstantValue
             pass.drawIndexed(0 / format.getVertexSize(), 0, drawParameters.indexCount(), 1);
 
-            WakesDebugInfo.renderingTime.add(System.nanoTime() - tRendering);
         }
 
         builtBuffer.close();

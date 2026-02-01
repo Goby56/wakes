@@ -18,11 +18,12 @@ import java.util.stream.Stream;
 public class WakeChunk {
     private final WakeHandler wakeHandler;
 
-    public static final int WIDTH = 16;
+    public static final int WIDTH = 8;
     private final WakeNode[][] nodes;
     public final int capacity;
 
     public int occupied = 0;
+    private boolean destroyed = false;
 
     public final Vec3 pos;
     public final WakeChunkPos chunkPos;
@@ -99,7 +100,8 @@ public class WakeChunk {
     }
 
     private Optional<WakeChunk> getNeighbor(WakeChunkPos.Direction direction) {
-        if (neighbors.get(direction) == null) {
+        WakeChunk chunk = neighbors.get(direction);
+        if (chunk == null || chunk.destroyed) {
             neighbors.put(direction, wakeHandler.getChunk(chunkPos.offset(direction)));
         }
         return Optional.ofNullable(neighbors.get(direction));
@@ -138,6 +140,7 @@ public class WakeChunk {
             }
         }
         occupied = 0;
+        destroyed = true;
         drawContext.invalidate();
     }
 

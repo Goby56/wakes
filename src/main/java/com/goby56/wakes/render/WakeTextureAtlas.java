@@ -84,9 +84,10 @@ public class WakeTextureAtlas {
             }
             int r = subTextureIndex / CHUNKS_PER_ROW;
             int c = subTextureIndex % CHUNKS_PER_ROW;
-            int globX = x + c * CHUNKS_PER_ROW;
-            int globY = y + r * CHUNKS_PER_ROW;
+            int globX = x + c * atlas.chunkResolution;
+            int globY = y + r * atlas.chunkResolution;
             this.atlas.nativeImage.setPixel(globX, globY, color);
+            this.atlas.dynamicTexture.dirty = true;
         }
     }
 }

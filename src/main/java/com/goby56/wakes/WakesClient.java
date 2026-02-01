@@ -71,7 +71,6 @@ public class WakesClient implements ClientModInitializer {
 		wakeRenderer = new WakeRenderer();
 		WorldRenderEvents.END_MAIN.register(wakeRenderer);
 		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
-		// HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(MOD_ID, "wakes_texture_atlas"), WakeDebugRenderer.wakeAtlasHudLayer());
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(
