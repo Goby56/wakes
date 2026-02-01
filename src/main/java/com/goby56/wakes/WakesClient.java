@@ -16,6 +16,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -68,8 +69,9 @@ public class WakesClient implements ClientModInitializer {
 
 		// Rendering events
 		wakeRenderer = new WakeRenderer();
-		WorldRenderEvents.BEFORE_TRANSLUCENT.register(wakeRenderer);
+		WorldRenderEvents.END_MAIN.register(wakeRenderer);
 		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
+		// HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(MOD_ID, "wakes_texture_atlas"), WakeDebugRenderer.wakeAtlasHudLayer());
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(

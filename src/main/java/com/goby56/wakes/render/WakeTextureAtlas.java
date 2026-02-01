@@ -4,67 +4,89 @@ import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.simulation.WakeChunk;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.opengl.GlTexture;
 import net.minecraft.client.model.geom.builders.UVPair;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+
+import java.util.function.Supplier;
 
 public class WakeTextureAtlas {
     public static final int CHUNKS_PER_ROW = 16;
 
+    public final int nodeResolution;
     public final int chunkResolution;
     public final int resolution;
 
-    public GpuTexture texture;
-    private final GpuTextureView textureView;
+    protected final NativeImage nativeImage;
+    public final BetterDynamicTexture dynamicTexture;
 
-    private int chunkTexturesStored = 0;
-    private static final int CAPACITY = CHUNKS_PER_ROW * CHUNKS_PER_ROW - 1;
+    private final boolean[] occupiedSubTextures = new boolean[CAPACITY];
+
+    private static final int CAPACITY = CHUNKS_PER_ROW * CHUNKS_PER_ROW - 1; // Include error texture
 
     public WakeTextureAtlas(int wakeNodeRes) {
+        nodeResolution = wakeNodeRes;
         chunkResolution = wakeNodeRes * WakeChunk.WIDTH;
         resolution = chunkResolution * CHUNKS_PER_ROW;
 
-        texture = RenderSystem.getDevice().createTexture(() -> WakesClient.MOD_ID + " wake texture atlas",
-                GpuTexture.USAGE_COPY_DST | GpuTexture.USAGE_TEXTURE_BINDING | GpuTexture.USAGE_RENDER_ATTACHMENT,
-                TextureFormat.RGBA8, resolution, resolution, 1, 1);
-        // texture.setTextureFilter(FilterMode.NEAREST, false);
-
-        textureView = RenderSystem.getDevice().createTextureView(texture);
+        nativeImage = new NativeImage(resolution, resolution, false);
+        Supplier<String> name = () -> String.format("%s %dx%x texture atlas (%d%d wakes)",
+                WakesClient.MOD_ID, resolution, resolution, nodeResolution, nodeResolution);
+        dynamicTexture = new BetterDynamicTexture(name, nativeImage);
     }
 
-    public UVPair loadTexture(long imgPtr, int glFormat) {
-        if (chunkTexturesStored == CAPACITY) {
-            float undefinedTextureCoord = 1f - 1 / (float) CHUNKS_PER_ROW;
-            return new UVPair(undefinedTextureCoord, undefinedTextureCoord);
+    public DrawContext claimSubTexture() {
+        for (int i = 0; i < CAPACITY; i++) {
+            if (!occupiedSubTextures[i]) {
+                occupiedSubTextures[i] = true;
+                return new DrawContext(i, this);
+            }
+        }
+        return null;
+    }
+
+    protected void vacateSubTexture(int subTextureIndex) {
+        occupiedSubTextures[subTextureIndex] = false;
+    }
+
+    public static class DrawContext {
+        private boolean active;
+        private final int subTextureIndex;
+        private final WakeTextureAtlas atlas;
+
+        public final UVPair uv;
+        public final float uvOffset;
+        public final int nodeResolution;
+
+        public DrawContext(int subTextureIndex, WakeTextureAtlas atlas) {
+            this.subTextureIndex = subTextureIndex;
+            this.active = true;
+            this.atlas = atlas;
+
+            int r = subTextureIndex / CHUNKS_PER_ROW;
+            int c = subTextureIndex % CHUNKS_PER_ROW;
+            this.uv = new UVPair(c / (float) CHUNKS_PER_ROW, r / (float) CHUNKS_PER_ROW);
+            this.uvOffset = atlas.chunkResolution / (float) atlas.resolution;
+            this.nodeResolution = atlas.nodeResolution;
         }
 
-        GlStateManager._pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
-        GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
-        GlStateManager._pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
-        GlStateManager._pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
+        public void invalidate() {
+            this.atlas.vacateSubTexture(subTextureIndex);
+            this.active = false;
+        }
 
-        int r = chunkTexturesStored / CHUNKS_PER_ROW;
-        int c = chunkTexturesStored % CHUNKS_PER_ROW;
-        int xOffset = c * chunkResolution;
-        int yOffset = r * chunkResolution;
-
-        GlStateManager._bindTexture(((GlTexture) texture).glId());
-        GlStateManager._texSubImage2D(GlConst.GL_TEXTURE_2D, 0, xOffset, yOffset, chunkResolution, chunkResolution, glFormat, GlConst.GL_UNSIGNED_BYTE, imgPtr);
-
-        RenderSystem.outputColorTextureOverride = textureView;
-        chunkTexturesStored++;
-
-        return new UVPair(c / (float) CHUNKS_PER_ROW, r / (float) CHUNKS_PER_ROW);
-    }
-
-    public GpuTextureView getTextureView() {
-        return textureView;
-    }
-
-    public void markDirty() {
-        this.chunkTexturesStored = 0;
+        public void draw(int x, int y, int color) {
+            if (!active) {
+                return;
+                //throw new IllegalAccessException("Wake texture atlas draw context has been invalidated and cannot be drawn to");
+            }
+            int r = subTextureIndex / CHUNKS_PER_ROW;
+            int c = subTextureIndex % CHUNKS_PER_ROW;
+            int globX = x + c * CHUNKS_PER_ROW;
+            int globY = y + r * CHUNKS_PER_ROW;
+            this.atlas.nativeImage.setPixel(globX, globY, color);
+        }
     }
 }

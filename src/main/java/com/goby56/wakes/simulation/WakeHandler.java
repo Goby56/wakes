@@ -4,6 +4,7 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.render.FrustumManager;
+import com.goby56.wakes.render.WakeTextureAtlas;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.Level;
 
@@ -18,8 +19,7 @@ public class WakeHandler {
     private final ArrayList<SplashPlaneParticle> splashPlanes;
 
     public static Resolution resolution = WakesConfig.wakeResolution;
-
-    public static boolean resolutionResetScheduled = false;
+    private Map<Resolution, WakeTextureAtlas> textureAtlases;
 
     private WakeHandler(Level world) {
         this.world = world;
@@ -48,16 +48,19 @@ public class WakeHandler {
 
     public void tick() {
         if (WakesConfig.wakeResolution.res != WakeHandler.resolution.res) {
-            scheduleResolutionChange(WakesConfig.wakeResolution);
+            WakeHandler.resolution = WakesConfig.wakeResolution;
+            reset();
+        } else {
+            wakeLogic();
         }
-        if (resolutionResetScheduled) {
-            toBeInserted.clear();
-        }
+    }
 
+    private void wakeLogic() {
         ArrayList<WakeChunkPos> toBeRemovedChunks = new ArrayList<>();
         for (WakeChunk chunk : wakeChunks.values()) {
             boolean wakesPresent = chunk.tick();
             if (!wakesPresent) {
+                chunk.destroy();
                 toBeRemovedChunks.add(chunk.chunkPos);
             }
         }
@@ -81,9 +84,7 @@ public class WakeHandler {
                 this.splashPlanes.remove(i);
             }
         }
-        if (resolutionResetScheduled) {
-            this.changeResolution();
-        }
+
     }
 
     public WakeChunk getChunk(WakeChunkPos pos) {
@@ -92,7 +93,7 @@ public class WakeHandler {
 
     public void recolorWakes() {
         for (WakeChunk chunk : wakeChunks.values()) {
-            chunk.populatePixels();
+            chunk.drawWakes();
         }
         for (var splashPlane : this.splashPlanes) {
             if (splashPlane != null) {
@@ -106,8 +107,6 @@ public class WakeHandler {
     }
 
     public void insert(WakeNode node) {
-        if (resolutionResetScheduled) return;
-
         if (node.validPos(world)) {
             this.toBeInserted.add(node);
         }
@@ -143,17 +142,21 @@ public class WakeHandler {
         return splashPlanes;
     }
 
-    public static void scheduleResolutionChange(Resolution newRes) {
-        resolutionResetScheduled = true;
-    }
-
-    private void changeResolution() {
-        this.reset();
-        WakeHandler.resolution = WakesConfig.wakeResolution;
-        resolutionResetScheduled = false;
+    public WakeTextureAtlas getActiveTextureAtlas() {
+        if (textureAtlases == null) {
+            this.textureAtlases = Map.of(
+                    Resolution.EIGHT, new WakeTextureAtlas(Resolution.EIGHT.res),
+                    Resolution.SIXTEEN, new WakeTextureAtlas(Resolution.SIXTEEN.res),
+                    Resolution.THIRTYTWO, new WakeTextureAtlas(Resolution.THIRTYTWO.res)
+            );
+        }
+        return textureAtlases.get(resolution);
     }
 
     private void reset() {
+        for (WakeChunk chunk : wakeChunks.values()) {
+            chunk.destroy();
+        }
         wakeChunks.clear();
         toBeInserted.clear();
     }

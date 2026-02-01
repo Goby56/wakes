@@ -5,6 +5,7 @@ import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.simulation.WakeChunk;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.phys.AABB;
@@ -18,6 +19,7 @@ public class WakeDebugRenderer {
         WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
         if (wakeHandler == null) return;
         int color = new WakeColor(255, 0, 255, 128).argb;
+
         if (WakesConfig.drawDebugBoxes) {
             for (var node : wakeHandler.getVisibleNodes()) {
                 Gizmos.cuboid(node.toBox(), GizmoStyle.fill(color));
@@ -29,5 +31,11 @@ public class WakeDebugRenderer {
                 Gizmos.cuboid(box, GizmoStyle.fill(col));
             }
         }
+    }
+
+    public static HudElement wakeAtlasHudLayer() {
+        return (guiGraphics, deltaTracker) -> {
+
+        };
     }
 }

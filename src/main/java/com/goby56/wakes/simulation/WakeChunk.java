@@ -3,6 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.FrustumManager;
+import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
@@ -10,7 +11,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.system.MemoryUtil;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -30,10 +30,7 @@ public class WakeChunk {
 
     public final Map<WakeChunkPos.Direction, WakeChunk> neighbors;
 
-    public long imgPtr = -1;
-    public int texRes;
-    public boolean hasPopulatedPixels = false;
-
+    public WakeTextureAtlas.DrawContext drawContext;
 
     public WakeChunk(WakeChunkPos chunkPos, WakeHandler wakeHandler) {
         this.capacity = WIDTH * WIDTH;
@@ -44,22 +41,7 @@ public class WakeChunk {
         this.neighbors = new HashMap<>();
         this.wakeHandler = wakeHandler;
 
-        initTexture(WakeHandler.resolution.res);
-    }
-
-    public void initTexture(int res) {
-        long size = 4L * WIDTH * WIDTH * res * res;
-        if (imgPtr == -1) {
-            this.imgPtr = MemoryUtil.nmemAlloc(size);
-        } else {
-            this.imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
-        }
-        this.texRes = res;
-        this.hasPopulatedPixels = false;
-    }
-
-    public void deallocTexture() {
-        MemoryUtil.nmemFree(imgPtr);
+        this.drawContext = wakeHandler.getActiveTextureAtlas().claimSubTexture();
     }
 
     public boolean tick() {
@@ -75,7 +57,7 @@ public class WakeChunk {
         }
         WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
         long tTexturing = System.nanoTime();
-        populatePixels();
+        drawWakes();
         WakesDebugInfo.texturingTime += (System.nanoTime() - tTexturing);
         WakesDebugInfo.nodeCount += occupied;
         return occupied != 0;
@@ -149,6 +131,16 @@ public class WakeChunk {
         this.set(x, z, null);
     }
 
+    public void destroy() {
+        for (int z = 0; z < WIDTH; z++) {
+            for (int x = 0; x < WIDTH; x++) {
+                nodes[z][x] = null;
+            }
+        }
+        occupied = 0;
+        drawContext.invalidate();
+    }
+
     private List<WakeNode> getAdjacentNodes(int x, int z) {
         return Stream.of(
                 this.get(x, z + 1),
@@ -157,11 +149,12 @@ public class WakeChunk {
                 this.get(x - 1, z)).filter(Objects::nonNull).toList();
     }
 
-    public void populatePixels() {
+    public void drawWakes() {
         Level world = Minecraft.getInstance().level;
-        for (int z = 0; z < WIDTH; z++) {
-            for (int x = 0; x < WIDTH; x++) {
-                WakeNode node = this.get(x, z);
+        int nodeRes = drawContext.nodeResolution;
+        for (int nodeZ = 0; nodeZ < WIDTH; nodeZ++) {
+            for (int nodeX = 0; nodeX < WIDTH; nodeX++) {
+                WakeNode node = this.get(nodeX, nodeZ);
                 int lightCol = LightTexture.FULL_BRIGHT;
                 int fluidColor = 0;
                 float opacity = 0;
@@ -172,21 +165,18 @@ public class WakeChunk {
                     opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);
                 }
 
-                // TODO MASS SET PIXELS TO NO COLOR IF NODE DOESNT EXIST (NEED TO REORDER PIXELS STORED?)
-                long nodeOffset = texRes * 4L * (((long) z * WIDTH * texRes) + (long) x);
-                for (int r = 0; r < texRes; r++) {
-                    for (int c = 0; c < texRes; c++) {
+                int xOffset = nodeX * nodeRes;
+                int yOffset = nodeZ * nodeRes;
+                for (int x = 0; x < nodeRes; x++) {
+                    for (int y = 0; y < nodeRes; y++) {
                         int color = 0;
                         if (node != null) {
-                            // TODO USE SHADERS TO COLOR THE WAKES?
-                            color = node.simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity);
+                            color = node.simulationNode.getPixelColor(x, y, fluidColor, lightCol, opacity);
                         }
-                        long pixelOffset = 4L * (((long) r * WIDTH * texRes) + c);
-                        MemoryUtil.memPutInt(imgPtr + nodeOffset + pixelOffset, color);
+                        drawContext.draw(x + xOffset, y + yOffset, color);
                     }
                 }
             }
         }
-        hasPopulatedPixels = true;
     }
 }
