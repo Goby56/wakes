@@ -64,7 +64,7 @@ public class WakeColor {
             }
         }
         WakeColor color = WakesConfig.getWakeColor(returnIndex);
-        return color.blend(tint, lightColor, opacity).abgr;
+        return color.blend(tint, lightColor, opacity).argb;
     }
 
     public WakeColor modifyOpacity(float opacityMultiplier) {
