@@ -2,13 +2,16 @@ package com.goby56.wakes.mixin;
 
 import com.goby56.wakes.duck.LightmapAccess;
 import com.goby56.wakes.render.LightmapInfo;
-import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.EndFlashState;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.attribute.EnvironmentAttributeProbe;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,47 +25,71 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class LightmapTextureManagerMixin implements LightmapAccess {
     @Shadow private float blockLightRedFlicker;
     @Shadow @Final private Minecraft minecraft;
+    @Shadow @Final private GameRenderer renderer;
+    @Shadow protected abstract float calculateDarknessScale(LivingEntity entity, float factor, float tickProgress);
 
     @Unique
     private int currentTick;
 
-    @Shadow protected abstract float calculateDarknessScale(LivingEntity entity, float factor, float tickProgress);
-
-    @Shadow @Final private GameRenderer renderer;
     @Unique
     private LightmapInfo info;
 
     @Inject(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/CommandEncoder;createRenderPass(Ljava/util/function/Supplier;Lcom/mojang/blaze3d/textures/GpuTextureView;Ljava/util/OptionalInt;)Lcom/mojang/blaze3d/systems/RenderPass;"))
-    private void wakes$onUpdate(float tickProgress, CallbackInfo ci, @Local Vector3f skyColor) {
+    private void wakes$onUpdate(float tickProgress, CallbackInfo ci) {
         ClientLevel world = this.minecraft.level;
-        float f = world.getSkyDarken();
-        float g;
-        if (world.skyFlashTime > 0) {
-            g = 1.0F;
-        } else {
-            g = f * 0.95F + 0.05F;
+        if (world == null || this.minecraft.player == null) {
+            return;
         }
 
-        float k = this.minecraft.player.getWaterVision();
+        EnvironmentAttributeProbe probe = this.minecraft.gameRenderer.getMainCamera().attributeProbe();
+        int skyLightColorRgb = ((Integer) probe.getValue(EnvironmentAttributes.SKY_LIGHT_COLOR, tickProgress)).intValue();
+        float skyFactor = ((Float) probe.getValue(EnvironmentAttributes.SKY_LIGHT_FACTOR, tickProgress)).floatValue();
 
-        float l;
+        EndFlashState endFlashState = world.endFlashState();
+        Vector3f ambientColor;
+        if (endFlashState != null) {
+            ambientColor = new Vector3f(0.99f, 1.12f, 1.0f);
+            if (!this.minecraft.options.hideLightningFlash().get()) {
+                float intensity = endFlashState.getIntensity(tickProgress);
+                if (this.minecraft.gui.getBossOverlay().shouldCreateWorldFog()) {
+                    skyFactor += intensity / 3.0f;
+                } else {
+                    skyFactor += intensity;
+                }
+            }
+        } else {
+            ambientColor = new Vector3f(1.0f, 1.0f, 1.0f);
+        }
+
+        float darknessScaleSetting = this.minecraft.options.darknessEffectScale().get().floatValue();
+        float darknessBlend = this.minecraft.player.getEffectBlendFactor(MobEffects.DARKNESS, tickProgress) * darknessScaleSetting;
+        float darknessScale = this.calculateDarknessScale(this.minecraft.player, darknessBlend, tickProgress) * darknessScaleSetting;
+
+        float waterVision = this.minecraft.player.getWaterVision();
+        float nightVisionFactor;
         if (this.minecraft.player.hasEffect(MobEffects.NIGHT_VISION)) {
-            l = GameRenderer.getNightVisionScale(this.minecraft.player, tickProgress);
-        } else if (k > 0.0F && this.minecraft.player.hasEffect(MobEffects.CONDUIT_POWER)) {
-            l = k;
+            nightVisionFactor = GameRenderer.getNightVisionScale(this.minecraft.player, tickProgress);
+        } else if (waterVision > 0.0f && this.minecraft.player.hasEffect(MobEffects.CONDUIT_POWER)) {
+            nightVisionFactor = waterVision;
         } else {
-            l = 0.0F;
+            nightVisionFactor = 0.0f;
         }
 
-        float h = this.minecraft.options.darknessEffectScale().get().floatValue();
-        float i = this.minecraft.player.getEffectBlendFactor(MobEffects.DARKNESS, tickProgress) * h;
-        float j = this.calculateDarknessScale(this.minecraft.player, i, tickProgress) * h;
+        float blockFactor = this.blockLightRedFlicker + 1.5f;
+        float brightnessFactor = Math.max(0.0f, this.minecraft.options.gamma().get().floatValue() - darknessBlend);
 
-        float o = this.minecraft.options.gamma().get().floatValue();
-
-
-        info = new LightmapInfo(world.dimensionType().ambientLight(), g, this.blockLightRedFlicker + 1.5f,
-                false, l, j, this.renderer.getDarkenWorldAmount(tickProgress), Math.max(0.0F, o - i), skyColor, currentTick++);
+        this.info = new LightmapInfo(
+                world.dimensionType().ambientLight(),
+                skyFactor,
+                blockFactor,
+                nightVisionFactor,
+                darknessScale,
+                this.renderer.getDarkenWorldAmount(tickProgress),
+                brightnessFactor,
+                ARGB.vector3fFromRGB24(skyLightColorRgb),
+                ambientColor,
+                currentTick++
+        );
     }
 
     @Override
