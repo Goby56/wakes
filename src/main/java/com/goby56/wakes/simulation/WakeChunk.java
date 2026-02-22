@@ -42,7 +42,7 @@ public class WakeChunk {
         this.neighbors = new HashMap<>();
         this.wakeHandler = wakeHandler;
 
-        this.drawContext = wakeHandler.getActiveTextureAtlas().claimSubTexture();
+        this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
     }
 
     public boolean tick() {
@@ -154,7 +154,7 @@ public class WakeChunk {
 
     public void drawWakes() {
         Level world = Minecraft.getInstance().level;
-        int nodeRes = drawContext.nodeResolution;
+        int nodeRes = WakeHandler.resolution.res;
         for (int nodeZ = 0; nodeZ < WIDTH; nodeZ++) {
             for (int nodeX = 0; nodeX < WIDTH; nodeX++) {
                 WakeNode node = this.get(nodeX, nodeZ);

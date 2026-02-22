@@ -19,7 +19,7 @@ public class WakeHandler {
     private final ArrayList<SplashPlaneParticle> splashPlanes;
 
     public static Resolution resolution = WakesConfig.wakeResolution;
-    private Map<Resolution, WakeTextureAtlas> textureAtlases;
+    private WakeTextureAtlas textureAtlas;
 
     private WakeHandler(Level world) {
         this.world = world;
@@ -49,6 +49,7 @@ public class WakeHandler {
     public void tick() {
         if (WakesConfig.wakeResolution.res != WakeHandler.resolution.res) {
             WakeHandler.resolution = WakesConfig.wakeResolution;
+            textureAtlas.setResolution(resolution.res);
             reset();
         } else {
             wakeLogic();
@@ -142,15 +143,12 @@ public class WakeHandler {
         return splashPlanes;
     }
 
-    public WakeTextureAtlas getActiveTextureAtlas() {
-        if (textureAtlases == null) {
-            this.textureAtlases = Map.of(
-                    Resolution.EIGHT, new WakeTextureAtlas(Resolution.EIGHT.res),
-                    Resolution.SIXTEEN, new WakeTextureAtlas(Resolution.SIXTEEN.res),
-                    Resolution.THIRTYTWO, new WakeTextureAtlas(Resolution.THIRTYTWO.res)
-            );
+    public WakeTextureAtlas getTextureAtlas() {
+        if (textureAtlas == null) {
+            textureAtlas = new WakeTextureAtlas();
+            textureAtlas.setResolution(resolution.res);
         }
-        return textureAtlases.get(resolution);
+        return textureAtlas;
     }
 
     private void reset() {

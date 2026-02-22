@@ -82,7 +82,7 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
 
         GpuBuffer vertices = uploadMesh(drawParameters, format, builtBuffer);
 
-        BetterDynamicTexture texture = wakeHandler.getActiveTextureAtlas().dynamicTexture;
+        BetterDynamicTexture texture = wakeHandler.getTextureAtlas().dynamicTexture;
         texture.uploadIfDirty();
         draw(builtBuffer, drawParameters, vertices, format, texture.getTextureView());
 
@@ -96,8 +96,8 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
 
     private void addVertices(Matrix4fc matrix, BufferBuilder bb, List<WakeChunk> chunks) {
         for (WakeChunk wakeChunk : chunks) {
-            UVPair uv = wakeChunk.drawContext.uv;
-            float uvOffset = wakeChunk.drawContext.uvOffset;
+            UVPair uv = wakeChunk.drawContext.getUV();
+            float uvOffset = wakeChunk.drawContext.getUVOffset();
 
             float x0 = (float) wakeChunk.pos.x;
             float y = (float) (wakeChunk.pos.y + WakeNode.WATER_OFFSET);

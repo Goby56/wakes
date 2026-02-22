@@ -1,7 +1,9 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.simulation.WakeChunk;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -10,14 +12,18 @@ import com.mojang.blaze3d.opengl.GlTexture;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class WakeTextureAtlas {
     public static final int CHUNKS_PER_ROW = 16;
 
-    public final int nodeResolution;
-    public final int chunkResolution;
     public final int resolution;
+
+    public int nodeResolution;
+    public int chunkResolution;
+    public int effectiveResolution;
+    public float chunkUVOffset;
 
     protected final NativeImage nativeImage;
     public final BetterDynamicTexture dynamicTexture;
@@ -26,15 +32,22 @@ public class WakeTextureAtlas {
 
     private static final int CAPACITY = CHUNKS_PER_ROW * CHUNKS_PER_ROW - 1; // Include error texture
 
-    public WakeTextureAtlas(int wakeNodeRes) {
-        nodeResolution = wakeNodeRes;
-        chunkResolution = wakeNodeRes * WakeChunk.WIDTH;
-        resolution = chunkResolution * CHUNKS_PER_ROW;
+    public WakeTextureAtlas() {
+        resolution = Resolution.getHighest().res * WakeChunk.WIDTH * CHUNKS_PER_ROW;
 
         nativeImage = new NativeImage(resolution, resolution, false);
-        Supplier<String> name = () -> String.format("%s %dx%x texture atlas (%d%d wakes)",
-                WakesClient.MOD_ID, resolution, resolution, nodeResolution, nodeResolution);
+        Supplier<String> name = () -> String.format("%s %dx%x texture atlas",
+                WakesClient.MOD_ID, resolution, resolution);
         dynamicTexture = new BetterDynamicTexture(name, nativeImage);
+    }
+
+    public void setResolution(int wakeNodeRes) {
+        nodeResolution = wakeNodeRes;
+        chunkResolution = wakeNodeRes * WakeChunk.WIDTH;
+        effectiveResolution = chunkResolution * CHUNKS_PER_ROW;
+        chunkUVOffset = chunkResolution / (float) resolution;
+
+        Arrays.fill(occupiedSubTextures, false);
     }
 
     public DrawContext claimSubTexture() {
@@ -56,20 +69,16 @@ public class WakeTextureAtlas {
         private final int subTextureIndex;
         private final WakeTextureAtlas atlas;
 
-        public final UVPair uv;
-        public final float uvOffset;
-        public final int nodeResolution;
+        public final int row;
+        public final int column;
 
         public DrawContext(int subTextureIndex, WakeTextureAtlas atlas) {
             this.subTextureIndex = subTextureIndex;
             this.active = true;
             this.atlas = atlas;
 
-            int r = subTextureIndex / CHUNKS_PER_ROW;
-            int c = subTextureIndex % CHUNKS_PER_ROW;
-            this.uv = new UVPair(c / (float) CHUNKS_PER_ROW, r / (float) CHUNKS_PER_ROW);
-            this.uvOffset = atlas.chunkResolution / (float) atlas.resolution;
-            this.nodeResolution = atlas.nodeResolution;
+            this.row = subTextureIndex / CHUNKS_PER_ROW;
+            this.column = subTextureIndex % CHUNKS_PER_ROW;
         }
 
         public void invalidate() {
@@ -77,15 +86,22 @@ public class WakeTextureAtlas {
             this.active = false;
         }
 
+        public float getUVOffset() {
+            return atlas.chunkUVOffset;
+        }
+
+        public UVPair getUV() {
+            float uvOffset = atlas.chunkUVOffset;
+            return new UVPair(column * uvOffset, row * uvOffset);
+        }
+
         public void draw(int x, int y, int color) {
             if (!active) {
                 return;
                 //throw new IllegalAccessException("Wake texture atlas draw context has been invalidated and cannot be drawn to");
             }
-            int r = subTextureIndex / CHUNKS_PER_ROW;
-            int c = subTextureIndex % CHUNKS_PER_ROW;
-            int globX = x + c * atlas.chunkResolution;
-            int globY = y + r * atlas.chunkResolution;
+            int globX = x + column * atlas.chunkResolution;
+            int globY = y + row * atlas.chunkResolution;
             this.atlas.nativeImage.setPixel(globX, globY, color);
             this.atlas.dynamicTexture.dirty = true;
         }
