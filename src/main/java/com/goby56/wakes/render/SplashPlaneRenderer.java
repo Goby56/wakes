@@ -8,9 +8,10 @@ import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.vertex.*;
 import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
@@ -26,7 +27,11 @@ import com.mojang.math.Axis;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
     private static ArrayList<Vector2D> points;
@@ -79,18 +84,15 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.last().pose();
 
-        wakeTextures.get(WakeHandler.resolution).loadTexture(splashPlane.imgPtr, GlConst.GL_RGBA);
-        renderSurface(matrix);
+        SplashPlaneTexture texture = wakeTextures.get(WakeHandler.resolution);
+        texture.loadTexture(splashPlane.image);
+        renderSurface(matrix, texture);
 
         matrices.popPose();
     }
 
-    private static void renderSurface(Matrix4f matrix) {
+    private static void renderSurface(Matrix4f matrix, SplashPlaneTexture splashTexture) {
         BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.BLOCK);
-        // TODO IMPROVE ANIMATION (WATER TRAVELS IN AN OUTWARDS DIRECTION)
-        // AND ADD A BOUNCY FEEL TO IT (BOBBING UP AND DOWN) WAIT IT IS JUST THE BOAT THAT IS DOING THAT
-        // MAYBE ADD TO BLAZINGLY FAST BOATS?
-        // https://streamable.com/tz0gp
         for (int s = -1; s < 2; s++) {
             if (s == 0) continue;
             for (int i = 0; i < vertices.size(); i++) {
@@ -108,16 +110,23 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         }
 
         MeshData built = bb.buildOrThrow();
+        GpuBuffer vertexBuffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
+        RenderSystem.AutoStorageIndexBuffer shapeIndexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES);
+        GpuBuffer indexBuffer = shapeIndexBuffer.getBuffer(built.drawState().indexCount());
 
-        GpuBuffer buffer = DefaultVertexFormat.BLOCK.uploadImmediateVertexBuffer(built.vertexBuffer());
-        GpuBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).getBuffer(built.drawState().indexCount());
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "Splash Plane", Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), OptionalInt.empty(), Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(), OptionalDouble.empty())) {
+        GpuSampler sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
+        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
+                () -> "Splash Plane",
+                Minecraft.getInstance().getMainRenderTarget().getColorTextureView(),
+                OptionalInt.empty(),
+                Minecraft.getInstance().getMainRenderTarget().getDepthTextureView(),
+                OptionalDouble.empty())) {
             pass.setPipeline(WakesClient.SPLASH_PLANE_PIPELINE);
-            // pass.bindSampler("Sampler0", RenderSystem.getShaderTexture(0));
-            // pass.bindSampler("Sampler2", RenderSystem.getShaderTexture(2));
             RenderSystem.bindDefaultUniforms(pass);
-            pass.setVertexBuffer(0, buffer);
-            pass.setIndexBuffer(indices, RenderSystem.getSequentialBuffer(VertexFormat.Mode.TRIANGLES).type());
+            pass.bindTexture("Sampler0", splashTexture.getTextureView(), sampler);
+            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
+            pass.setVertexBuffer(0, vertexBuffer);
+            pass.setIndexBuffer(indexBuffer, shapeIndexBuffer.type());
             pass.drawIndexed(0, 0, built.drawState().indexCount(), 1);
         }
         built.close();
@@ -132,7 +141,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
     }
 
     private static double height(double x, double y) {
-        return 4 * (x * (SQRT_8 - x) -y - x * x) / SQRT_8;
+        return 4 * (x * (SQRT_8 - x) - y - x * x) / SQRT_8;
     }
 
     private static Vec3 normal(double x, double y) {
@@ -148,9 +157,9 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         for (float i = 0; i < res; i++) {
             double x = i / (res - 1);
             double h = upperBound(x) - lowerBound(x);
-            int n_points = (int) Math.max(1, Math.floor(h * res));
-            for (float j = 0; j < n_points + 1; j++) {
-                float y = (float) ((j / n_points) * h + lowerBound(x));
+            int nPoints = (int) Math.max(1, Math.floor(h * res));
+            for (float j = 0; j < nPoints + 1; j++) {
+                float y = (float) ((j / nPoints) * h + lowerBound(x));
                 points.add(new Vector2D(x, y));
             }
         }
@@ -168,7 +177,8 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         }
         for (Triangle2D tri : triangles) {
             for (Vector2D vec : new Vector2D[] {tri.a, tri.b, tri.c}) {
-                double x = vec.x, y = vec.y;
+                double x = vec.x;
+                double y = vec.y;
                 vertices.add(new Vec3(x, y, height(x, y)));
                 normals.add(normal(x, y));
             }

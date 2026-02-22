@@ -9,19 +9,22 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.particle.*;
 import net.minecraft.client.Camera;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.BiomeColors;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryUtil;
 
 import java.util.Random;
 
@@ -34,7 +37,7 @@ public class SplashPlaneParticle extends Particle {
 
     private final SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
 
-    public long imgPtr = -1;
+    public NativeImage image;
     public int texRes;
     public boolean hasPopulatedPixels = false;
 
@@ -78,7 +81,6 @@ public class SplashPlaneParticle extends Particle {
     }
 
     private void aliveTick(ProducesWake wakeProducer) {
-        // Vec3d vel = wakeProducer.wakes$getNumericalVelocity(); // UNCOMMENT IF WEIRD SPLASH BEHAVIOR
         Vec3 vel = this.owner.getDeltaMovement();
         if (this.owner instanceof AbstractBoat) {
             this.yaw = -this.owner.getYRot();
@@ -104,30 +106,31 @@ public class SplashPlaneParticle extends Particle {
     }
 
     public void initTexture(int res) {
-        long size = 4L * res * res;
-        if (imgPtr == -1) {
-            imgPtr = MemoryUtil.nmemAlloc(size);
-        } else {
-            imgPtr = MemoryUtil.nmemRealloc(imgPtr, size);
+        if (this.image != null) {
+            this.image.close();
         }
+        this.image = new NativeImage(res, res, false);
 
         this.texRes = res;
         this.hasPopulatedPixels = false;
     }
 
     public void deallocTexture() {
-        MemoryUtil.nmemFree(imgPtr);
+        if (this.image != null) {
+            this.image.close();
+            this.image = null;
+        }
     }
 
     public void populatePixels() {
         int fluidColor = BiomeColors.getAverageWaterColor(level, this.owner.blockPosition());
         int lightCol = WakesUtils.getLightColor(level, this.owner.blockPosition());
-        float opacity = WakesConfig.wakeOpacity * 0.9f;
         int res = WakeHandler.resolution.res;
+        float opacity = WakesConfig.wakeOpacity * 0.9f;
         for (int r = 0; r < res; r++) {
             for (int c = 0; c < res; c++) {
-                long pixelOffset = 4L * (((long) r * res) + c);
-                MemoryUtil.memPutInt(imgPtr + pixelOffset, simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity));
+                int color = simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity);
+                this.image.setPixel(c, r, color);
             }
         }
         this.hasPopulatedPixels = true;
