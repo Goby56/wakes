@@ -1,6 +1,7 @@
 package com.goby56.wakes.event;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,6 +17,7 @@ public class WakeWorldTicker implements ClientTickEvents.EndWorldTick, ServerEnt
         WakesClient.areShadersEnabled = WakesClient.areShadersEnabled();
         WakesDebugInfo.reset();
         WakeHandler.getInstance().ifPresent(WakeHandler::tick);
+        WakeDebugRenderer.addDebugGizmos();
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.goby56.wakes.simulation;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.AbstractBoat;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.core.BlockPos;
@@ -187,9 +187,9 @@ public class WakeNode {
     public static class Factory {
         public static Set<WakeNode> splashNodes(Entity entity, int y) {
             int res = WakeHandler.resolution.res;
-            int w = (int) (0.8 * entity.getBbWidth() * res / 2);
-            int x = (int) (entity.getX() * res);
-            int z = (int) (entity.getZ() * res);
+            int w = (int) Math.floor(0.8 * entity.getBbWidth() * res / 2);
+            int x = (int) Math.floor(entity.getX() * res);
+            int z = (int) Math.floor(entity.getZ() * res);
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             for (int i = -w; i < w; i++) {
@@ -225,10 +225,10 @@ public class WakeNode {
 
         public static Set<WakeNode> nodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity) {
             int res = WakeHandler.resolution.res;
-            int x1 = (int) (fromX * res);
-            int z1 = (int) (fromZ * res);
-            int x2 = (int) (toX * res);
-            int z2 = (int) (toZ * res);
+            int x1 = (int) Math.floor(fromX * res);
+            int z1 = (int) Math.floor(fromZ * res);
+            int x2 = (int) Math.floor(toX * res);
+            int z2 = (int) Math.floor(toZ * res);
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
@@ -237,10 +237,10 @@ public class WakeNode {
 
         public static Set<WakeNode> thickNodeTrail(double fromX, double fromZ, double toX, double toZ, int y, float waveStrength, double velocity, float width) {
             int res = WakeHandler.resolution.res;
-            int x1 = (int) (fromX * res);
-            int z1 = (int) (fromZ * res);
-            int x2 = (int) (toX * res);
-            int z2 = (int) (toZ * res);
+            int x1 = (int) Math.floor(fromX * res);
+            int z1 = (int) Math.floor(fromZ * res);
+            int x2 = (int) Math.floor(toX * res);
+            int z2 = (int) Math.floor(toZ * res);
             int w = (int) (0.8 * width * res / 2);
 
             // TODO MAKE MORE EFFICIENT THICK LINE DRAWER
@@ -249,7 +249,7 @@ public class WakeNode {
             float nz = (x2 - x1) / len;
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             for (int i = -w; i < w; i++) {
-                WakesUtils.bresenhamLine((int) (x1 + nx * i), (int) (z1 + nz * i), (int) (x2 + nx * i), (int) (z2 + nz * i), pixelsAffected);
+                WakesUtils.bresenhamLine((int) Math.floor(x1 + nx * i), (int) Math.floor(z1 + nz * i), (int) Math.floor(x2 + nx * i), (int) Math.floor(z2 + nz * i), pixelsAffected);
             }
             return pixelsToNodes(pixelsAffected, y, waveStrength, velocity);
         }
@@ -259,12 +259,12 @@ public class WakeNode {
             Vec3 dir = velocity.normalize();
             double nx = -dir.z;
             double nz = dir.x;
-            int w = (int) (0.8 * width * res / 2);
+            int w = (int) Math.floor(0.8 * width * res / 2);
 
-            int x1 = (int) (x * res - nx * w);
-            int z1 = (int) (z * res - nz * w);
-            int x2 = (int) (x * res + nx * w);
-            int z2 = (int) (z * res + nz * w);
+            int x1 = (int) Math.floor(x * res - nx * w);
+            int z1 = (int) Math.floor(z * res - nz * w);
+            int x2 = (int) Math.floor(x * res + nx * w);
+            int z2 = (int) Math.floor(z * res + nz * w);
 
             ArrayList<Long> pixelsAffected = new ArrayList<>();
             WakesUtils.bresenhamLine(x1, z1, x2, z2, pixelsAffected);
@@ -273,13 +273,13 @@ public class WakeNode {
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, int y, float waveStrength, double velocity) {
             int res = WakeHandler.resolution.res;
-            int power = (int) (Math.log(res) / Math.log(2));
+            int power = WakeHandler.resolution.power;
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
             for (Long pixel : pixelsAffected) {
                 int[] pos = WakesUtils.longAsPos(pixel);
                 long k = WakesUtils.posAsLong(pos[0] >> power, pos[1] >> power);
-                pos[0] %= res;
-                pos[1] %= res;
+                pos[0] = Math.floorMod(pos[0], res);
+                pos[1] = Math.floorMod(pos[1], res);
                 long v = WakesUtils.posAsLong(pos[0], pos[1]);
                 if (pixelsInNodes.containsKey(k)) {
                     pixelsInNodes.get(k).add(v);

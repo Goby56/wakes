@@ -3,7 +3,7 @@ package com.goby56.wakes.debug;
 import com.goby56.wakes.config.WakesConfig;
 import net.minecraft.client.gui.components.debug.DebugScreenDisplayer;
 import net.minecraft.client.gui.components.debug.DebugScreenEntry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ public class WakesDebugInfo implements DebugScreenEntry {
             if (WakesConfig.disableMod) {
                 debugScreenDisplayer.addLine("[Wakes] Mod disabled!");
             } else {
-                debugScreenDisplayer.addToGroup(ResourceLocation.fromNamespaceAndPath("wakes", "debug_category"),
+                debugScreenDisplayer.addToGroup(Identifier.fromNamespaceAndPath("wakes", "debug_category"),
                         List.of(
                                 String.format("[Wakes] Rendering %d quads for %d wake nodes", WakesDebugInfo.quadsRendered, WakesDebugInfo.nodeCount),
                                 String.format("[Wakes] Node logic: %.2fms/t", 10e-6 * WakesDebugInfo.nodeLogicTime),

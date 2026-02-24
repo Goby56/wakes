@@ -12,7 +12,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ColorPickerScreen extends Screen {
     private final Screen parent;
@@ -20,8 +20,8 @@ public class ColorPickerScreen extends Screen {
     private ColorIntervalSlider colorIntervalSlider;
     private WakeAffectingSlider wakeOpacitySlider;
     private WakeAffectingSlider blendStrengthSlider;
-    private static final ResourceLocation INFO_ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/sprites/icon/info.png");
-    private static final ResourceLocation RESET_ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/reset_icon.png");
+    private static final Identifier INFO_ICON_TEXTURE = Identifier.fromNamespaceAndPath("minecraft", "textures/gui/sprites/icon/info.png");
+    private static final Identifier RESET_ICON_TEXTURE = Identifier.fromNamespaceAndPath(WakesClient.MOD_ID, "textures/reset_icon.png");
     public ColorPickerScreen(Screen parent) {
         super(Component.nullToEmpty("Configure wake colors"));
         this.parent = parent;

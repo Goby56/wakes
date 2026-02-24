@@ -15,6 +15,10 @@ public enum Resolution {
         this.power = Mth.log2(res);
     }
 
+    public static Resolution getHighest() {
+        return THIRTYTWO;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(this.res);
