@@ -52,7 +52,7 @@ public class WakeColor {
         return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
     }
 
-    public static int sampleColor(float waveEqAvg, int fluidCol, int lightColor, float opacity) {
+    public static WakeColor sampleColor(float waveEqAvg, int fluidCol, int lightColor, float opacity) {
         WakeColor tint = new WakeColor(fluidCol);
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
         var ranges = WakesConfig.wakeColorIntervals;
@@ -64,7 +64,7 @@ public class WakeColor {
             }
         }
         WakeColor color = WakesConfig.getWakeColor(returnIndex);
-        return color.blend(tint, lightColor, opacity).abgr;
+        return color.blend(tint, lightColor, opacity);
     }
 
     public WakeColor modifyOpacity(float opacityMultiplier) {
@@ -79,9 +79,10 @@ public class WakeColor {
         int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
         int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
 
-        r = (int) ((r * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f)));
-        g = (int) ((g * invertedLogisticCurve((lightColor >> 8  & 0xFF) / 255f)));
-        b = (int) ((b * invertedLogisticCurve((lightColor       & 0xFF) / 255f)));
+        // Lighting is baked directly into wake/splash pixels.
+        r = (int) (r * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f));
+        g = (int) (g * invertedLogisticCurve((lightColor >> 8 & 0xFF) / 255f));
+        b = (int) (b * invertedLogisticCurve((lightColor & 0xFF) / 255f));
 
         return new WakeColor(r, g, b, (int) (this.a * opacity));
     }

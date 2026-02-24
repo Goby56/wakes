@@ -3,10 +3,11 @@
     "package": "com.goby56.wakes.mixin",
     "compatibilityLevel": "JAVA_17",
     "client": [
-        "TameableTeleportMixin",
-        "WakeSpawnerMixin",
         "LightmapTextureManagerMixin",
-        "LilyPadFallMixin"
+        "LilyPadFallMixin",
+        "TameableTeleportMixin",
+        "WakeRendererCleanup",
+        "WakeSpawnerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

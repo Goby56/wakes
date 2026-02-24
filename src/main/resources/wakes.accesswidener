@@ -1,13 +1,14 @@
 accessWidener v1 named
 
-accessible field net/minecraft/world/entity/vehicle/AbstractBoat paddlePositions [F
-
-accessible field net/minecraft/world/entity/vehicle/AbstractBoat PADDLE_SPEED F
+accessible field net/minecraft/world/entity/vehicle/boat/AbstractBoat PADDLE_SPEED F
+accessible field net/minecraft/world/entity/vehicle/boat/AbstractBoat paddlePositions [F
 
 accessible field net/minecraft/client/model/geom/ModelPart$Cube polygons [Lnet/minecraft/client/model/geom/ModelPart$Polygon;
 
-
-accessible method net/minecraft/client/gui/components/AbstractSliderButton getSprite ()Lnet/minecraft/resources/ResourceLocation;
-accessible method net/minecraft/client/gui/components/AbstractSliderButton getHandleSprite ()Lnet/minecraft/resources/ResourceLocation;
+accessible method net/minecraft/client/gui/components/AbstractSliderButton getSprite ()Lnet/minecraft/resources/Identifier;
+accessible method net/minecraft/client/gui/components/AbstractSliderButton getHandleSprite ()Lnet/minecraft/resources/Identifier;
 accessible method net/minecraft/client/gui/components/AbstractWidget onDrag (Lnet/minecraft/client/input/MouseButtonEvent;DD)V
 extendable method net/minecraft/client/gui/components/EditBox onValueChange (Ljava/lang/String;)V
+
+accessible field net/minecraft/client/multiplayer/ClientLevel skyFlashTime I
+
