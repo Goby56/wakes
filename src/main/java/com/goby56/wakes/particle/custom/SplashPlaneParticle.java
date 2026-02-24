@@ -38,8 +38,6 @@ public class SplashPlaneParticle extends Particle {
     private final SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
 
     public NativeImage image;
-    public int texRes;
-    public boolean hasPopulatedPixels = false;
 
     public float lerpedYaw = 0;
 
@@ -110,9 +108,6 @@ public class SplashPlaneParticle extends Particle {
             this.image.close();
         }
         this.image = new NativeImage(res, res, false);
-
-        this.texRes = res;
-        this.hasPopulatedPixels = false;
     }
 
     public void deallocTexture() {
@@ -123,9 +118,13 @@ public class SplashPlaneParticle extends Particle {
     }
 
     public void populatePixels() {
+        int res = WakeHandler.resolution.res;
+        if (this.image == null || this.image.getWidth() != res || this.image.getHeight() != res) {
+            initTexture(res);
+        }
+
         int fluidColor = BiomeColors.getAverageWaterColor(level, this.owner.blockPosition());
         int lightCol = WakesUtils.getLightColor(level, this.owner.blockPosition());
-        int res = WakeHandler.resolution.res;
         float opacity = WakesConfig.wakeOpacity * 0.9f;
         for (int r = 0; r < res; r++) {
             for (int c = 0; c < res; c++) {
@@ -133,7 +132,6 @@ public class SplashPlaneParticle extends Particle {
                 this.image.setPixel(c, r, color);
             }
         }
-        this.hasPopulatedPixels = true;
     }
 
 

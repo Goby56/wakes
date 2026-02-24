@@ -96,12 +96,14 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
         float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getBbWidth() * Math.max(1f, progress) + 1) / 3f);
         matrices.scale(scalar, scalar, scalar);
         Matrix4f matrix = matrices.last().pose();
+        matrices.popPose();
 
         SplashPlaneTexture texture = wakeTextures.get(WakeHandler.resolution);
+        if (texture.resolution != splashPlane.image.getWidth()) {
+            return;
+        }
         texture.loadTexture(splashPlane.image);
         renderSurface(matrix, texture);
-
-        matrices.popPose();
     }
 
     private static void renderSurface(Matrix4f matrix, SplashPlaneTexture splashTexture) {
