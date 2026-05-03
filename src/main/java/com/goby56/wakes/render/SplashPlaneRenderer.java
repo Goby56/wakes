@@ -18,11 +18,11 @@ import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
-public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
+public class SplashPlaneRenderer implements LevelRenderEvents.EndMain {
     private static final ByteBufferBuilder allocator = new ByteBufferBuilder(RenderType.BIG_BUFFER_SIZE);
 
     private static ArrayList<Vector2D> points;
@@ -58,25 +58,25 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
 
     private static RenderPipeline getPipeline() {
         if (WakesClient.areShadersEnabled) {
-            return RenderPipelines.TRANSLUCENT_MOVING_BLOCK;
+            return RenderPipelines.TRANSLUCENT_BLOCK;
         } else {
             return RenderPipelines.BEACON_BEAM_TRANSLUCENT;
         }
     }
 
     @Override
-    public void endMain(WorldRenderContext context) {
+    public void endMain(LevelRenderContext context) {
         if (WakeHandler.getInstance().isEmpty()) {
             return;
         }
         WakeHandler wakeHandler = WakeHandler.getInstance().get();
         for (SplashPlaneParticle particle : wakeHandler.getVisibleSplashPlanes()) {
-            SplashPlaneRenderer.render(particle.owner, particle, context, context.matrices());
+            SplashPlaneRenderer.render(particle.owner, particle, context, context.poseStack());
         }
     }
 
 
-    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, WorldRenderContext context, PoseStack matrices) {
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, LevelRenderContext context, PoseStack matrices) {
         if (wakeTextures == null) initTextures();
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
@@ -86,7 +86,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
                 splashPlane.owner instanceof LocalPlayer) {
             return;
         }
-        splashPlane.updateYaw(context.gameRenderer().getMainCamera().getPartialTickTime());
+        splashPlane.updateYaw(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true));
 
         matrices.pushPose();
         splashPlane.translateMatrix(context.gameRenderer().getMainCamera(), matrices);
@@ -153,7 +153,7 @@ public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
                         (float) (vertex.z * WakesConfig.splashPlaneHeight),
                         (float) (vertex.y * WakesConfig.splashPlaneDepth))
                 .setUv((float) vertex.x, (float) vertex.y)
-                .setLight(LightTexture.FULL_BRIGHT)
+                .setLight(LightCoordsUtil.FULL_BRIGHT)
                 .setColor(1f, 1f, 1f, 1f)
                 .setNormal((float) normal.x, (float) normal.y, (float) normal.z);
     }

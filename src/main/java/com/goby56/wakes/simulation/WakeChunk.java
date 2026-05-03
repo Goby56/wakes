@@ -6,9 +6,9 @@ import com.goby56.wakes.render.FrustumManager;
 import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.world.level.Level;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -153,12 +153,12 @@ public class WakeChunk {
     }
 
     public void drawWakes() {
-        Level world = Minecraft.getInstance().level;
+        ClientLevel world = Minecraft.getInstance().level;
         int nodeRes = WakeHandler.resolution.res;
         for (int nodeZ = 0; nodeZ < WIDTH; nodeZ++) {
             for (int nodeX = 0; nodeX < WIDTH; nodeX++) {
                 WakeNode node = this.get(nodeX, nodeZ);
-                int lightCol = LightTexture.FULL_BRIGHT;
+                int lightCol = LightCoordsUtil.FULL_BRIGHT;
                 int fluidColor = 0;
                 float opacity = 0;
                 if (node != null) {

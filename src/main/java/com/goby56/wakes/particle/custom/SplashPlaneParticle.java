@@ -10,6 +10,7 @@ import com.goby56.wakes.utils.WakesUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -148,7 +149,7 @@ public class SplashPlaneParticle extends Particle {
 
     public void translateMatrix(Camera camera, PoseStack matrices) {
         Vec3 cameraPos = camera.position();
-        float tickDelta = camera.getPartialTickTime();
+        float tickDelta = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
         float x = (float) (Mth.lerp(tickDelta, this.xo, this.x) - cameraPos.x());
         float y = (float) (Mth.lerp(tickDelta, this.yo, this.y) - cameraPos.y());
         float z = (float) (Mth.lerp(tickDelta, this.zo, this.z) - cameraPos.z());

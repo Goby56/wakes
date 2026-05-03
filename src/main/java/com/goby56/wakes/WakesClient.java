@@ -13,8 +13,8 @@ import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -51,13 +51,13 @@ public class WakesClient implements ClientModInitializer {
 
 		// Wake handler handling
 		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
-		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
-		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(new WakeWorldTicker());
+		ClientTickEvents.END_LEVEL_TICK.register(new WakeWorldTicker());
+		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(new WakeWorldTicker());
 
 		// Rendering events
 		wakeRenderer = new WakeRenderer();
-		WorldRenderEvents.END_MAIN.register(wakeRenderer);
-		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
+		LevelRenderEvents.END_MAIN.register(wakeRenderer);
+		LevelRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(

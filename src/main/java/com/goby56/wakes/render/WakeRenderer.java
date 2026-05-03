@@ -16,11 +16,11 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.*;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.builders.UVPair;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -33,7 +33,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.util.*;
 
-public class WakeRenderer implements WorldRenderEvents.EndMain {
+public class WakeRenderer implements LevelRenderEvents.EndMain {
 
     private static final ByteBufferBuilder allocator = new ByteBufferBuilder(RenderType.BIG_BUFFER_SIZE);
     private BufferBuilder buffer;
@@ -43,10 +43,10 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
     private static final Matrix4f TEXTURE_MATRIX = new Matrix4f();
     private MappableRingBuffer vertexBuffer;
 
-    private final RenderPipeline PIPELINE = RenderPipelines.TRANSLUCENT_MOVING_BLOCK;
+    private final RenderPipeline PIPELINE = RenderPipelines.TRANSLUCENT_BLOCK;
 
     @Override
-    public void endMain(WorldRenderContext context) {
+    public void endMain(LevelRenderContext context) {
         if (WakesConfig.disableMod) {
             WakesDebugInfo.quadsRendered = 0;
             return;
@@ -66,8 +66,8 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
         }
 
 
-        PoseStack matrices = context.matrices();
-        Vec3 camera = context.worldState().cameraRenderState.pos;
+        PoseStack matrices = context.poseStack();
+        Vec3 camera = context.levelState().cameraRenderState.pos;
 
         matrices.pushPose();
         matrices.translate(-camera.x, -camera.y, -camera.z);
@@ -109,22 +109,22 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
             bb.addVertex(matrix, x0, y, z0)
                     .setUv(uv.u(), uv.v())
                     .setColor(1f, 1f, 1f, 1f)
-                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setLight(LightCoordsUtil.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x0, y, z1)
                     .setUv(uv.u(), uv.v() + uvOffset)
                     .setColor(1f, 1f, 1f, 1f)
-                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setLight(LightCoordsUtil.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x1, y, z1)
                     .setUv(uv.u() + uvOffset, uv.v() + uvOffset)
                     .setColor(1f, 1f, 1f, 1f)
-                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setLight(LightCoordsUtil.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
             bb.addVertex(matrix, x1, y, z0)
                     .setUv(uv.u() + uvOffset, uv.v())
                     .setColor(1f, 1f, 1f, 1f)
-                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setLight(LightCoordsUtil.FULL_BRIGHT)
                     .setNormal(0f, 1f, 0f);
         }
     }
@@ -188,7 +188,7 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
             pass.setUniform("DynamicTransforms", dynamicTransforms);
 
             pass.bindTexture("Sampler0", texture, sampler);
-            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.lightTexture().getTextureView(), sampler);
+            pass.bindTexture("Sampler2", Minecraft.getInstance().gameRenderer.levelLightmap(), sampler);
 
             pass.setVertexBuffer(0, vertices);
             pass.setIndexBuffer(indices, indexType);
