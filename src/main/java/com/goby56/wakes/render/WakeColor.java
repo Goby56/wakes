@@ -2,6 +2,8 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 
 import java.awt.*;
 
@@ -69,6 +71,12 @@ public class WakeColor {
 
     public WakeColor modifyOpacity(float opacityMultiplier) {
         return new WakeColor(r, g, b, (int) (this.a * opacityMultiplier));
+    }
+
+    public static int computeLightColor(int lightCoordinate) {
+        float brightness = Math.max(LightCoordsUtil.block(lightCoordinate), LightCoordsUtil.sky(lightCoordinate)) / 15f;
+        int c = (int) (brightness * 255);
+        return ARGB.color(255, c, c, c);
     }
 
     public WakeColor blend(WakeColor tint, int lightColor, float opacity) {

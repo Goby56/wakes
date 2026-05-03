@@ -6,8 +6,10 @@ import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -46,12 +48,13 @@ public class ColorIntervalSlider extends AbstractSliderButton {
         }
     }
 
+    private static final Identifier SLIDER_SPRITE = Identifier.withDefaultNamespace("widget/slider");
+    private static final Identifier SLIDER_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_highlighted");
+
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        //RenderSystem.enableBlend();
-        //RenderSystem.defaultBlendFunc();
-        //RenderSystem.enableDepthTest();
-        context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+    public void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        Identifier sliderSprite = this.isActive() && this.isFocused() ? SLIDER_HIGHLIGHTED_SPRITE : SLIDER_SPRITE;
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, sliderSprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
 
         this.isHovered = context.containsPointInScissor(mouseX, mouseY) && mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
         int n = handles.size();
@@ -74,7 +77,7 @@ public class ColorIntervalSlider extends AbstractSliderButton {
         boolean correctY = mouseY >= getY() && mouseY < getY() + height;
         for (SliderHandle handle : handles) {
             boolean isHovered = handle.inProximity(hoveredVal, width, 8) && correctY;
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight());
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, handle.getHandleTexture(isHovered), this.getX() + (int)(handle.value * (double)(this.width - 4)), this.getY(), 8, this.getHeight(), ARGB.white(this.alpha));
         }
     }
 

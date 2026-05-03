@@ -9,13 +9,14 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
 
@@ -164,18 +165,17 @@ public class ColorPicker extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         if (!active) return;
         context.blit(RenderPipelines.GUI_TEXTURED, PICKER_BG_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
         context.blit(RenderPipelines.GUI_TEXTURED, FRAME_TEXTURE, colorPickerBounds.x, colorPickerBounds.y, 0, 0, colorPickerBounds.width, colorPickerBounds.height, colorPickerBounds.width, colorPickerBounds.height);
 
         drawPickerBox(context);
-        // Draw picker knob
         int d = pickerKnobDim;
         context.blit(RenderPipelines.GUI_TEXTURED, PICKER_KNOB_TEXTURE, (int) pickerPos.x - 3, (int) pickerPos.y - 3, 0, 0, d, d, d, d);
     }
 
-    private void drawPickerBox(GuiGraphics context) {
+    private void drawPickerBox(GuiGraphicsExtractor context) {
         int y = colorPickerBounds.y + 3;
         int x = colorPickerBounds.x + 3;
         int w = colorPickerBounds.width - 6;
@@ -183,7 +183,7 @@ public class ColorPicker extends AbstractWidget {
 
         int hue = (int) (((ColorPickerSlider) this.widgets.get("hueSlider").getWidget()).getValue() * 255);
 
-        context.guiRenderState.submitGuiElement(new HsvQuadGuiElementRenderState(
+        context.guiRenderState.addGuiElement(new HsvQuadGuiElementRenderState(
                 new Matrix3x2f(context.pose()),
                 x, y, w, h,
                 0x7F0000FF | hue << 16,
@@ -239,7 +239,6 @@ public class ColorPicker extends AbstractWidget {
             this.setMaxLength(9); // #AARRGGBB
             this.bounds = bounds;
             this.colorPicker = colorPicker;
-            this.setFilter(HexInputField::validHex);
             this.hexColorRegex = Pattern.compile("#[a-f0-9]{7,9}", Pattern.CASE_INSENSITIVE);
         }
 
@@ -256,16 +255,17 @@ public class ColorPicker extends AbstractWidget {
             super.onValueChange(newText);
         }
 
-        private static boolean validHex(String text) {
-            if (text.length() > 9) {
-                return false;
-            }
-            for (char c : text.toLowerCase().toCharArray()) {
-                if (Character.digit(c, 16) == -1 && c != '#') {
-                    return false;
+        @Override
+        public void insertText(String input) {
+            StringBuilder filtered = new StringBuilder();
+            for (char c : input.toCharArray()) {
+                if (Character.digit(Character.toLowerCase(c), 16) != -1 || c == '#') {
+                    filtered.append(c);
                 }
             }
-            return true;
+            if (!filtered.isEmpty()) {
+                super.insertText(filtered.toString());
+            }
         }
 
         public void setActive(boolean active) {
@@ -337,12 +337,18 @@ public class ColorPicker extends AbstractWidget {
             return (float) this.value;
         }
 
+        private static final Identifier SLIDER_SPRITE = Identifier.withDefaultNamespace("widget/slider");
+        private static final Identifier SLIDER_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_highlighted");
+        private static final Identifier SLIDER_HANDLE_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle");
+        private static final Identifier SLIDER_HANDLE_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
+
         @Override
-        public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        public void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+            Identifier sliderSprite = this.isActive() && this.isFocused() ? SLIDER_HIGHLIGHTED_SPRITE : SLIDER_SPRITE;
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, sliderSprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
 
             if (this.type.equals(SliderUpdateType.HUE)) {
-                context.guiRenderState.submitGuiElement(new HsvQuadGuiElementRenderState(
+                context.guiRenderState.addGuiElement(new HsvQuadGuiElementRenderState(
                         new Matrix3x2f(context.pose()),
                         this.getX() + 1, this.getY() + 1, this.getWidth() - 2, this.getHeight() - 2,
                         0x4000FFFF,
@@ -353,9 +359,9 @@ public class ColorPicker extends AbstractWidget {
                     )
                 );
             }
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleSprite(), this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight());
-            int i = this.active ? 0xFFFFFF : 0xA0A0A0;
-            this.renderScrollingStringOverContents(context.textRenderer(), this.message, i | Mth.ceil(this.alpha * 255.0f) << 24);
+            Identifier handleSprite = !this.isActive() || !this.isHovered && !this.canChangeValue ? SLIDER_HANDLE_SPRITE : SLIDER_HANDLE_HIGHLIGHTED_SPRITE;
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, handleSprite, this.getX() + (int)(this.value * (double)(this.width - 8)), this.getY(), 8, this.getHeight(), ARGB.white(this.alpha));
+            this.extractScrollingStringOverContents(context.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE), this.getMessage(), 2);
         }
 
         @Override

@@ -38,7 +38,7 @@ public class SplashCloudParticle extends SingleQuadParticle {
 
         this.lifetime = this.isFromPaddles ? (int) (WakeNode.maxAge * 1.5) : WakeNode.maxAge / 3;
 
-        this.setSprite(sprites.get(world.random));
+        this.setSprite(sprites.get(world.getRandom()));
 
         this.offset = velocityX;
         this.quadSize = isFromPaddles ? quadSize * 2 : 0.3f;

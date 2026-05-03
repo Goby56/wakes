@@ -6,7 +6,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -79,16 +79,16 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredString(font, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
+        context.centeredText(font, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
         if (this.showInfoText) {
-            context.drawWordWrap(font, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff, true);
+            context.textWithWordWrap(font, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff);
         }
     }
 
     @Override
-    protected void renderBlurredBackground(GuiGraphics context) {
+    protected void extractBlurredBackground(GuiGraphicsExtractor context) {
 
     }
 
