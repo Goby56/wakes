@@ -5,7 +5,6 @@ import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.level.material.FluidState;
