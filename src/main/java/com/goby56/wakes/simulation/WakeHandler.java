@@ -108,9 +108,10 @@ public class WakeHandler {
     }
 
     public void insert(WakeNode node) {
-        if (node.validPos(world)) {
-            this.toBeInserted.add(node);
+        if (node.validPos(world) && this.toBeInserted.add(node)) {
+            return; // successfully queued
         }
+        node.markDead(); // invalid position or deduplicated by QueueSet — free the drawContext
     }
 
     public List<WakeNode> getVisibleNodes() {

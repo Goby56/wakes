@@ -21,13 +21,15 @@ wakes:
 
         spawnParticles: Wake particles
         firstPersonEffects: First person effects
-        firstPersonEffects.tooltip: Should water effects be shown in first person?
+        firstPersonEffects.tooltip: Should water effects of the player such as splash planes be shown in first person?
         wakeOpacity: Wake opacity
         blendStrength: Blend strength
         wakeResolution: Wake resolution
         wakeResolution.tooltip: The pixel resolution of the wakes. Good for adjusting the wakes to better visually fit some resource packs.
         shaderLightPassthrough: Shader light passthrough
         shaderLightPassthrough.tooltip: Used to fine tune the appearance of wakes when using shaders. A higher value yields brighter wakes.
+        shaderWaterHeightOffset: Shader water height offset
+        shaderWaterHeightOffset.tooltip: Lifts wakes slightly when shaders are active so water-displacing shaders don't clip them. Increase if wakes disappear into wavy water.
         splashPlaneWidth: Width
         splashPlaneHeight: Height
         splashPlaneDepth: Depth
@@ -61,6 +63,7 @@ wakes:
         drawDebugBoxes: Draw debug boxes
         showDebugInfo: Show debug info in F3
         showDebugInfo.tooltip: You also need to enable it in F3+F6
+        showAtlas: Show texture atlas overlay
         floodFillDistance: Flood fill distance
         floodFillTickDelay: Ticks until flood fill
         renderType: Render type

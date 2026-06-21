@@ -111,6 +111,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "tick")
 	private void tick(CallbackInfo info) {
+		if (!this.level.isClientSide()) return;
 		this.onFluidSurface = onFluidSurface();
 		Entity thisEntity = ((Entity) (Object) this);
 		Vec3 vel = this.calculateVelocity(thisEntity);
@@ -138,6 +139,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Inject(at = @At("TAIL"), method = "doWaterSplashEffect")
 	private void onSwimmingStart(CallbackInfo ci) {
+		if (!this.level.isClientSide()) return;
 		if (WakesConfig.disableMod) {
 			return;
 		}

@@ -2,10 +2,15 @@ package com.goby56.wakes.debug;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.render.WakeColor;
+import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.simulation.WakeChunk;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.phys.AABB;
@@ -31,5 +36,21 @@ public class WakeDebugRenderer {
                 Gizmos.cuboid(box, GizmoStyle.fill(col));
             }
         }
+    }
+
+    public static void drawAtlasOverlay(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {
+        if (!WakesConfig.showAtlas) return;
+
+        WakeHandler.getInstance().ifPresent(wh -> {
+            WakeTextureAtlas atlas = wh.getTextureAtlas();
+            int screenH = Minecraft.getInstance().getWindow().getScreenHeight();
+            context.blit(RenderPipelines.GUI_TEXTURED, WakeTextureAtlas.ATLAS_ID,
+                    0, 0, 0, 0,
+                    screenH, screenH,
+                    atlas.resolution, atlas.resolution,
+                    atlas.resolution, atlas.resolution
+            );
+        });
+
     }
 }

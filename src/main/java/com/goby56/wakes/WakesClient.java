@@ -8,16 +8,19 @@ import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
+import com.goby56.wakes.render.WakeTextureAtlas;
+import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -51,18 +54,25 @@ public class WakesClient implements ClientModInitializer {
 
 		// Wake handler handling
 		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
-		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
-		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(new WakeWorldTicker());
+		ClientTickEvents.END_LEVEL_TICK.register(new WakeWorldTicker());
+		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(new WakeWorldTicker());
 
 		// Rendering events
 		wakeRenderer = new WakeRenderer();
-		WorldRenderEvents.END_MAIN.register(wakeRenderer);
-		WorldRenderEvents.END_MAIN.register(new SplashPlaneRenderer());
+		LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(wakeRenderer);
+		LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN.register(wakeRenderer);
+		SplashPlaneRenderer splashPlaneRenderer = new SplashPlaneRenderer();
+		LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(splashPlaneRenderer);
+		LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN.register(splashPlaneRenderer);
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(
                 Identifier.fromNamespaceAndPath("wakes", "debug_entry"),
                 new WakesDebugInfo());
+
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "atlas_debug"),
+                WakeDebugRenderer::drawAtlasOverlay);
 	}
 
 	public static boolean areShadersEnabled() {

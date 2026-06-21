@@ -47,12 +47,7 @@ public class WakeColor {
         return "#" + Integer.toHexString(a << 24 | r << 16 | g << 8 | b);
     }
 
-    private static double invertedLogisticCurve(float x) {
-        float k = WakesConfig.shaderLightPassthrough;
-        return WakesClient.areShadersEnabled ? k * (4 * Math.pow(x - 0.5f, 3) + 0.5f) : x;
-    }
-
-    public static WakeColor sampleColor(float waveEqAvg, int fluidCol, int lightColor, float opacity) {
+    public static WakeColor sampleColor(float waveEqAvg, int fluidCol, float opacity) {
         WakeColor tint = new WakeColor(fluidCol);
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
         var ranges = WakesConfig.wakeColorIntervals;
@@ -64,25 +59,21 @@ public class WakeColor {
             }
         }
         WakeColor color = WakesConfig.getWakeColor(returnIndex);
-        return color.blend(tint, lightColor, opacity);
+        return color.blend(tint, opacity);
     }
 
     public WakeColor modifyOpacity(float opacityMultiplier) {
         return new WakeColor(r, g, b, (int) (this.a * opacityMultiplier));
     }
 
-    public WakeColor blend(WakeColor tint, int lightColor, float opacity) {
+    public WakeColor blend(WakeColor tint, float opacity) {
         double srcA = Math.pow(this.a / 255f, WakesConfig.blendStrength * 10);
-        // Pow to make tint color have a larger influence
+        // Pow to make tint color have a larger influence\
+        // Potentially convert this into lookup table
         
         int r = (int) ((this.r) * (srcA) + (tint.r) * (1 - srcA));
         int g = (int) ((this.g) * (srcA) + (tint.g) * (1 - srcA));
         int b = (int) ((this.b) * (srcA) + (tint.b) * (1 - srcA));
-
-        // Lighting is baked directly into wake/splash pixels.
-        r = (int) (r * invertedLogisticCurve((lightColor >> 16 & 0xFF) / 255f));
-        g = (int) (g * invertedLogisticCurve((lightColor >> 8 & 0xFF) / 255f));
-        b = (int) (b * invertedLogisticCurve((lightColor & 0xFF) / 255f));
 
         return new WakeColor(r, g, b, (int) (this.a * opacity));
     }

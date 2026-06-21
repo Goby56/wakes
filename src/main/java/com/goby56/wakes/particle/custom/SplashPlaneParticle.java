@@ -4,6 +4,7 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
+import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.simulation.SimulationNode;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
@@ -16,7 +17,6 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.BiomeColors;
-import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
@@ -35,16 +35,18 @@ public class SplashPlaneParticle extends Particle {
 
     Vec3 direction = Vec3.ZERO;
 
-    private final SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
+    private SimulationNode simulationNode = new SimulationNode.SplashPlaneSimulation();
 
-    public NativeImage image;
+    public WakeTextureAtlas.DrawContext drawContext;
 
     public float lerpedYaw = 0;
 
     protected SplashPlaneParticle(ClientLevel world, double x, double y, double z) {
         super(world, x, y, z);
-        initTexture(WakeHandler.resolution.res);
-        WakeHandler.getInstance().ifPresent(wakeHandler -> wakeHandler.registerSplashPlane(this));
+        WakeHandler.getInstance().ifPresent(wakeHandler -> {
+            this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
+            wakeHandler.registerSplashPlane(this);
+        });
     }
 
     @Override
@@ -53,7 +55,7 @@ public class SplashPlaneParticle extends Particle {
             wakeOwner.wakes$setSplashPlane(null);
         }
         this.owner = null;
-        this.deallocTexture();
+        if (this.drawContext != null) this.drawContext.invalidate();
         super.remove();
     }
 
@@ -99,37 +101,26 @@ public class SplashPlaneParticle extends Particle {
             this.level.addParticle(ModParticles.SPLASH_CLOUD.withOwner(this.owner), particlePos.x - particleOffset.x, this.y, particlePos.z - particleOffset.z, particleVelocity.x, particleVelocity.y, particleVelocity.z);
         }
 
+        // If resolution changed, release the old atlas slot and claim a new one sized correctly.
+        if (this.simulationNode.res != WakeHandler.resolution.res) {
+            if (this.drawContext != null) this.drawContext.invalidate();
+            WakeHandler.getInstance().ifPresent(wh -> this.drawContext = wh.getTextureAtlas().claimSubTexture());
+            this.simulationNode = new SimulationNode.SplashPlaneSimulation();
+        }
+
         this.simulationNode.tick((float) wakeProducer.wakes$getHorizontalVelocity(), null, null, null, null);
         populatePixels();
     }
 
-    public void initTexture(int res) {
-        if (this.image != null) {
-            this.image.close();
-        }
-        this.image = new NativeImage(res, res, false);
-    }
-
-    public void deallocTexture() {
-        if (this.image != null) {
-            this.image.close();
-            this.image = null;
-        }
-    }
-
     public void populatePixels() {
+        if (this.drawContext == null) return;
         int res = WakeHandler.resolution.res;
-        if (this.image == null || this.image.getWidth() != res || this.image.getHeight() != res) {
-            initTexture(res);
-        }
-
         int fluidColor = BiomeColors.getAverageWaterColor(level, this.owner.blockPosition());
-        int lightCol = WakesUtils.getLightColor(level, this.owner.blockPosition());
         float opacity = WakesConfig.wakeOpacity * 0.9f;
         for (int r = 0; r < res; r++) {
             for (int c = 0; c < res; c++) {
-                int color = simulationNode.getPixelColor(c, r, fluidColor, lightCol, opacity);
-                this.image.setPixel(c, r, color);
+                int color = simulationNode.getPixelColor(c, r, fluidColor, opacity);
+                this.drawContext.draw(c, r, color);
             }
         }
     }
@@ -148,7 +139,7 @@ public class SplashPlaneParticle extends Particle {
 
     public void translateMatrix(Camera camera, PoseStack matrices) {
         Vec3 cameraPos = camera.position();
-        float tickDelta = camera.getPartialTickTime();
+        float tickDelta = camera.getCameraEntityPartialTicks(net.minecraft.client.Minecraft.getInstance().getDeltaTracker());
         float x = (float) (Mth.lerp(tickDelta, this.xo, this.x) - cameraPos.x());
         float y = (float) (Mth.lerp(tickDelta, this.yo, this.y) - cameraPos.y());
         float z = (float) (Mth.lerp(tickDelta, this.zo, this.z) - cameraPos.z());

@@ -1,7 +1,7 @@
 package com.goby56.wakes.config.gui;
 
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -22,7 +22,7 @@ public class TexturedButton extends Button {
     }
 
     @Override
-    protected void renderContents(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    protected void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         int tw = this.textureWidth;
         int th = this.textureHeight;
         int x = this.getX() + this.getWidth() / 2 - this.textureWidth / 2;

@@ -6,7 +6,7 @@ import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.simulation.WakeHandler;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;
 
@@ -47,7 +47,7 @@ public class ColorIntervalSlider extends AbstractSliderButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         //RenderSystem.enableBlend();
         //RenderSystem.defaultBlendFunc();
         //RenderSystem.enableDepthTest();

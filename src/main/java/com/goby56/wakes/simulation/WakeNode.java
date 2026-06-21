@@ -1,7 +1,11 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.utils.WakesUtils;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.level.material.FluidState;
@@ -15,6 +19,7 @@ import java.util.*;
 
 public class WakeNode {
     public final SimulationNode simulationNode;
+    public final WakeHandler wakeHandler;
 
     public final int x;
     public final int y;
@@ -34,21 +39,36 @@ public class WakeNode {
     public float t = 0;
     public int floodLevel;
 
-    private WakeNode(int x, int y, int z, int floodLevel) {
+    public WakeTextureAtlas.DrawContext drawContext;
+
+    private WakeNode(int x, int y, int z, int floodLevel, WakeHandler wakeHandler) {
         this.simulationNode = new SimulationNode.WakeSimulation();
         this.x = x;
         this.y = y;
         this.z = z;
         this.floodLevel = floodLevel;
+        this.wakeHandler = wakeHandler;
+        this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
     }
 
-    private WakeNode(long pos, int y) {
-        this.simulationNode = new SimulationNode.WakeSimulation();
+    public static WakeNode fromLong(long pos, int y, WakeHandler wakeHandler) {
         int[] xz = WakesUtils.longAsPos(pos);
-        this.x = xz[0];
-        this.y = y;
-        this.z = xz[1];
-        this.floodLevel = WakesConfig.floodFillDistance;
+        int x = xz[0];
+        int z = xz[1];
+        return new WakeNode(x, y, z, WakesConfig.floodFillDistance, wakeHandler);
+    }
+
+    public void draw(ClientLevel world) {
+        BlockPos blockPos = this.blockPos();
+        int fluidColor = BiomeColors.getAverageWaterColor(world, blockPos);
+        float opacity = (float) ((-Math.pow(this.t, 2) + 1) * WakesConfig.wakeOpacity);
+
+        for (int x = 0; x < simulationNode.res; x++) {
+            for (int y = 0; y < simulationNode.res; y++) {
+                int color = simulationNode.getPixelColor(x, y, fluidColor, opacity);
+                drawContext.draw(x, y, color);
+            }
+        }
     }
 
     public SimulationNode getSimulationNode(WakeNode neighboringNode) {
@@ -76,29 +96,29 @@ public class WakeNode {
                 getSimulationNode(this.WEST)
         );
 
-        floodFill(wakeHandler);
+        floodFill();
         return true;
     }
 
-    public void floodFill(WakeHandler wakeHandler) {
+    public void floodFill() {
         if (floodLevel > 0 && this.age > WakesConfig.floodFillTickDelay) {
             if (this.NORTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x, this.y, this.z - 1, floodLevel - 1, wakeHandler));
             } else {
                 this.NORTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.EAST == null) {
-                wakeHandler.insert(new WakeNode(this.x + 1, this.y, this.z, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x + 1, this.y, this.z, floodLevel - 1, wakeHandler));
             } else {
                 this.EAST.updateFloodLevel(floodLevel - 1);
             }
             if (this.SOUTH == null) {
-                wakeHandler.insert(new WakeNode(this.x, this.y, this.z + 1, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x, this.y, this.z + 1, floodLevel - 1, wakeHandler));
             } else {
                 this.SOUTH.updateFloodLevel(floodLevel - 1);
             }
             if (this.WEST == null) {
-                wakeHandler.insert(new WakeNode(this.x - 1, this.y, this.z, floodLevel - 1));
+                wakeHandler.insert(new WakeNode(this.x - 1, this.y, this.z, floodLevel - 1, wakeHandler));
             } else {
                 this.WEST.updateFloodLevel(floodLevel - 1);
             }
@@ -156,7 +176,9 @@ public class WakeNode {
     }
 
     public void markDead() {
+        if (dead) return;
         this.dead = true;
+        if (drawContext != null) drawContext.invalidate();
     }
 
     public boolean isDead() {
@@ -272,6 +294,8 @@ public class WakeNode {
         }
 
         private static Set<WakeNode> pixelsToNodes(ArrayList<Long> pixelsAffected, int y, float waveStrength, double velocity) {
+            WakeHandler wakeHandler = WakeHandler.getInstance().orElse(null);
+            if (wakeHandler == null) return null;
             int res = WakeHandler.resolution.res;
             int power = WakeHandler.resolution.power;
             HashMap<Long, HashSet<Long>> pixelsInNodes = new HashMap<>();
@@ -291,7 +315,7 @@ public class WakeNode {
             }
             Set<WakeNode> nodesAffected = new HashSet<>();
             for (Long nodePos : pixelsInNodes.keySet()) {
-                WakeNode node = new WakeNode(nodePos, y);
+                WakeNode node = WakeNode.fromLong(nodePos, y, wakeHandler);
                 for (Long subPos : pixelsInNodes.get(nodePos)) {
                     node.simulationNode.setInitialValue(subPos, (int) (waveStrength * velocity));
                 }

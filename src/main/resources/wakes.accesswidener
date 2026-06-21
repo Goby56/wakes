@@ -1,4 +1,4 @@
-accessWidener v1 named
+accessWidener v1 official
 
 accessible field net/minecraft/world/entity/vehicle/boat/AbstractBoat PADDLE_SPEED F
 accessible field net/minecraft/world/entity/vehicle/boat/AbstractBoat paddlePositions [F

@@ -88,19 +88,7 @@ public class LightmapWrapper {
     }
 
     public static int readPixel(int block, int sky) {
-        LightmapInfo info = ((LightmapAccess) Minecraft.getInstance().gameRenderer.lightTexture())
-                .wakes$getLightmapInfo();
-
-        if (info == null) {
-            return color[block][sky];
-        }
-
-        if (tick[block][sky] != info.currentTick()) {
-            tick[block][sky] = info.currentTick();
-            color[block][sky] = calculatePixel(info, block, sky);
-        }
-
-        return color[block][sky];
+        return 0xFFFFFFFF;
     }
 
     public static void render(Matrix4f matrix) {

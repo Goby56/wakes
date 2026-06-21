@@ -28,13 +28,13 @@ public abstract class SimulationNode {
         }
     }
 
-    public int getPixelColor(int x, int z, int fluidCol, int lightCol, float opacity) {
+    public int getPixelColor(int x, int z, int fluidCol, float opacity) {
         float waveEqAvg = (this.u[0][z + 1][x + 1] + this.u[1][z + 1][x + 1] + this.u[2][z + 1][x + 1]) / 3;
         if (WakesConfig.debugColors) {
             int clampedRange = (int) (255 * (2 / (1 + Math.exp(-0.1 * waveEqAvg)) - 1));
             return new WakeColor(Math.max(-clampedRange, 0), Math.max(clampedRange, 0), 0, 255).argb;
         }
-        return WakeColor.sampleColor(waveEqAvg, fluidCol, lightCol, opacity).argb;
+        return WakeColor.sampleColor(waveEqAvg, fluidCol, opacity).argb;
     }
 
     public abstract void tick(@Nullable Float velocity, @Nullable SimulationNode NORTH, @Nullable SimulationNode SOUTH, @Nullable SimulationNode EAST, @Nullable SimulationNode WEST);

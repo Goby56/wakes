@@ -1,14 +1,9 @@
 package com.goby56.wakes.simulation;
 
-import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.FrustumManager;
-import com.goby56.wakes.render.WakeTextureAtlas;
-import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -31,7 +26,6 @@ public class WakeChunk {
 
     public final Map<WakeChunkPos.Direction, WakeChunk> neighbors;
 
-    public WakeTextureAtlas.DrawContext drawContext;
 
     public WakeChunk(WakeChunkPos chunkPos, WakeHandler wakeHandler) {
         this.capacity = WIDTH * WIDTH;
@@ -41,8 +35,6 @@ public class WakeChunk {
         this.boundingBox = new AABB(pos.x, pos.y, pos.z, pos.x + WIDTH, pos.y + 1, pos.z + WIDTH);
         this.neighbors = new HashMap<>();
         this.wakeHandler = wakeHandler;
-
-        this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
     }
 
     public boolean tick() {
@@ -57,11 +49,22 @@ public class WakeChunk {
             }
         }
         WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
-        long tTexturing = System.nanoTime();
+        long tWrite = System.nanoTime();
         drawWakes();
-        WakesDebugInfo.texturingTime += (System.nanoTime() - tTexturing);
-        WakesDebugInfo.nodeCount += occupied;
+        WakesDebugInfo.atlasWriteTime += (System.nanoTime() - tWrite);
+        WakesDebugInfo.totalNodes += occupied;
         return occupied != 0;
+    }
+
+    public List<WakeNode> getNodes() {
+        ArrayList<WakeNode> nodeList = new ArrayList<>(capacity);
+        for (int x = 0; x < WIDTH; x++) {
+            for (int z = 0; z < WIDTH; z++) {
+                WakeNode node = nodes[z][x];
+                if (node != null) nodeList.add(node);
+            }
+        }
+        return nodeList;
     }
 
     public void query(ArrayList<WakeNode> output) {
@@ -111,6 +114,7 @@ public class WakeChunk {
         int x = Math.floorMod(node.x, WIDTH), z = Math.floorMod(node.z, WIDTH);
         if (nodes[z][x] != null) {
             nodes[z][x].revive(node);
+            node.markDead(); // free the incoming node's drawContext — it won't be used
             return;
         }
         this.set(x, z, node);
@@ -141,7 +145,6 @@ public class WakeChunk {
         }
         occupied = 0;
         destroyed = true;
-        drawContext.invalidate();
     }
 
     private List<WakeNode> getAdjacentNodes(int x, int z) {
@@ -153,33 +156,9 @@ public class WakeChunk {
     }
 
     public void drawWakes() {
-        Level world = Minecraft.getInstance().level;
-        int nodeRes = WakeHandler.resolution.res;
-        for (int nodeZ = 0; nodeZ < WIDTH; nodeZ++) {
-            for (int nodeX = 0; nodeX < WIDTH; nodeX++) {
-                WakeNode node = this.get(nodeX, nodeZ);
-                int lightCol = LightTexture.FULL_BRIGHT;
-                int fluidColor = 0;
-                float opacity = 0;
-                if (node != null) {
-                    fluidColor = BiomeColors.getAverageWaterColor(world, node.blockPos());
-                    lightCol = WakesUtils.getLightColor(world, node.blockPos());
-                    // TODO LERP LIGHT FROM SURROUNDING BLOCKS
-                    opacity = (float) ((-Math.pow(node.t, 2) + 1) * WakesConfig.wakeOpacity);
-                }
-
-                int xOffset = nodeX * nodeRes;
-                int yOffset = nodeZ * nodeRes;
-                for (int x = 0; x < nodeRes; x++) {
-                    for (int y = 0; y < nodeRes; y++) {
-                        int color = 0;
-                        if (node != null) {
-                            color = node.simulationNode.getPixelColor(x, y, fluidColor, lightCol, opacity);
-                        }
-                        drawContext.draw(x + xOffset, y + yOffset, color);
-                    }
-                }
-            }
+        ClientLevel world = Minecraft.getInstance().level;
+        for (WakeNode wakeNode : getNodes()) {
+            wakeNode.draw(world);
         }
     }
 }

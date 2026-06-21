@@ -6,7 +6,7 @@ import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.utils.WakesUtils;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -79,16 +79,27 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredString(font, WakesUtils.translatable("gui", "colorIntervalSlider", "title"), width / 2, 10, 0xffffffff);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
+        // Title above the color-interval slider
+        context.centeredText(this.font,
+                WakesUtils.translatable("gui", "colorIntervalSlider", "title").getString(),
+                this.width / 2, 12, 0xFFFFFFFF);
+
+        // Info/help panel toggled by the info button
         if (this.showInfoText) {
-            context.drawWordWrap(font, WakesUtils.translatable("gui", "colorIntervalSlider", "infoText"), width - 325, height - 45, 320, 0xffffffff, true);
+            String infoText = WakesUtils.translatable("gui", "colorIntervalSlider", "infoText").getString();
+            int y = 100;
+            for (String line : infoText.split("\n")) {
+                if (line.isEmpty()) continue;
+                context.text(this.font, line, (int) (this.width / 2f - this.width * 0.8f / 2), y, 0xFFE0E0E0);
+                y += this.font.lineHeight + 2;
+            }
         }
     }
 
     @Override
-    protected void renderBlurredBackground(GuiGraphics context) {
+    protected void extractBlurredBackground(GuiGraphicsExtractor context) {
 
     }
 

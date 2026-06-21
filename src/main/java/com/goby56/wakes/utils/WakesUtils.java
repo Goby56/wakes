@@ -6,14 +6,11 @@ import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
-import com.goby56.wakes.render.LightmapWrapper;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.player.RemotePlayer;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,11 +30,48 @@ import java.util.List;
 
 public class WakesUtils {
 
+    /**
+     * Returns an ARGB light color for the given position, sampling real block + sky light
+     * (day/night aware). Block light is given a warm tint; sky light is neutral. A small
+     * ambient floor keeps wakes from going fully black. This is multiplied into the wake
+     * pixel color so wakes darken in caves / at night and warm up near light sources.
+     */
     public static int getLightColor(Level world, BlockPos blockPos) {
-        int lightCoordinate = LevelRenderer.getLightColor(world, blockPos);
-        int x = LightTexture.block(lightCoordinate);
-        int y = LightTexture.sky(lightCoordinate);
-        return LightmapWrapper.readPixel(x, y);
+        if (world == null) {
+            return 0xFFFFFFFF;
+        }
+        net.minecraft.world.level.dimension.DimensionType dim = world.dimensionType();
+        int blockLevel = world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, blockPos);
+        int skyLevel = Math.max(0, world.getBrightness(net.minecraft.world.level.LightLayer.SKY, blockPos) - world.getSkyDarken());
+
+        float blockB = net.minecraft.client.renderer.Lightmap.getBrightness(dim, blockLevel);
+        float skyB = net.minecraft.client.renderer.Lightmap.getBrightness(dim, skyLevel);
+
+        // Warm block light, neutral sky light, with an ambient floor so wakes stay
+        // visible at night / in caves rather than fading to black.
+        float floor = 0.2f;
+        float r = Mth.clamp(blockB * 1.00f + skyB + floor, 0f, 1f);
+        float g = Mth.clamp(blockB * 0.92f + skyB + floor, 0f, 1f);
+        float b = Mth.clamp(blockB * 0.80f + skyB + floor, 0f, 1f);
+
+        int ri = (int) (r * 255f);
+        int gi = (int) (g * 255f);
+        int bi = (int) (b * 255f);
+        return 0xFF000000 | ri << 16 | gi << 8 | bi;
+    }
+
+    /** Bilinearly interpolates four packed ARGB light colors. fx/fy in [0,1]. */
+    public static int lerpLightColor(int c00, int c10, int c01, int c11, float fx, float fy) {
+        int r = lerpChannel(c00, c10, c01, c11, 16, fx, fy);
+        int g = lerpChannel(c00, c10, c01, c11, 8, fx, fy);
+        int b = lerpChannel(c00, c10, c01, c11, 0, fx, fy);
+        return 0xFF000000 | r << 16 | g << 8 | b;
+    }
+
+    private static int lerpChannel(int c00, int c10, int c01, int c11, int shift, float fx, float fy) {
+        float top = Mth.lerp(fx, (c00 >> shift) & 0xFF, (c10 >> shift) & 0xFF);
+        float bottom = Mth.lerp(fx, (c01 >> shift) & 0xFF, (c11 >> shift) & 0xFF);
+        return Mth.clamp((int) Mth.lerp(fy, top, bottom), 0, 255);
     }
 
     public static void placeFallSplash(Entity entity) {
