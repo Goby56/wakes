@@ -17,10 +17,10 @@ public class WakesConfigScreen extends Screen {
         int y = this.height / 4 + 48;
         int ySpacing = 24;
         this.addRenderableWidget(Button.builder(WakesUtils.translatable("gui", "configButton"), (btn) -> {
-            minecraft.setScreen(MidnightConfig.getScreen(this, "wakes"));
+            minecraft.setScreenAndShow(MidnightConfig.getScreen(this, "wakes"));
         }).bounds(this.width / 2 - 100, y + ySpacing, 200, 20).build());
         this.addRenderableWidget(Button.builder(WakesUtils.translatable("gui", "colorConfigButton"), (btn) -> {
-            minecraft.setScreen(new ColorPickerScreen(this));
+            minecraft.setScreenAndShow(new ColorPickerScreen(this));
         }).bounds(this.width / 2 - 100, y, 200, 20).build());
     }
 

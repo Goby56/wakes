@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.textures.TextureFormat;
+import com.mojang.blaze3d.GpuFormat;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 
 import java.util.function.Supplier;
@@ -21,7 +21,7 @@ public class BetterDynamicTexture extends AbstractTexture {
 
     private void createTexture(Supplier<String> supplier) {
         GpuDevice gpuDevice = RenderSystem.getDevice();
-        this.texture = gpuDevice.createTexture(supplier, 5, TextureFormat.RGBA8, this.pixels.getWidth(), this.pixels.getHeight(), 1, 1);
+        this.texture = gpuDevice.createTexture(supplier, 5, GpuFormat.RGBA8_UNORM, this.pixels.getWidth(), this.pixels.getHeight(), 1, 1);
         this.sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
         this.textureView = gpuDevice.createTextureView(this.texture);
     }

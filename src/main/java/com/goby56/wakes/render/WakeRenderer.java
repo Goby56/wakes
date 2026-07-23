@@ -13,40 +13,29 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.LightCoordsUtil;
+import org.joml.Matrix4f;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
 
 import java.util.*;
 
-public class WakeRenderer implements LevelRenderEvents.AfterTranslucentTerrain, LevelRenderEvents.BeforeTranslucentTerrain {
+public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
 
     private static RenderType renderType() {
-        return RenderTypes.entityTranslucent(WakeTextureAtlas.ATLAS_ID, false);
-    }
-
-    private static boolean cameraSubmerged(LevelRenderContext context) {
-        return context.gameRenderer().getMainCamera().getFluidInCamera()
-                == net.minecraft.world.level.material.FogType.WATER;
+        return WakesClient.WAKE_RENDER_TYPE;
     }
 
     @Override
-    public void afterTranslucentTerrain(LevelRenderContext context) {
-        if (cameraSubmerged(context)) return;
-        render(context);
+    public void collectSubmits(LevelRenderContext context) {
+        submit(context);
     }
 
-    @Override
-    public void beforeTranslucentTerrain(LevelRenderContext context) {
-        if (!cameraSubmerged(context)) return;
-        render(context);
-    }
-
-    private void render(LevelRenderContext context) {
+    private void submit(LevelRenderContext context) {
         if (WakesConfig.disableMod) {
             return;
         }
@@ -63,7 +52,6 @@ public class WakeRenderer implements LevelRenderEvents.AfterTranslucentTerrain, 
 
         long tRendering = System.nanoTime();
         try {
-            // Make sure the GPU texture has the latest simulation pixels
             wakeHandler.getTextureAtlas().dynamicTexture.uploadIfDirty();
 
             Vec3 camera = context.levelState().cameraRenderState.pos;
@@ -71,18 +59,34 @@ public class WakeRenderer implements LevelRenderEvents.AfterTranslucentTerrain, 
             PoseStack matrices = context.poseStack();
             matrices.pushPose();
             matrices.translate(-camera.x, -camera.y, -camera.z);
-            Matrix4fc matrix = matrices.last().pose();
-
-            MultiBufferSource.BufferSource bufferSource = context.bufferSource();
-            RenderType type = renderType();
-            VertexConsumer vc = bufferSource.getBuffer(type);
-
-            addVertices(matrix, vc, wakeChunks);
-
+            Matrix4f matrixCopy = new Matrix4f(matrices.last().pose());
             matrices.popPose();
 
-            // Flush immediately so it draws into the currently-bound (Iris) framebuffer
-            bufferSource.endBatch(type);
+            float extraOffset = WakesClient.areShadersEnabled ? WakesConfig.shaderWaterHeightOffset : 0f;
+            ClientLevel world = Minecraft.getInstance().level;
+            boolean submerged = world.getFluidState(BlockPos.containing(camera.x, camera.y, camera.z)).is(FluidTags.WATER);
+            float surfaceBias = (submerged ? -SURFACE_EPSILON : SURFACE_EPSILON) + extraOffset;
+            RenderType type = renderType();
+
+            var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
+                for (WakeChunk wakeChunk : wakeChunks) {
+                    for (WakeNode wakeNode : wakeChunk.getNodes()) {
+                        UVPair uv = wakeNode.drawContext.getUV();
+                        float uvOffset = wakeNode.drawContext.getUVOffset();
+                        int light = LightCoordsUtil.getLightCoords(world, wakeNode.blockPos());
+                        float x0 = (float) wakeNode.x;
+                        float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
+                        float z0 = (float) wakeNode.z;
+                        float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
+                        emitQuad(vc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
+                    }
+                }
+            };
+
+            // Pass 1: all alpha values → color buffer, no depth write (faint wakes remain visible with water showing underneath)
+            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
+            // Pass 2: ALPHA_CUTOUT discards faint pixels; high-alpha pixels write depth (prevents water from covering bright foam)
+            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), type, renderer);
         } catch (Throwable t) {
             WakesClient.LOGGER.error("WakeRenderer: EXCEPTION during render", t);
         }
@@ -92,35 +96,6 @@ public class WakeRenderer implements LevelRenderEvents.AfterTranslucentTerrain, 
     }
 
     private static final float SURFACE_EPSILON = 0.01f;
-
-    private void addVertices(Matrix4fc matrix, VertexConsumer vc, List<WakeChunk> chunks) {
-        // Water-displacing shaders write a wavy water surface into the depth buffer, which can
-        // occlude (clip) the flat wake plane. Lift the wake by a configurable amount when
-        // shaders are active so it stays above the displaced surface.
-        float extraOffset = WakesClient.areShadersEnabled ? WakesConfig.shaderWaterHeightOffset : 0f;
-        float surfaceBias = SURFACE_EPSILON + extraOffset;
-        ClientLevel world = Minecraft.getInstance().level;
-        for (WakeChunk wakeChunk : chunks) {
-            for (WakeNode wakeNode : wakeChunk.getNodes()) {
-                UVPair uv = wakeNode.drawContext.getUV();
-                float uvOffset = wakeNode.drawContext.getUVOffset();
-                int light = LevelRenderer.getLightCoords(world, wakeNode.blockPos());
-
-                float x0 = (float) wakeNode.x;
-                float y = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
-                float z0 = (float) wakeNode.z;
-
-                emitQuad(vc, matrix,
-                        x0, z0,
-                        x0 + 1, z0 + 1,
-                        y,
-                        uv.u(), uv.v(),
-                        uv.u() + uvOffset,  uv.v() + uvOffset,
-                        light
-                );
-            }
-        }
-    }
 
     /** Emits a single horizontal quad spanning [x0,z0]..[x1,z1].
      *  entityTranslucent uses NO_CULL so this single quad is visible from both sides. */

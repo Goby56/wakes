@@ -1,5 +1,6 @@
 package com.goby56.wakes.render;
 
+import com.goby56.wakes.WakesClient;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.duck.ProducesWake;
@@ -16,11 +17,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.model.geom.builders.UVPair;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -31,7 +29,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashPlaneRenderer implements LevelRenderEvents.AfterTranslucentTerrain, LevelRenderEvents.BeforeTranslucentTerrain {
+public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
@@ -40,25 +38,8 @@ public class SplashPlaneRenderer implements LevelRenderEvents.AfterTranslucentTe
 
     private static final double SQRT_8 = Math.sqrt(8);
 
-    private static boolean cameraSubmerged(LevelRenderContext context) {
-        return context.gameRenderer().getMainCamera().getFluidInCamera()
-                == net.minecraft.world.level.material.FogType.WATER;
-    }
-
-    // Splash planes are 3-D sheets rising above the water. Normally render them after the
-    // translucent water (unchanged behavior above water). But when the camera is underwater,
-    // the water surface would occlude them, so render BEFORE translucent water instead: opaque
-    // terrain (already drawn) still occludes them correctly, while the water draws afterwards
-    // and, being translucent, lets the splash plane show through from below.
     @Override
-    public void afterTranslucentTerrain(LevelRenderContext context) {
-        if (cameraSubmerged(context)) return;
-        renderAll(context);
-    }
-
-    @Override
-    public void beforeTranslucentTerrain(LevelRenderContext context) {
-        if (!cameraSubmerged(context)) return;
+    public void collectSubmits(LevelRenderContext context) {
         renderAll(context);
     }
 
@@ -72,14 +53,16 @@ public class SplashPlaneRenderer implements LevelRenderEvents.AfterTranslucentTe
 
         wakeHandler.getTextureAtlas().dynamicTexture.uploadIfDirty();
 
-        MultiBufferSource.BufferSource bufferSource = context.bufferSource();
-        RenderType type = RenderTypes.entityTranslucent(WakeTextureAtlas.ATLAS_ID, false);
-        VertexConsumer vc = bufferSource.getBuffer(type);
+        var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
+            for (SplashPlaneParticle particle : planes) {
+                SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), vc);
+            }
+        };
 
-        for (SplashPlaneParticle particle : planes) {
-            SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), vc);
-        }
-        bufferSource.endBatch(type);
+        // Pass 1: all alpha values → color buffer, no depth write (faint splash stays visible with water showing underneath)
+        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
+        // Pass 2: ALPHA_CUTOUT discards faint pixels; high-alpha pixels write depth (prevents water from covering bright foam)
+        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_RENDER_TYPE, renderer);
         WakesDebugInfo.splashPlanes = planes.size();
     }
 
@@ -95,10 +78,10 @@ public class SplashPlaneRenderer implements LevelRenderEvents.AfterTranslucentTe
         }
         if (splashPlane.drawContext == null) return;
 
-        splashPlane.updateYaw(context.gameRenderer().getMainCamera().getCameraEntityPartialTicks(net.minecraft.client.Minecraft.getInstance().getDeltaTracker()));
+        splashPlane.updateYaw(context.gameRenderer().mainCamera().getCameraEntityPartialTicks(net.minecraft.client.Minecraft.getInstance().getDeltaTracker()));
 
         matrices.pushPose();
-        splashPlane.translateMatrix(context.gameRenderer().getMainCamera(), matrices);
+        splashPlane.translateMatrix(context.gameRenderer().mainCamera(), matrices);
         matrices.mulPose(Axis.YP.rotationDegrees(splashPlane.lerpedYaw + 180f));
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
@@ -108,7 +91,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.AfterTranslucentTe
         matrices.popPose();
 
         ClientLevel world = Minecraft.getInstance().level;
-        int light = LevelRenderer.getLightCoords(world, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()));
+        int light = LightCoordsUtil.getLightCoords(world, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()));
         renderSurface(matrix, splashPlane.drawContext, vc, light);
     }
 

@@ -75,7 +75,7 @@ public class ColorPickerScreen extends Screen {
 
     @Override
     public void onClose() {
-        minecraft.setScreen(this.parent);
+        minecraft.setScreenAndShow(this.parent);
     }
 
     @Override
