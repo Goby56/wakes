@@ -3,10 +3,15 @@ package com.goby56.wakes.mixin;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
+import com.goby56.wakes.render.OcclusionDimensions;
+import com.goby56.wakes.render.OcclusionDimensionsManager;
 import com.goby56.wakes.utils.WakesUtils;
 import com.goby56.wakes.duck.ProducesWake;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
@@ -43,6 +48,12 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 	@Unique private Float wakeHeight = null;
 	@Unique private SplashPlaneParticle splashPlane;
 	@Unique private boolean hasRecentlyTeleported = false;
+	@Unique private OcclusionDimensions occlusionDimensions = null;
+
+	@Override
+	public OcclusionDimensions wakes$getOcclusionDimensions() {
+		return this.occlusionDimensions;
+	}
 
 	@Override
 	public boolean wakes$onFluidSurface() {
@@ -120,6 +131,14 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 		if (WakesConfig.disableMod) {
 			return;
+		}
+
+		if (this.occlusionDimensions == null) {
+			var entityTypeRegistry = this.level.registryAccess().lookupOrThrow(Registries.ENTITY_TYPE);
+			if (entityTypeRegistry.wrapAsHolder(thisEntity.getType()).is(WakesConfig.OCCLUDING_TYPES)) {
+				Identifier entityId = EntityType.getKey(thisEntity.getType());
+				this.occlusionDimensions = OcclusionDimensionsManager.get(entityId);
+			}
 		}
 
 		if (this.onFluidSurface && !this.hasRecentlyTeleported) {

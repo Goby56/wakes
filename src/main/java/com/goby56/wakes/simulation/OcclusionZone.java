@@ -1,0 +1,84 @@
+package com.goby56.wakes.simulation;
+
+import com.goby56.wakes.render.OcclusionDimensions;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
+
+/**
+ * A per-tick snapshot of an occluding entity's world-space position/yaw plus its resolved
+ * OcclusionDimensions, computed once so the (fairly cheap, but not free) trig doesn't get redone
+ * for every node/texel it's tested against. cos/sin describe the zone's local axes: (cos,sin) is
+ * its "width" axis, (-sin,cos) its "length" axis, matching WakeDebugRenderer's corner rotation
+ * convention (local -> world is worldX = x + lx*cos - lz*sin, worldZ = z + lx*sin + lz*cos).
+ */
+public record OcclusionZone(double x, double z, double cos, double sin, double halfWidth, double halfLength) {
+
+    public static OcclusionZone from(Entity entity, OcclusionDimensions dimensions) {
+        Vec3 pos = entity.position();
+        double rad = Math.toRadians(entity.getYRot());
+        return new OcclusionZone(pos.x, pos.z, Math.cos(rad), Math.sin(rad),
+                paddedHalfWidth(dimensions), paddedHalfLength(dimensions));
+    }
+
+    // contains() only samples a texel's center point, not its area — a texel whose center falls
+    // just outside the raw configured half-extent but whose area mostly overlaps the zone would
+    // otherwise read as "not excluded." Padding by half a texel's width moves the effective
+    // boundary out to the texel's area edge instead. WakeDebugRenderer's gizmo calls these same
+    // two methods (rather than reading OcclusionDimensions directly) specifically so the drawn
+    // box and the real test boundary can never diverge — anything inside the gizmo is guaranteed
+    // to actually get excluded.
+    public static double paddedHalfWidth(OcclusionDimensions dimensions) {
+        return dimensions.width() / 2.0 + 0.5 / WakeHandler.resolution.res;
+    }
+
+    public static double paddedHalfLength(OcclusionDimensions dimensions) {
+        return dimensions.length() / 2.0 + 0.5 / WakeHandler.resolution.res;
+    }
+
+    /** Narrow phase: is this exact world point inside the zone's oriented rectangle?
+     *  Inverse of the local->world rotation (rotate the offset by -yaw). */
+    public boolean contains(double worldX, double worldZ) {
+        double dx = worldX - x, dz = worldZ - z;
+        double localX = dx * cos + dz * sin;
+        double localZ = -dx * sin + dz * cos;
+        return Math.abs(localX) <= halfWidth && Math.abs(localZ) <= halfLength;
+    }
+
+    /** Broad phase: SAT test between this oriented rectangle and the axis-aligned 1x1 footprint
+     *  of the wake node at (nodeX, nodeZ)..(nodeX+1, nodeZ+1). Only 4 candidate separating axes
+     *  exist for two rectangles: the node's (trivial, world X/Z) and this zone's own two
+     *  (cos,sin) and (-sin,cos). */
+    public boolean overlapsNode(int nodeX, int nodeZ) {
+        double nodeMinX = nodeX, nodeMaxX = nodeX + 1;
+        double nodeMinZ = nodeZ, nodeMaxZ = nodeZ + 1;
+
+        // Axis 1/2: world X and world Z. The zone's own AABB on these axes is the standard
+        // "AABB of a rotated rectangle" bound (sum of half-extents' projections).
+        double zoneExtentX = Math.abs(halfWidth * cos) + Math.abs(halfLength * sin);
+        double zoneExtentZ = Math.abs(halfWidth * sin) + Math.abs(halfLength * cos);
+        if (nodeMaxX < x - zoneExtentX || nodeMinX > x + zoneExtentX) return false;
+        if (nodeMaxZ < z - zoneExtentZ || nodeMinZ > z + zoneExtentZ) return false;
+
+        // Axis 3/4: the zone's own local axes. Project the node's 4 corners onto each axis;
+        // the zone's own projection is trivially [-halfWidth, halfWidth] / [-halfLength, halfLength]
+        // around its center's projection.
+        double centerOnWidthAxis = x * cos + z * sin;
+        double centerOnLengthAxis = -x * sin + z * cos;
+        double nodeMinWidth = Double.POSITIVE_INFINITY, nodeMaxWidth = Double.NEGATIVE_INFINITY;
+        double nodeMinLength = Double.POSITIVE_INFINITY, nodeMaxLength = Double.NEGATIVE_INFINITY;
+        for (double cx : new double[]{nodeMinX, nodeMaxX}) {
+            for (double cz : new double[]{nodeMinZ, nodeMaxZ}) {
+                double onWidth = cx * cos + cz * sin;
+                double onLength = -cx * sin + cz * cos;
+                nodeMinWidth = Math.min(nodeMinWidth, onWidth);
+                nodeMaxWidth = Math.max(nodeMaxWidth, onWidth);
+                nodeMinLength = Math.min(nodeMinLength, onLength);
+                nodeMaxLength = Math.max(nodeMaxLength, onLength);
+            }
+        }
+        if (nodeMaxWidth < centerOnWidthAxis - halfWidth || nodeMinWidth > centerOnWidthAxis + halfWidth) return false;
+        if (nodeMaxLength < centerOnLengthAxis - halfLength || nodeMinLength > centerOnLengthAxis + halfLength) return false;
+
+        return true;
+    }
+}

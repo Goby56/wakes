@@ -2,10 +2,14 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.render.FrustumManager;
+import com.goby56.wakes.render.OcclusionDimensions;
 import com.goby56.wakes.render.WakeTextureAtlas;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
@@ -20,6 +24,7 @@ public class WakeHandler {
 
     public static Resolution resolution = WakesConfig.wakeResolution;
     private WakeTextureAtlas textureAtlas;
+    private List<OcclusionZone> lastOcclusionZones = List.of();
 
     private WakeHandler(Level world) {
         this.world = world;
@@ -57,18 +62,15 @@ public class WakeHandler {
     }
 
     private void wakeLogic() {
-        ArrayList<WakeChunkPos> toBeRemovedChunks = new ArrayList<>();
-        for (WakeChunk chunk : wakeChunks.values()) {
-            boolean wakesPresent = chunk.tick();
-            if (!wakesPresent) {
-                chunk.destroy();
-                toBeRemovedChunks.add(chunk.chunkPos);
-            }
-        }
-        for (WakeChunkPos pos : toBeRemovedChunks) {
-            wakeChunks.remove(pos);
-        }
+        List<OcclusionZone> occlusionZones = computeOcclusionZones();
+        this.lastOcclusionZones = occlusionZones;
 
+        // Insert newly-spawned nodes (and create their chunks) before the tick/draw pass below,
+        // so a node created this tick — e.g. right at a boat's current position — gets its first
+        // draw() call this same tick, tested against this same tick's occlusion zones. Draining
+        // this after the tick/draw loop (as before) meant a brand-new node's first draw() call
+        // happened next tick, by which point a moving occluder had already moved past it, so the
+        // one tick where it truly overlapped never coincided with an actual draw call.
         while (toBeInserted.peek() != null) {
             WakeNode node = toBeInserted.poll();
             WakeChunkPos pos = WakeChunkPos.fromWakeNode(node);
@@ -78,6 +80,18 @@ public class WakeHandler {
                 wakeChunks.put(pos, chunk);
             }
             chunk.insert(node);
+        }
+
+        ArrayList<WakeChunkPos> toBeRemovedChunks = new ArrayList<>();
+        for (WakeChunk chunk : wakeChunks.values()) {
+            boolean wakesPresent = chunk.tick(occlusionZones);
+            if (!wakesPresent) {
+                chunk.destroy();
+                toBeRemovedChunks.add(chunk.chunkPos);
+            }
+        }
+        for (WakeChunkPos pos : toBeRemovedChunks) {
+            wakeChunks.remove(pos);
         }
 
         for (int i = this.splashPlanes.size() - 1; i >= 0; i--) {
@@ -93,14 +107,36 @@ public class WakeHandler {
     }
 
     public void recolorWakes() {
+        List<OcclusionZone> occlusionZones = computeOcclusionZones();
+        this.lastOcclusionZones = occlusionZones;
         for (WakeChunk chunk : wakeChunks.values()) {
-            chunk.drawWakes();
+            chunk.drawWakes(occlusionZones);
         }
         for (var splashPlane : this.splashPlanes) {
             if (splashPlane != null) {
                 splashPlane.populatePixels();
             }
         }
+    }
+
+    /** The exact zone list used for the most recent tick's actual texel painting — for debug
+     *  visualization only, so what's drawn matches 1:1 with what really got tested, rather than
+     *  a fresh (possibly render-time-skewed) recomputation. */
+    public List<OcclusionZone> getLastOcclusionZones() {
+        return lastOcclusionZones;
+    }
+
+    private List<OcclusionZone> computeOcclusionZones() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) return List.of();
+        List<OcclusionZone> zones = new ArrayList<>();
+        for (Entity entity : level.entitiesForRendering()) {
+            if (entity instanceof ProducesWake producer) {
+                OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
+                if (dims != null) zones.add(OcclusionZone.from(entity, dims));
+            }
+        }
+        return zones;
     }
 
     public void registerSplashPlane(SplashPlaneParticle splashPlane) {

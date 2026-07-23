@@ -57,14 +57,40 @@ public class WakeNode {
         return new WakeNode(x, y, z, WakesConfig.floodFillDistance, wakeHandler);
     }
 
-    public void draw(ClientLevel world) {
+    public void draw(ClientLevel world, List<OcclusionZone> occlusionZones) {
         BlockPos blockPos = this.blockPos();
         int fluidColor = BiomeColors.getAverageWaterColor(world, blockPos);
         float opacity = (float) ((-Math.pow(this.t, 2) + 1) * WakesConfig.wakeOpacity);
+        int res = simulationNode.res;
 
-        for (int x = 0; x < simulationNode.res; x++) {
-            for (int y = 0; y < simulationNode.res; y++) {
+        // Broad phase: exact SAT test, so only zones that actually overlap this node's 1x1
+        // footprint pay for the per-texel narrow-phase check below.
+        List<OcclusionZone> nearbyZones = null;
+        if (!occlusionZones.isEmpty()) {
+            for (OcclusionZone zone : occlusionZones) {
+                if (zone.overlapsNode(this.x, this.z)) {
+                    if (nearbyZones == null) nearbyZones = new ArrayList<>();
+                    nearbyZones.add(zone);
+                }
+            }
+        }
+
+        for (int x = 0; x < res; x++) {
+            for (int y = 0; y < res; y++) {
                 int color = simulationNode.getPixelColor(x, y, fluidColor, opacity);
+                if (nearbyZones != null) {
+                    double worldX = this.x + (x + 0.5) / res;
+                    double worldZ = this.z + (y + 0.5) / res;
+                    for (OcclusionZone zone : nearbyZones) {
+                        if (zone.contains(worldX, worldZ)) {
+                            // TEMP DEBUG: opaque magenta instead of invisible, so we can see directly
+                            // whether the exclusion test is firing for the texels you're pointing at,
+                            // rather than the mask and the underlying bug both looking like "nothing".
+                            color = 0xFFFF00FF;
+                            break;
+                        }
+                    }
+                }
                 drawContext.draw(x, y, color);
             }
         }

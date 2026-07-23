@@ -1,10 +1,12 @@
 package com.goby56.wakes.duck;
 
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
+import com.goby56.wakes.render.OcclusionDimensions;
 import net.minecraft.world.phys.Vec3;
 
 public interface ProducesWake {
     boolean wakes$onFluidSurface();
+    OcclusionDimensions wakes$getOcclusionDimensions();
     Float wakes$wakeHeight();
     void wakes$setWakeHeight(float h);
     Vec3 wakes$getPrevPos();
@@ -16,5 +18,4 @@ public interface ProducesWake {
     void wakes$setRecentlyTeleported(boolean b);
 
     SplashPlaneParticle wakes$getSplashPlane();
-
 }

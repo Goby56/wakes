@@ -37,7 +37,7 @@ public class WakeChunk {
         this.wakeHandler = wakeHandler;
     }
 
-    public boolean tick() {
+    public boolean tick(List<OcclusionZone> occlusionZones) {
         long tNode = System.nanoTime();
         for (int z = 0; z < WIDTH; z++) {
             for (int x = 0; x < WIDTH; x++) {
@@ -50,7 +50,7 @@ public class WakeChunk {
         }
         WakesDebugInfo.nodeLogicTime += (System.nanoTime() - tNode);
         long tWrite = System.nanoTime();
-        drawWakes();
+        drawWakes(occlusionZones);
         WakesDebugInfo.atlasWriteTime += (System.nanoTime() - tWrite);
         WakesDebugInfo.totalNodes += occupied;
         return occupied != 0;
@@ -155,10 +155,10 @@ public class WakeChunk {
                 this.get(x - 1, z)).filter(Objects::nonNull).toList();
     }
 
-    public void drawWakes() {
+    public void drawWakes(List<OcclusionZone> occlusionZones) {
         ClientLevel world = Minecraft.getInstance().level;
         for (WakeNode wakeNode : getNodes()) {
-            wakeNode.draw(world);
+            wakeNode.draw(world, occlusionZones);
         }
     }
 }

@@ -61,6 +61,7 @@ wakes:
 
         debugColors: Render wakes with debug colors
         drawDebugBoxes: Draw debug boxes
+        drawOcclusionZones: Draw occlusion zones
         showDebugInfo: Show debug info in F3
         showDebugInfo.tooltip: You also need to enable it in F3+F6
         showAtlas: Show texture atlas overlay

@@ -5,6 +5,10 @@ import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.render.WakeColor;
 import com.google.common.collect.Lists;
 import eu.midnightdust.lib.config.MidnightConfig;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
 
 import java.util.List;
 
@@ -66,8 +70,15 @@ public class WakesConfig extends MidnightConfig {
     public static List<Float> defaultWakeColorIntervals = Lists.newArrayList(wakeColorIntervals);
     public static List<String> defaultWakeColors = Lists.newArrayList(wakeColors);
 
+    // Data-driven (data/wakes/tags/entity_type/occludes_wake.json) rather than a config entry:
+    // boats + chest boats, deliberately excluding rafts/chest rafts (they sit flush on the
+    // surface, no dip underneath, so they don't need wake occlusion).
+    public static final TagKey<EntityType<?>> OCCLUDING_TYPES =
+            TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath("wakes", "occludes_wake"));
+
     @Entry(category = DEBUG) public static boolean debugColors = false;
     @Entry(category = DEBUG) public static boolean drawDebugBoxes = false;
+    @Entry(category = DEBUG) public static boolean drawOcclusionZones = false;
     @Entry(category = DEBUG) public static boolean showDebugInfo = false;
     @Entry(category = DEBUG) public static boolean showAtlas = false;
     @Entry(category = DEBUG, isSlider = true, min = 1, max = 6) public static int floodFillDistance = 2;

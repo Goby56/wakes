@@ -7,6 +7,7 @@ import com.goby56.wakes.event.WakeClientTicker;
 import com.goby56.wakes.event.WakeWorldTicker;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.FrustumManager;
+import com.goby56.wakes.render.OcclusionDimensionsManager;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.render.WakeTextureAtlas;
@@ -25,6 +26,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
@@ -34,6 +36,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,9 +159,15 @@ public class WakesClient implements ClientModInitializer {
 		LevelRenderEvents.COLLECT_SUBMITS.register(wakeRenderer);
 		SplashPlaneRenderer splashPlaneRenderer = new SplashPlaneRenderer();
 		LevelRenderEvents.COLLECT_SUBMITS.register(splashPlaneRenderer);
+		// Hooked to render (not tick) so it can interpolate to partial-tick like the boat model
+		// itself does, instead of snapping to a new position/yaw only once per game tick.
+		LevelRenderEvents.COLLECT_SUBMITS.register(WakeDebugRenderer::addOcclusionZoneGizmos);
 
 		FrustumManager frustumManager = new FrustumManager();
 		LevelExtractionEvents.END_EXTRACTION.register(frustumManager);
+
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(
+				OcclusionDimensionsManager.ID, new OcclusionDimensionsManager());
 
 		SplashPlaneRenderer.initSplashPlane();
         DebugScreenEntries.register(
