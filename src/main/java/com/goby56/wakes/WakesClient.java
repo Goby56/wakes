@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
+import net.irisshaders.iris.api.v0.IrisProgram;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -154,11 +155,22 @@ public class WakesClient implements ClientModInitializer {
 		ClientTickEvents.END_LEVEL_TICK.register(new WakeWorldTicker());
 		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(new WakeWorldTicker());
 
+		// Tell Iris what our custom wake pipelines actually are, instead of leaving it to guess
+		// via internal fuzzy-matching (ShaderKey.findBestMatch), since that's what several shader
+		// packs were choking on. See OCCLUSION_INVESTIGATION.md, "Iris pipeline classification".
+		if (FabricLoader.getInstance().isModLoaded("iris")) {
+			IrisApi.getInstance().assignPipeline(WAKE_COLOR_PIPELINE, IrisProgram.ENTITIES_TRANSLUCENT);
+			// No ENTITIES_CUTOUT in the public IrisProgram enum, so ENTITIES is the closest
+			// (solid/depth-writing) category for this alpha-cutout, depth-only pass.
+			IrisApi.getInstance().assignPipeline(WAKE_PIPELINE, IrisProgram.ENTITIES);
+		}
+
 		// Rendering events
 		wakeRenderer = new WakeRenderer();
 		LevelRenderEvents.COLLECT_SUBMITS.register(wakeRenderer);
 		SplashPlaneRenderer splashPlaneRenderer = new SplashPlaneRenderer();
 		LevelRenderEvents.COLLECT_SUBMITS.register(splashPlaneRenderer);
+
 		// Hooked to render (not tick) so it can interpolate to partial-tick like the boat model
 		// itself does, instead of snapping to a new position/yaw only once per game tick.
 		LevelRenderEvents.COLLECT_SUBMITS.register(WakeDebugRenderer::addOcclusionZoneGizmos);
