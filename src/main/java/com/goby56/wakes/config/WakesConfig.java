@@ -1,6 +1,5 @@
 package com.goby56.wakes.config;
 
-import com.goby56.wakes.config.enums.AtlasUploadMode;
 import com.goby56.wakes.config.enums.EffectSpawningRule;
 import com.goby56.wakes.config.enums.Resolution;
 import com.goby56.wakes.render.WakeColor;
@@ -83,7 +82,6 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = DEBUG) public static boolean drawOcclusionZones = false;
     @Entry(category = DEBUG) public static boolean showDebugInfo = false;
     @Entry(category = DEBUG) public static boolean showAtlas = false;
-    @Entry(category = DEBUG) public static AtlasUploadMode atlasUploadMode = AtlasUploadMode.PARTIAL_AND_ACTIVE_TICK;
     @Entry(category = DEBUG, isSlider = true, min = 1, max = 6) public static int floodFillDistance = 2;
     @Entry(category = DEBUG, isSlider = true, min = 1, max = 20) public static int floodFillTickDelay = 2;
 

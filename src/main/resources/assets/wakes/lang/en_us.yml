@@ -67,8 +67,6 @@ wakes:
         showDebugInfo: Show debug info in F3
         showDebugInfo.tooltip: You also need to enable it in F3+F6
         showAtlas: Show texture atlas overlay
-        atlasUploadMode: Atlas upload mode
-        atlasUploadMode.tooltip: How the wake texture atlas is pushed to the GPU. Partial only uploads changed nodes individually every frame. The tick modes additionally do one upload per simulation tick covering either the whole atlas or just its occupied region.
         floodFillDistance: Flood fill distance
         floodFillTickDelay: Ticks until flood fill
         renderType: Render type
@@ -83,10 +81,6 @@ wakes:
                 ONLY_SIMULATION: Only simulation
                 ONLY_PLANES: Only planes
                 DISABLED: Disabled
-            AtlasUploadMode:
-                PARTIAL_ONLY: Partial only
-                PARTIAL_AND_FULL_TICK: Partial + full tick upload
-                PARTIAL_AND_ACTIVE_TICK: Partial + active region tick upload
 
         splashPlaneDivider: Splash Plane
         spawningRuleDivider: Effect Spawning Rules

@@ -96,11 +96,7 @@ public class WakeHandler {
 
         if (textureAtlas != null) {
             long tUpload = System.nanoTime();
-            int rows = switch (WakesConfig.atlasUploadMode) {
-                case PARTIAL_AND_FULL_TICK -> textureAtlas.uploadFullAtlas();
-                case PARTIAL_AND_ACTIVE_TICK -> textureAtlas.uploadActiveRegion();
-                case PARTIAL_ONLY -> 0;
-            };
+            int rows = textureAtlas.uploadActiveRegion();
             WakesDebugInfo.atlasUploadTime = System.nanoTime() - tUpload;
             WakesDebugInfo.atlasUploadRows = rows;
         }

@@ -20,9 +20,8 @@ public class WakesDebugInfo implements DebugScreenEntry {
     public static double atlasWriteTime = 0;
     public static int totalNodes = 0;
 
-    // Set at most once per tick, by whichever tick-rate atlas upload ran (see
-    // WakeHandler.wakeLogic() / WakesConfig.atlasUploadMode). 0 rows means nothing was dirty
-    // (or PARTIAL_ONLY mode, which does no tick-rate upload at all) and the timer is skipped.
+    // Set at most once per tick, by the tick-rate atlas upload (see WakeHandler.wakeLogic()).
+    // 0 rows means nothing was dirty this tick.
     public static double atlasUploadTime = 0;
     public static int atlasUploadRows = 0;
 
@@ -95,8 +94,8 @@ public class WakesDebugInfo implements DebugScreenEntry {
                                 1e-6 * nodeLogicTime, 1e-6 * atlasWriteTime, avgRenderTime),
                         String.format("[Wakes] Dirty uploads: %.1f/f (last 1s)",
                                 avgDirtyUploadsPerFrame()),
-                        String.format("[Wakes] Atlas upload (%s): %.3fms/t, %d px row%s",
-                                WakesConfig.atlasUploadMode, 1e-6 * atlasUploadTime,
+                        String.format("[Wakes] Atlas upload: %.3fms/t, %d px row%s",
+                                1e-6 * atlasUploadTime,
                                 atlasUploadRows, atlasUploadRows == 1 ? "" : "s")));
     }
 

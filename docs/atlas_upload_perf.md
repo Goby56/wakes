@@ -3,8 +3,8 @@
 ## Current state
 
 The wake texture atlas (`WakeTextureAtlas`, a 2048x2048 RGBA8 image packing
-many small per-node sub-textures) is uploaded to the GPU via
-`WakesConfig.atlasUploadMode` (debug config, default `PARTIAL_AND_ACTIVE_TICK`):
+many small per-node sub-textures) is uploaded to the GPU via two combined
+paths (this combination was chosen empirically — see "why" below):
 
 - **Every frame**, `WakeTextureAtlas.uploadDirty()` uploads any sub-texture
   dirtied since the last call — in practice this only ever picks up the
@@ -53,50 +53,51 @@ before the upload mechanism itself was addressed:
   (plus hex parsing, plus `Math.pow`/`Math.exp`) per texel. Replaced with the
   `bucketColors` lookup table described above.
 
-## Why: `PARTIAL_AND_ACTIVE_TICK` specifically, not full-atlas or partial-only
+## Why: bounded active-region upload per tick, not full-atlas or partial-only
 
 Even after the above, a smaller sawtooth remained, traced to the upload
-mechanism itself. Three strategies were built behind
-`WakesConfig.atlasUploadMode` and measured directly via F3 debug info
-(`Atlas upload (<mode>): Xms/t, N px rows`, plus the existing `Dirty
-uploads/f` and `Render/f` counters):
+mechanism itself. Three strategies were prototyped behind a temporary debug
+config toggle and measured directly via F3 debug info (`Atlas upload:
+Xms/t, N px rows`, plus the existing `Dirty uploads/f` and `Render/f`
+counters), before settling on the current fixed combination:
 
-- **`PARTIAL_ONLY`** — no tick-rate upload at all; every dirty sub-texture,
+- **Partial-only** — no tick-rate upload at all; every dirty sub-texture,
   tick- or frame-sourced, goes through the per-frame `uploadDirty()` path.
-- **`PARTIAL_AND_FULL_TICK`** — adds one full-atlas upload per tick via
-  `uploadFullAtlas()` (the original pre-fix behavior, just bounded to
-  tick-rate instead of every dirty frame).
-- **`PARTIAL_AND_ACTIVE_TICK`** — adds the bounded active-region upload per
-  tick described above.
+- **Partial + full-atlas-per-tick** — adds one full-atlas upload per tick
+  (the original pre-fix behavior, just bounded to tick-rate instead of every
+  dirty frame).
+- **Partial + active-region-per-tick (current)** — adds the bounded
+  active-region upload per tick described above.
 
 Measured on the same scene (player wading, no boats, ~200 active nodes):
 
 | Mode | FPS (p50) | Atlas upload | Dirty uploads/f | Render/f | Total upload CPU/s (derived) |
 |---|---|---|---|---|---|
-| `PARTIAL_AND_ACTIVE_TICK` | 314 | 0.056ms/t, 64 px rows | 0.0 | 0.003ms | ≈1.9ms/s |
-| `PARTIAL_ONLY` | 335 | 0.000ms/t, 0 rows | 13.4 | 0.022ms | ≈6.45ms/s |
-| `PARTIAL_AND_FULL_TICK` | 351 | 1.623ms/t, 2048 px rows | 0.0 | 0.003ms | dominated by the 1.623ms/t spike, once every tick |
+| partial + active-region-per-tick | 314 | 0.056ms/t, 64 px rows | 0.0 | 0.003ms | ≈1.9ms/s |
+| partial-only | 335 | 0.000ms/t, 0 rows | 13.4 | 0.022ms | ≈6.45ms/s |
+| partial + full-atlas-per-tick | 351 | 1.623ms/t, 2048 px rows | 0.0 | 0.003ms | dominated by the 1.623ms/t spike, once every tick |
 
 `Logic`/`Write` (simulation + CPU-side redraw) were within noise across all
 three (0.68-0.74ms/t, 1.31-1.40ms/t), confirming the remaining differences
 are attributable to upload strategy, not simulation cost.
 
-`PARTIAL_AND_FULL_TICK` was visibly the worst on the frametime graph despite
+Partial + full-atlas-per-tick was visibly the worst on the frametime graph despite
 comparable/higher raw FPS — a large periodic 1.6ms spike every single tick
 (20/s) reads as a much more jarring, regular sawtooth than the same total
 work spread differently, which the FPS percentile summary alone doesn't
 capture.
 
-`PARTIAL_ONLY`'s `Atlas upload: 0.000ms/t` is misleading in isolation: the
+Partial-only's `Atlas upload: 0.000ms/t` is misleading in isolation: the
 cost didn't disappear, it moved entirely into `uploadDirty()`'s per-node
 path, doing ~13 separate small GPU calls *every frame* (≈13.4/f x 335fps ≈
 4500 individual `writeToTexture`+`copyRect` calls/sec) instead of once per
 tick — visible directly as `Render` time being ~7x higher than under
-`PARTIAL_AND_ACTIVE_TICK`. Each small call pays its own fixed CPU-side
+partial + active-region-per-tick. Each small call pays its own fixed CPU-side
 overhead (format/mip/bounds validation, driver submission), and paying that
 overhead ~13x per frame loses to paying it once per tick even though the
 tick call moves more bytes.
 
-**Conclusion:** `PARTIAL_AND_ACTIVE_TICK` has the lowest total measured
+**Conclusion:** partial + active-region-per-tick had the lowest total measured
 upload-related CPU time per second and the smoothest frametime graph of the
-three. Kept as the default.
+three, so it's the only strategy kept — the other two were removed rather
+than left as configurable alternatives.

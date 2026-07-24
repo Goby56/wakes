@@ -33,7 +33,7 @@ pipelines to their correct Iris program categories fixed this without
 requiring any change to the pipelines themselves — confirmed working across
 the packs below.
 
-## Compatible: [Iris](https://modrinth.com/mod/iris) shaders
+## Compatible: [Iris](https://modrinth.com/mod/iris) shaders (NOT UP TO DATE)
 - Complementary V4
 - Complementary Reimagined*
 - Rethinking Voxels

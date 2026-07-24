@@ -110,16 +110,6 @@ public class WakeTextureAtlas {
         return rows;
     }
 
-    /** Naive counterpart to uploadActiveRegion(): same once-per-tick trigger, but re-uploads the
-     *  whole atlas (not just the occupied prefix) whenever anything is dirty. Kept only so
-     *  WakesConfig.atlasUploadMode can A/B it against the bounded version. Returns rows uploaded
-     *  (0 if nothing was dirty), for debug info. */
-    public int uploadFullAtlas() {
-        if (!clearDirtyIfAny()) return 0;
-        dynamicTexture.uploadTopRows(nativeImage, resolution);
-        return resolution;
-    }
-
     public DrawContext claimSubTexture() {
         for (int i = 0; i < CAPACITY; i++) {
             if (!occupiedSubTextures[i]) {
