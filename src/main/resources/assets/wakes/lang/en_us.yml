@@ -20,6 +20,8 @@ wakes:
             debug: Debug
 
         spawnParticles: Wake particles
+        cacheNodeWaterColor: Cache water color
+        cacheNodeWaterColor.tooltip: Sample a wake's water color once instead of every tick. Since wakes are stationary, this has no visual downside unless you change a block's biome with commands while a wake sits on it. Disable to always resample live.
         firstPersonEffects: First person effects
         firstPersonEffects.tooltip: Should water effects of the player such as splash planes be shown in first person?
         wakeOpacity: Wake opacity
@@ -64,6 +66,8 @@ wakes:
         drawOcclusionZones: Draw occlusion zones
         showDebugInfo: Show debug info in F3
         showDebugInfo.tooltip: You also need to enable it in F3+F6
+        partialAtlasUpload: Partial atlas uploads
+        partialAtlasUpload.tooltip: Upload only the changed sub-textures each frame instead of the whole atlas. Disable to compare against a full-atlas upload every dirty frame.
         showAtlas: Show texture atlas overlay
         floodFillDistance: Flood fill distance
         floodFillTickDelay: Ticks until flood fill

@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 
 public class BetterDynamicTexture extends AbstractTexture {
     private NativeImage pixels;
-    public boolean dirty = true;
 
     public BetterDynamicTexture(Supplier<String> supplier, NativeImage nativeImage) {
         this.pixels = nativeImage;
@@ -26,11 +25,11 @@ public class BetterDynamicTexture extends AbstractTexture {
         this.textureView = gpuDevice.createTextureView(this.texture);
     }
 
-    public void uploadIfDirty() {
-        if (!dirty) return;
+    // uploads just the given sub-rectangle instead of the whole atlas, since only a few
+    // node-sized regions actually change per tick
+    public void uploadRegion(NativeImage region, int x, int y) {
         if (this.texture != null) {
-            RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, this.pixels);
-            dirty = false;
+            RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, region, 0, 0, x, y);
         } else {
             WakesClient.LOGGER.warn("Trying to upload disposed texture {}", this.getTexture().getLabel());
         }

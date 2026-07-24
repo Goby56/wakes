@@ -1,6 +1,7 @@
 package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
+import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.utils.WakesUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -38,6 +39,17 @@ public class WakeNode {
     public float t = 0;
     public int floodLevel;
 
+    // sampled once at creation by default (WakesConfig.cacheNodeWaterColor), not per draw() call,
+    // since draw() runs every tick (and every frame for chunks near a moving occluder) and biome
+    // color sampling isn't cheap. Disabling the config option resamples every tick instead, for
+    // live water color updates at the cost of that per-tick sampling.
+    private int biomeColor;
+
+    // every texel's final color is one of only a few possible wake-color buckets blended with
+    // the (fixed) biome tint at the (per-tick) opacity, so this is rebuilt once per tick instead
+    // of re-deriving a texel's color from scratch on every one of its ~1000 texels
+    private int[] bucketColors;
+
     public WakeTextureAtlas.DrawContext drawContext;
 
     private WakeNode(int x, int y, int z, int floodLevel, WakeHandler wakeHandler) {
@@ -48,6 +60,16 @@ public class WakeNode {
         this.floodLevel = floodLevel;
         this.wakeHandler = wakeHandler;
         this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
+        this.biomeColor = BiomeColors.getAverageWaterColor((ClientLevel) wakeHandler.world, this.blockPos());
+        this.refreshBucketColors();
+    }
+
+    /** Rebuilds the per-bucket color LUT from the current biome tint + age-based opacity. Called
+     *  once per tick (opacity fades with age) and also from WakeHandler.recolorWakes() so a live
+     *  config color/interval edit is reflected immediately instead of on next tick. */
+    public void refreshBucketColors() {
+        float opacity = (float) (-Math.pow(this.t, 2) + 1);
+        this.bucketColors = WakeColor.buildBucketColors(this.biomeColor, opacity);
     }
 
     public static WakeNode fromLong(long pos, int y, WakeHandler wakeHandler) {
@@ -57,10 +79,7 @@ public class WakeNode {
         return new WakeNode(x, y, z, WakesConfig.floodFillDistance, wakeHandler);
     }
 
-    public void draw(ClientLevel world, List<OcclusionZone> occlusionZones) {
-        BlockPos blockPos = this.blockPos();
-        int fluidColor = BiomeColors.getAverageWaterColor(world, blockPos);
-        float opacity = (float) (-Math.pow(this.t, 2) + 1);
+    public void draw(List<OcclusionZone> occlusionZones) {
         int res = simulationNode.res;
 
         // Broad phase: exact SAT test, so only zones that actually overlap this node's 1x1
@@ -77,7 +96,7 @@ public class WakeNode {
 
         for (int x = 0; x < res; x++) {
             for (int y = 0; y < res; y++) {
-                int color = simulationNode.getPixelColor(x, y, fluidColor, opacity);
+                int color = simulationNode.getPixelColor(x, y, bucketColors);
                 if (nearbyZones != null) {
                     double worldX = this.x + (x + 0.5) / res;
                     double worldZ = this.z + (y + 0.5) / res;
@@ -109,6 +128,10 @@ public class WakeNode {
             return false;
         }
         this.t = this.age / (float) WakeNode.maxAge;
+        if (!WakesConfig.cacheNodeWaterColor) {
+            this.biomeColor = BiomeColors.getAverageWaterColor((ClientLevel) wakeHandler.world, this.blockPos());
+        }
+        this.refreshBucketColors();
 
         this.simulationNode.tick(
                 null,

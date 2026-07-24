@@ -4,6 +4,7 @@ import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.particle.WithOwnerParticleType;
+import com.goby56.wakes.render.WakeColor;
 import com.goby56.wakes.render.WakeTextureAtlas;
 import com.goby56.wakes.simulation.SimulationNode;
 import com.goby56.wakes.simulation.WakeHandler;
@@ -117,9 +118,10 @@ public class SplashPlaneParticle extends Particle {
         int res = WakeHandler.resolution.res;
         int fluidColor = BiomeColors.getAverageWaterColor(level, this.owner.blockPosition());
         float opacity = 0.9f;
+        int[] bucketColors = WakeColor.buildBucketColors(fluidColor, opacity);
         for (int r = 0; r < res; r++) {
             for (int c = 0; c < res; c++) {
-                int color = simulationNode.getPixelColor(c, r, fluidColor, opacity);
+                int color = simulationNode.getPixelColor(c, r, bucketColors);
                 this.drawContext.draw(c, r, color);
             }
         }

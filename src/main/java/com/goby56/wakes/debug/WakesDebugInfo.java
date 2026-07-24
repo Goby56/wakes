@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +28,27 @@ public class WakesDebugInfo implements DebugScreenEntry {
     private static double avgRenderTime = 0;
     private static ArrayList<Long> renderingTime = new ArrayList<>();
 
+    // Rolling 1s window of {timestampNanos, dirtyUploadCount} samples, one per render frame
+    private static final long DIRTY_UPLOAD_WINDOW_NANOS = 1_000_000_000L;
+    private static final ArrayDeque<long[]> dirtyUploadSamples = new ArrayDeque<>();
+
     public static void addRenderTime(long nanos) {
         renderingTime.add(nanos);
+    }
+
+    public static void addDirtyUploads(int count) {
+        long now = System.nanoTime();
+        dirtyUploadSamples.addLast(new long[]{now, count});
+        while (!dirtyUploadSamples.isEmpty() && now - dirtyUploadSamples.peekFirst()[0] > DIRTY_UPLOAD_WINDOW_NANOS) {
+            dirtyUploadSamples.pollFirst();
+        }
+    }
+
+    private static double avgDirtyUploadsPerFrame() {
+        if (dirtyUploadSamples.isEmpty()) return 0;
+        long sum = 0;
+        for (long[] sample : dirtyUploadSamples) sum += sample[1];
+        return (double) sum / dirtyUploadSamples.size();
     }
 
     public static void reset() {
@@ -64,7 +84,9 @@ public class WakesDebugInfo implements DebugScreenEntry {
                         String.format("[Wakes] Atlas: %d / %d slots used",
                                 atlasUsed, atlasCapacity),
                         String.format("[Wakes] Logic: %.2fms/t | Write: %.2fms/t | Render: %.3fms/f",
-                                1e-6 * nodeLogicTime, 1e-6 * atlasWriteTime, avgRenderTime)));
+                                1e-6 * nodeLogicTime, 1e-6 * atlasWriteTime, avgRenderTime),
+                        String.format("[Wakes] Dirty uploads: %.1f/f (last 1s)",
+                                avgDirtyUploadsPerFrame())));
     }
 
     @Override

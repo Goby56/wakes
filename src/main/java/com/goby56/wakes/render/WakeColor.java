@@ -12,16 +12,15 @@ public class WakeColor {
     public final int g;
     public final int b;
     public final int a;
-    public final float h;
-    public final float s;
-    public final float v;
-
 
     public WakeColor(int argb) {
         // Minecraft seems to work with argb but OpenGL uses abgr
         this(argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF, argb >> 24 & 0xFF);
     }
 
+    // no h/s/v fields: nothing in the codebase reads them (ColorPicker computes its own HSB
+    // separately), and this constructor runs per-pixel in the wake render hot path, so the
+    // Color.RGBtoHSB call this used to do here was pure waste
     public WakeColor(int red, int green, int blue, int alpha) {
         this.argb = alpha << 24 | red << 16 | green << 8 | blue;
         this.abgr = alpha << 24 | blue << 16 | green << 8 | red;
@@ -29,10 +28,6 @@ public class WakeColor {
         this.r = red;
         this.g = green;
         this.b = blue;
-        var hsv = Color.RGBtoHSB(red, green, blue, null);
-        this.h = hsv[0];
-        this.s = hsv[1];
-        this.v = hsv[2];
     }
 
     public WakeColor(float hue, float saturation, float value, float opacity) {
@@ -47,19 +42,30 @@ public class WakeColor {
         return "#" + Integer.toHexString(a << 24 | r << 16 | g << 8 | b);
     }
 
-    public static WakeColor sampleColor(float waveEqAvg, int fluidCol, float opacity) {
-        WakeColor tint = new WakeColor(fluidCol);
+    /** There are only wakeColorIntervals.size()+1 distinct wake colors; which one a texel gets
+     *  depends only on its wave height, not on the node's tint/opacity. So for a fixed tint and
+     *  opacity (i.e. one node on one tick), the whole result set is just buildBucketColors()'s
+     *  small array, indexed by this. */
+    public static int resolveBucket(float waveEqAvg) {
         double clampedRange = 1 / (1 + Math.exp(-0.1 * waveEqAvg));
         var ranges = WakesConfig.wakeColorIntervals;
-        int returnIndex = ranges.size();
         for (int i = 0; i < ranges.size(); i++) {
-            if (clampedRange < ranges.get(i)) {
-                returnIndex = i;
-                break;
-            }
+            if (clampedRange < ranges.get(i)) return i;
         }
-        WakeColor color = WakesConfig.getWakeColor(returnIndex);
-        return color.blend(tint, opacity);
+        return ranges.size();
+    }
+
+    /** Precomputes the final blended ARGB for every bucket once, so per-texel color lookup in
+     *  the render hot path is just an array index instead of re-running blend()'s Math.pow and
+     *  allocating new WakeColors for every one of a node's texels. */
+    public static int[] buildBucketColors(int fluidCol, float opacity) {
+        WakeColor tint = new WakeColor(fluidCol);
+        int bucketCount = WakesConfig.wakeColorIntervals.size() + 1;
+        int[] colors = new int[bucketCount];
+        for (int i = 0; i < bucketCount; i++) {
+            colors[i] = WakesConfig.getWakeColor(i).blend(tint, opacity).argb;
+        }
+        return colors;
     }
 
     public WakeColor modifyOpacity(float opacityMultiplier) {

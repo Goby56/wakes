@@ -2,8 +2,6 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.render.FrustumManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -156,9 +154,16 @@ public class WakeChunk {
     }
 
     public void drawWakes(List<OcclusionZone> occlusionZones) {
-        ClientLevel world = Minecraft.getInstance().level;
         for (WakeNode wakeNode : getNodes()) {
-            wakeNode.draw(world, occlusionZones);
+            wakeNode.draw(occlusionZones);
+        }
+    }
+
+    /** Forces every node's cached color LUT to rebuild, for when wake colors/intervals change
+     *  live via the config screen (see WakeHandler.recolorWakes()). */
+    public void refreshNodeColors() {
+        for (WakeNode wakeNode : getNodes()) {
+            wakeNode.refreshBucketColors();
         }
     }
 }

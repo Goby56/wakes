@@ -109,6 +109,7 @@ public class WakeHandler {
         List<OcclusionZone> occlusionZones = computeOcclusionZones();
         this.lastOcclusionZones = occlusionZones;
         for (WakeChunk chunk : wakeChunks.values()) {
+            chunk.refreshNodeColors();
             chunk.drawWakes(occlusionZones);
         }
         for (var splashPlane : this.splashPlanes) {

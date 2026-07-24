@@ -1,6 +1,7 @@
 package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
+import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,8 @@ public class WakeTextureAtlas {
     public final BetterDynamicTexture dynamicTexture;
 
     private final boolean[] occupiedSubTextures = new boolean[CAPACITY];
+    private final boolean[] dirtySubTextures = new boolean[CAPACITY];
+    private NativeImage scratch;
 
     public static final int CAPACITY = ATLAS_WIDTH * ATLAS_WIDTH - 1; // Include error texture
 
@@ -46,6 +49,43 @@ public class WakeTextureAtlas {
         uvOffset = (float) nodeResolution / resolution;
 
         Arrays.fill(occupiedSubTextures, false);
+        Arrays.fill(dirtySubTextures, false);
+        if (scratch != null) scratch.close();
+        scratch = new NativeImage(nodeResolution, nodeResolution, false);
+    }
+
+    void markDirty(int subTextureIndex) {
+        dirtySubTextures[subTextureIndex] = true;
+    }
+
+    /** Uploads only the sub-textures actually written to since the last upload, instead of the
+     *  whole atlas, since a single moving boat otherwise forces a full multi-MB GPU upload every
+     *  tick (see #197). Returns how many sub-textures were dirty, for debug info.
+     *  WakesConfig.partialAtlasUpload is a debug toggle to A/B this against always re-uploading
+     *  the whole atlas whenever anything is dirty. */
+    public int uploadDirty() {
+        if (!WakesConfig.partialAtlasUpload) {
+            int count = 0;
+            for (int i = 0; i < CAPACITY; i++) {
+                if (!dirtySubTextures[i]) continue;
+                dirtySubTextures[i] = false;
+                count++;
+            }
+            if (count > 0) dynamicTexture.uploadRegion(nativeImage, 0, 0);
+            return count;
+        }
+
+        int count = 0;
+        for (int i = 0; i < CAPACITY; i++) {
+            if (!dirtySubTextures[i]) continue;
+            int row = i / ATLAS_WIDTH, column = i % ATLAS_WIDTH;
+            int x = column * nodeResolution, y = row * nodeResolution;
+            nativeImage.copyRect(scratch, x, y, 0, 0, nodeResolution, nodeResolution, false, false);
+            dynamicTexture.uploadRegion(scratch, x, y);
+            dirtySubTextures[i] = false;
+            count++;
+        }
+        return count;
     }
 
     public DrawContext claimSubTexture() {
@@ -107,7 +147,7 @@ public class WakeTextureAtlas {
             int globX = x + column * atlas.nodeResolution;
             int globY = y + row * atlas.nodeResolution;
             this.atlas.nativeImage.setPixel(globX, globY, color);
-            this.atlas.dynamicTexture.dirty = true;
+            this.atlas.markDirty(subTextureIndex);
         }
     }
 }

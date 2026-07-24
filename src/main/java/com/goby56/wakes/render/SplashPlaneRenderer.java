@@ -51,7 +51,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
         List<SplashPlaneParticle> planes = wakeHandler.getVisibleSplashPlanes();
         if (planes.isEmpty()) return;
 
-        wakeHandler.getTextureAtlas().dynamicTexture.uploadIfDirty();
+        wakeHandler.getTextureAtlas().uploadDirty();
 
         var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
             for (SplashPlaneParticle particle : planes) {
