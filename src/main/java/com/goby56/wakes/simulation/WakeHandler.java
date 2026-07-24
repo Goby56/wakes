@@ -133,14 +133,15 @@ public class WakeHandler {
         for (Entity entity : level.entitiesForRendering()) {
             if (entity instanceof ProducesWake producer) {
                 OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
-                if (dims != null) {
-                    OcclusionZone zone = OcclusionZone.from(entity, dims);
+                Float wakeHeight = producer.wakes$wakeHeight();
+                if (dims != null && wakeHeight != null) {
+                    OcclusionZone zone = OcclusionZone.from(entity, dims, wakeHeight);
                     zones.add(zone);
 
                     boolean moved = entity.getX() != entity.xo || entity.getY() != entity.yo
                             || entity.getZ() != entity.zo || entity.getYRot() != entity.yRotO;
                     if (moved) {
-                        markChunksNeedingFrameRefresh(entity, dims);
+                        markChunksNeedingFrameRefresh(entity, dims, wakeHeight);
                     }
                 }
             }
@@ -148,13 +149,14 @@ public class WakeHandler {
         return zones;
     }
 
-    private void markChunksNeedingFrameRefresh(Entity entity, OcclusionDimensions dims) {
-        // Deliberately generous, rotation-independent reach; WakeNode.draw() still does the
-        // exact SAT test, this just picks which chunks are worth re-checking.
+    private void markChunksNeedingFrameRefresh(Entity entity, OcclusionDimensions dims, float wakeHeight) {
+        // Generous on X/Z since WakeNode.draw() does the exact test anyway. Exact on Y: use
+        // wakeHeight, not entity.getY(), since a sunk entity's wake still surfaces above it.
         double reach = OcclusionZone.paddedHalfWidth(dims) + OcclusionZone.paddedHalfLength(dims) + 1.0;
+        int y = (int) Math.floor(wakeHeight);
         AABB reachBox = new AABB(
-                entity.getX() - reach, entity.getY() - 3, entity.getZ() - reach,
-                entity.getX() + reach, entity.getY() + 3, entity.getZ() + reach
+                entity.getX() - reach, y, entity.getZ() - reach,
+                entity.getX() + reach, y + 1, entity.getZ() + reach
         );
         for (WakeChunk chunk : wakeChunks.values()) {
             if (chunk.boundingBox.intersects(reachBox)) {
@@ -175,8 +177,9 @@ public class WakeHandler {
         for (Entity entity : level.entitiesForRendering()) {
             if (entity instanceof ProducesWake producer) {
                 OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
-                if (dims != null) {
-                    interpolatedZones.add(OcclusionZone.fromInterpolated(entity, dims, partialTick));
+                Float wakeHeight = producer.wakes$wakeHeight();
+                if (dims != null && wakeHeight != null) {
+                    interpolatedZones.add(OcclusionZone.fromInterpolated(entity, dims, wakeHeight, partialTick));
                 }
             }
         }
@@ -195,7 +198,7 @@ public class WakeHandler {
         if (node.validPos(world) && this.toBeInserted.add(node)) {
             return; // successfully queued
         }
-        node.markDead(); // invalid position or deduplicated by QueueSet — free the drawContext
+        node.markDead(); // invalid position or deduplicated by QueueSet, free the drawContext
     }
 
     public List<WakeNode> getVisibleNodes() {

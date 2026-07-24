@@ -60,7 +60,7 @@ public class WakeNode {
     public void draw(ClientLevel world, List<OcclusionZone> occlusionZones) {
         BlockPos blockPos = this.blockPos();
         int fluidColor = BiomeColors.getAverageWaterColor(world, blockPos);
-        float opacity = (float) ((-Math.pow(this.t, 2) + 1) * WakesConfig.wakeOpacity);
+        float opacity = (float) (-Math.pow(this.t, 2) + 1);
         int res = simulationNode.res;
 
         // Broad phase: exact SAT test, so only zones that actually overlap this node's 1x1
@@ -68,7 +68,7 @@ public class WakeNode {
         List<OcclusionZone> nearbyZones = null;
         if (!occlusionZones.isEmpty()) {
             for (OcclusionZone zone : occlusionZones) {
-                if (zone.overlapsNode(this.x, this.z)) {
+                if (zone.overlapsNode(this.x, this.y, this.z)) {
                     if (nearbyZones == null) nearbyZones = new ArrayList<>();
                     nearbyZones.add(zone);
                 }

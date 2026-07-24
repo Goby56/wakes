@@ -254,3 +254,25 @@ needed.
 
 There is no version of this that is simultaneously: one pass, perfectly smooth,
 and fully correct occlusion. Pick two.
+
+## 2026-07-24: Method D breaks under shader packs specifically
+
+Reported symptom under Iris: faint wake showed the sea floor instead of
+water beneath it — the opposite of Method D's intent (only opaque foam
+should occlude water; faint wake shouldn't occlude anything). Root cause,
+as best understood: once pass 1 (`WAKE_COLOR_PIPELINE`) was correctly
+classified as `ENTITIES_TRANSLUCENT` for Iris (see
+`OCCLUSION_INVESTIGATION.md`, "Iris pipeline classification"), it became
+subject to whatever a shader pack's own translucent-object handling does for
+its water/SSR effects — and that logic appears to treat *any* translucent
+fragment as occluding the pack's own water render beneath it, regardless of
+how close to zero its alpha actually is. Pass 1 draws at every alpha level
+down to near-zero specifically so faint wake fades smoothly (that's its
+entire purpose under Method D) — which is exactly what triggers this.
+
+Tried and reverted: a third pipeline, used only when
+`WakesClient.areShadersEnabled`, effectively Method B (single
+`ALPHA_CUTOUT` pass, real color output, depth write) replacing both passes
+under shaders. No pass 1 means no near-zero-alpha translucent fragments for
+a shader pack to misinterpret. Removed to keep investigating with the
+original two-pass split still active under shaders instead.

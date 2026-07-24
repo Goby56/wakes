@@ -59,9 +59,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
             }
         };
 
-        // Pass 1: all alpha values → color buffer, no depth write (faint splash stays visible with water showing underneath)
         context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-        // Pass 2: ALPHA_CUTOUT discards faint pixels; high-alpha pixels write depth (prevents water from covering bright foam)
         context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_RENDER_TYPE, renderer);
         WakesDebugInfo.splashPlanes = planes.size();
     }
@@ -118,7 +116,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
                         (float) (side * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                         (float) (vertex.z * WakesConfig.splashPlaneHeight),
                         (float) (vertex.y * WakesConfig.splashPlaneDepth))
-                .setColor(1f, 1f, 1f, 1f)
+                .setColor(1f, 1f, 1f, WakesConfig.wakeOpacity)
                 .setUv(uv.u() + (float) vertex.x * uvOffset, uv.v() + (float) vertex.y * uvOffset)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)

@@ -24,9 +24,21 @@ run the game myself.**
    CPU-side approach (not the fragment-shader discard alternative) because
    decompiling Iris found that option would very likely just not execute
    under most popular shader packs — see "2026-07-24: root cause" for that
-   research. **Next step: launch the game, reproduce the paddling-boat
-   scenario, and check whether wake is still visible under/near a moving
-   boat's hull.** Uncommitted — see "Current uncommitted state".
+   research.
+
+3. **`OcclusionZone` had no Y-awareness at all — fixed, user-confirmed
+   reproduction was real, NOT YET RE-TESTED in-game.** See "2026-07-24: zones
+   were 2D-only, no Y check" below. `overlapsNode`/`contains` only ever
+   compared X/Z, so a boat sitting on the ocean floor (or anywhere far below
+   its actual wake surface) spuriously matched wake nodes stacked above it at
+   completely unrelated Y layers, purely because they shared X/Z. Fixed by
+   giving `OcclusionZone` a `y` field sourced from `wakeHeight` (the entity's
+   actual wake surface, not its own position) and an early Y-equality check
+   in `overlapsNode`.
+
+**Next step: launch the game, reproduce the paddling-boat scenario and the
+sunk-boat-near-the-shore scenario, and check both are fixed.** Uncommitted —
+see "Current uncommitted state".
 
 ## 2026-07-24: Iris pipeline classification
 
@@ -334,6 +346,49 @@ planned step, not a sign this approach was wrong.
 compatibility with occlusion off) is confirmed fully removed —
 `grep -rn OCCLUSION_TEMP_DISABLED src` returns nothing, `./gradlew compileJava`
 is clean.
+
+## 2026-07-24: zones were 2D-only, no Y check
+
+Found live in-game (screenshot from the user): a boat sunk to the ocean
+floor was producing red broad-phase wireframes (`WakeDebugRenderer`'s
+`drawOcclusionZones` debug boxes) up at the water surface directly above it
+— nowhere near the boat itself. The user's diagnosis was exactly right:
+"it seems as we are not doing y check, only get candidates on the same y
+level" (i.e. not even that — no Y check existed at all).
+
+`OcclusionZone` (the record) never had a Y field, and `overlapsNode`/
+`contains` never took or compared one — the whole occlusion system was X/Z
+only from its very first commit. This was a reasonable assumption as long as
+every occluding entity's own Y and its wake surface's Y were close together,
+but breaks whenever they diverge — a sunk boat's `entity.getY()` (ocean
+floor) has nothing to do with where its wake actually renders (its
+`wakeHeight`, up at the surface). Since `overlapsNode`/`contains` only ever
+compared world X/Z, a zone built from a sunk boat would spuriously overlap
+*any* wake node stacked directly above/below it at a completely different Y,
+purely by X/Z coincidence.
+
+Fix: `OcclusionZone` gained a `y` field (`(int) Math.floor(wakeHeight)`, not
+`entity.getY()` — see the record's own doc comment for why), set in both
+`from()` and `fromInterpolated()` (both now take a `wakeHeight` parameter).
+`overlapsNode(int nodeX, int nodeY, int nodeZ)` now early-exits on
+`nodeY != y` before doing any of the SAT math. `contains()` didn't need a
+change — it's only ever called for zones already in a node's `nearbyZones`
+list, which by construction only contains Y-matched zones now.
+
+This also meant `WakeHandler.computeOcclusionZones()`/
+`refreshInterpolatedOcclusion()` needed to start fetching `wakeHeight` from
+`ProducesWake` (they previously only checked `dims != null`, unlike
+`WakeDebugRenderer`'s gizmo code, which already checked `wakeHeight != null`
+too — this inconsistency should have been a hint). And
+`markChunksNeedingFrameRefresh()`'s per-tick candidate-chunk heuristic (this
+session's own new code) had the identical bug in miniature — its reach AABB
+was centered on `entity.getY() ± 3`, not `wakeHeight` — fixed to use an
+exact `[floor(wakeHeight), floor(wakeHeight)+1)` Y range instead, matching
+how `WakeChunk`'s own bounding box is laid out (one full block per Y layer).
+
+Not yet re-tested in-game — the fix compiles and the reasoning traces
+through every call site, but needs the actual sunk-boat scenario reproduced
+again to confirm the red wireframes stop appearing at the wrong Y.
 
 ## New evidence: exclusion rate is speed-correlated
 

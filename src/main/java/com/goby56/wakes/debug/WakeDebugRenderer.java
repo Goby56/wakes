@@ -52,7 +52,7 @@ public class WakeDebugRenderer {
                 int overlapColor = new WakeColor(255, 0, 0, 200).argb;
                 for (WakeNode node : wakeHandler.getVisibleNodes()) {
                     for (OcclusionZone zone : zones) {
-                        if (zone.overlapsNode(node.x, node.z)) {
+                        if (zone.overlapsNode(node.x, node.y, node.z)) {
                             AABB box = new AABB(node.x, node.y, node.z, node.x + 1, node.y + 1, node.z + 1);
                             Gizmos.cuboid(box, GizmoStyle.stroke(overlapColor, 2f));
                             break;
@@ -74,16 +74,15 @@ public class WakeDebugRenderer {
                 OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
                 Float wakeHeight = producer.wakes$wakeHeight();
                 if (dims != null && wakeHeight != null) {
-                    addOcclusionZoneGizmo(OcclusionZone.fromInterpolated(entity, dims, partialTick), wakeHeight);
+                    addOcclusionZoneGizmo(OcclusionZone.fromInterpolated(entity, dims, wakeHeight, partialTick), wakeHeight);
                 }
             }
         }
     }
 
     private static void addOcclusionZoneGizmo(OcclusionZone zone, float wakeHeight) {
-        // Matches WakeNode's own render height (floor(wakeHeight) + WATER_OFFSET) rather than
-        // wakeHeight directly — wakeHeight is already a fractional world height, and wake nodes
-        // re-derive their render height from its floored block Y, not the raw value.
+        // Matches WakeNode's own render height (floor(wakeHeight) + WATER_OFFSET), since wake
+        // nodes re-derive their render height from the floored block Y, not the raw value.
         double y = Math.floor(wakeHeight) + WakeNode.WATER_OFFSET;
         Vec3 pos = new Vec3(zone.x(), y, zone.z());
 

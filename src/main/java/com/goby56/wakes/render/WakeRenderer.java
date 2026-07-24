@@ -85,9 +85,7 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
                 }
             };
 
-            // Pass 1: all alpha values → color buffer, no depth write (faint wakes remain visible with water showing underneath)
             context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-            // Pass 2: ALPHA_CUTOUT discards faint pixels; high-alpha pixels write depth (prevents water from covering bright foam)
             context.submitNodeCollector().submitCustomGeometry(context.poseStack(), type, renderer);
         } catch (Throwable t) {
             WakesClient.LOGGER.error("WakeRenderer: EXCEPTION during render", t);
@@ -112,7 +110,7 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
 
     private void vert(VertexConsumer vc, Matrix4fc m, float x, float y, float z, float u, float v, int light) {
         vc.addVertex(m, x, y, z)
-                .setColor(1f, 1f, 1f, 1f) // white: let the atlas texture provide the wake color/alpha
+                .setColor(1f, 1f, 1f, WakesConfig.wakeOpacity)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)
