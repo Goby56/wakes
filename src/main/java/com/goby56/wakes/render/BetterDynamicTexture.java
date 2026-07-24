@@ -8,6 +8,7 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.GpuFormat;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 
+import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 
 public class BetterDynamicTexture extends AbstractTexture {
@@ -26,10 +27,23 @@ public class BetterDynamicTexture extends AbstractTexture {
     }
 
     // uploads just the given sub-rectangle instead of the whole atlas, since only a few
-    // node-sized regions actually change per tick
+    // node-sized regions actually change per frame outside of a real simulation tick
     public void uploadRegion(NativeImage region, int x, int y) {
         if (this.texture != null) {
             RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, region, 0, 0, x, y);
+        } else {
+            WakesClient.LOGGER.warn("Trying to upload disposed texture {}", this.getTexture().getLabel());
+        }
+    }
+
+    // uploads the top `rows` rows (full width) of `source` directly from its own backing buffer,
+    // with no copy: a row-major image's top rows are already a contiguous prefix of its memory,
+    // so this is just a bounded view into the same bytes the full-atlas upload would already send
+    public void uploadTopRows(NativeImage source, int rows) {
+        if (this.texture != null) {
+            ByteBuffer buf = source.getPixelBytes();
+            buf.rewind();
+            RenderSystem.getDevice().createCommandEncoder().writeToTexture(this.texture, buf, 0, 0, 0, 0, source.getWidth(), rows);
         } else {
             WakesClient.LOGGER.warn("Trying to upload disposed texture {}", this.getTexture().getLabel());
         }

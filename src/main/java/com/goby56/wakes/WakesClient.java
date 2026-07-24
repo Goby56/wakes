@@ -129,7 +129,7 @@ public class WakesClient implements ClientModInitializer {
 
 		// Tell Iris what our custom wake pipelines actually are, instead of leaving it to guess
 		// via internal fuzzy-matching (ShaderKey.findBestMatch), since that's what several shader
-		// packs were choking on. See OCCLUSION_INVESTIGATION.md, "Iris pipeline classification".
+		// packs were choking on. See docs/shader_compat.md.
 		if (FabricLoader.getInstance().isModLoaded("iris")) {
 			IrisApi.getInstance().assignPipeline(WAKE_COLOR_PIPELINE, IrisProgram.ENTITIES_TRANSLUCENT);
 			// No ENTITIES_CUTOUT in the public IrisProgram enum, so ENTITIES is the closest

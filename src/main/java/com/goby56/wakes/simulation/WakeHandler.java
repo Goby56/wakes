@@ -2,6 +2,7 @@ package com.goby56.wakes.simulation;
 
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.config.enums.Resolution;
+import com.goby56.wakes.debug.WakesDebugInfo;
 import com.goby56.wakes.duck.ProducesWake;
 import com.goby56.wakes.particle.custom.SplashPlaneParticle;
 import com.goby56.wakes.render.FrustumManager;
@@ -91,6 +92,17 @@ public class WakeHandler {
         }
         for (WakeChunkPos pos : toBeRemovedChunks) {
             wakeChunks.remove(pos);
+        }
+
+        if (textureAtlas != null) {
+            long tUpload = System.nanoTime();
+            int rows = switch (WakesConfig.atlasUploadMode) {
+                case PARTIAL_AND_FULL_TICK -> textureAtlas.uploadFullAtlas();
+                case PARTIAL_AND_ACTIVE_TICK -> textureAtlas.uploadActiveRegion();
+                case PARTIAL_ONLY -> 0;
+            };
+            WakesDebugInfo.atlasUploadTime = System.nanoTime() - tUpload;
+            WakesDebugInfo.atlasUploadRows = rows;
         }
 
         for (int i = this.splashPlanes.size() - 1; i >= 0; i--) {
