@@ -110,34 +110,6 @@ public class WakesClient implements ClientModInitializer {
 		return RenderType.create("wakes:entity_translucent_wake", setup);
 	}
 
-	// Hull mask: depth-only, no ALPHA_CUTOUT (every fragment survives and writes depth).
-	// Submitted before the wake color pass so it can occlude fresh wake nodes spawned
-	// underneath a boat's open hull, without touching the boat's own (vanilla) geometry.
-	public static final RenderPipeline HULL_MASK_PIPELINE = buildHullMaskPipeline();
-	public static final RenderType HULL_MASK_RENDER_TYPE = buildHullMaskRenderType();
-
-	private static RenderPipeline buildHullMaskPipeline() {
-		return RenderPipelines.register(
-			RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
-					.withLocation(Identifier.fromNamespaceAndPath("wakes", "pipeline/hull_mask"))
-					.withShaderDefine("PER_FACE_LIGHTING")
-					.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
-					.withColorTargetState(new ColorTargetState(Optional.empty(), GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_NONE))
-					.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, true))
-					.withCull(false)
-					.build()
-		);
-	}
-
-	private static RenderType buildHullMaskRenderType() {
-		RenderSetup setup = RenderSetup.builder(HULL_MASK_PIPELINE)
-				.withTexture("Sampler0", WakeTextureAtlas.ATLAS_ID)
-				.useLightmap()
-				.useOverlay()
-				.createRenderSetup();
-		return RenderType.create("wakes:hull_mask", setup);
-	}
-
 	public static WakeRenderer wakeRenderer;
 
 	@Override
