@@ -46,9 +46,7 @@ public class WakeDebugRenderer {
 
         if (WakesConfig.drawOcclusionZones) {
             // Red wireframe around every node the broad-phase SAT (OcclusionZone.overlapsNode)
-            // currently considers "nearby" for the exact zone list used by this tick's real
-            // draw() calls — lets you directly compare the broad-phase decision against both the
-            // yellow zone gizmo and the actual wake texture, instead of inferring it indirectly.
+            // currently considers "nearby"
             List<OcclusionZone> zones = wakeHandler.getLastOcclusionZones();
             if (!zones.isEmpty()) {
                 int overlapColor = new WakeColor(255, 0, 0, 200).argb;
@@ -65,35 +63,23 @@ public class WakeDebugRenderer {
         }
     }
 
-    /** Hooked to a render event (not tick) purely so this fires every frame — NOT for smooth
-     *  interpolation. It deliberately draws the exact same OcclusionZone.from(entity, dims) the
-     *  real tick-time occlusion test builds: same raw entity.position()/getYRot(), same padded
-     *  half-extents. No interpolation, on purpose — smoothing between two states necessarily
-     *  shows something that matches neither exactly, which defeats the point of this gizmo
-     *  (anything inside it must be guaranteed to actually get excluded). It'll visibly snap to
-     *  each tick's position rather than glide, which is the correct tradeoff for a debug tool
-     *  that has to be trustworthy over looking nice. */
     public static void addOcclusionZoneGizmos(LevelRenderContext context) {
         if (!WakesConfig.drawOcclusionZones) return;
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
 
+        float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
         for (Entity entity : level.entitiesForRendering()) {
             if (entity instanceof ProducesWake producer) {
                 OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
                 Float wakeHeight = producer.wakes$wakeHeight();
                 if (dims != null && wakeHeight != null) {
-                    addOcclusionZoneGizmo(OcclusionZone.from(entity, dims), wakeHeight);
+                    addOcclusionZoneGizmo(OcclusionZone.fromInterpolated(entity, dims, partialTick), wakeHeight);
                 }
             }
         }
     }
 
-    /** Draws a single occlusion zone as a flat, yaw-oriented rectangle (its actual SAT footprint,
-     *  not an axis-aligned approximation), raised to the wake's own render height so it lines up
-     *  with the actual wake texture, not the entity's (often lower, e.g. a boat's floor) true Y
-     *  position. Every other value (x, z, cos, sin, half-extents) comes directly from the same
-     *  OcclusionZone object WakeNode.draw() tests texels against — nothing recomputed here. */
     private static void addOcclusionZoneGizmo(OcclusionZone zone, float wakeHeight) {
         // Matches WakeNode's own render height (floor(wakeHeight) + WATER_OFFSET) rather than
         // wakeHeight directly — wakeHeight is already a fractional world height, and wake nodes

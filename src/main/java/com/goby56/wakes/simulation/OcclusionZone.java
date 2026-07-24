@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A per-tick snapshot of an occluding entity's world-space position/yaw plus its resolved
+ * A snapshot of an occluding entity's world-space position/yaw plus its resolved
  * OcclusionDimensions, computed once so the (fairly cheap, but not free) trig doesn't get redone
  * for every node/texel it's tested against. cos/sin describe the zone's local axes: (cos,sin) is
  * its "width" axis, (-sin,cos) its "length" axis, matching WakeDebugRenderer's corner rotation
@@ -20,13 +20,16 @@ public record OcclusionZone(double x, double z, double cos, double sin, double h
                 paddedHalfWidth(dimensions), paddedHalfLength(dimensions));
     }
 
-    // contains() only samples a texel's center point, not its area — a texel whose center falls
-    // just outside the raw configured half-extent but whose area mostly overlaps the zone would
-    // otherwise read as "not excluded." Padding by half a texel's width moves the effective
-    // boundary out to the texel's area edge instead. WakeDebugRenderer's gizmo calls these same
-    // two methods (rather than reading OcclusionDimensions directly) specifically so the drawn
-    // box and the real test boundary can never diverge — anything inside the gizmo is guaranteed
-    // to actually get excluded.
+    // zones remove texels per frame so we need to interpolate it to get an accurate mask of where texels should get removed
+    public static OcclusionZone fromInterpolated(Entity entity, OcclusionDimensions dimensions, float partialTick) {
+        Vec3 pos = entity.getPosition(partialTick);
+        double rad = Math.toRadians(entity.getViewYRot(partialTick));
+        return new OcclusionZone(pos.x, pos.z, Math.cos(rad), Math.sin(rad),
+                paddedHalfWidth(dimensions), paddedHalfLength(dimensions));
+    }
+
+    // texel centers are checked to be within the zone resulting in half texels still being within
+    // the zone. padding makes this go away.
     public static double paddedHalfWidth(OcclusionDimensions dimensions) {
         return dimensions.width() / 2.0 + 0.5 / WakeHandler.resolution.res;
     }
@@ -35,8 +38,7 @@ public record OcclusionZone(double x, double z, double cos, double sin, double h
         return dimensions.length() / 2.0 + 0.5 / WakeHandler.resolution.res;
     }
 
-    /** Narrow phase: is this exact world point inside the zone's oriented rectangle?
-     *  Inverse of the local->world rotation (rotate the offset by -yaw). */
+    /** Narrow phase: is this exact world point inside the zone's oriented rectangle? */
     public boolean contains(double worldX, double worldZ) {
         double dx = worldX - x, dz = worldZ - z;
         double localX = dx * cos + dz * sin;

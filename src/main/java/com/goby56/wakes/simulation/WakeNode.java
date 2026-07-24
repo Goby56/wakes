@@ -83,10 +83,7 @@ public class WakeNode {
                     double worldZ = this.z + (y + 0.5) / res;
                     for (OcclusionZone zone : nearbyZones) {
                         if (zone.contains(worldX, worldZ)) {
-                            // TEMP DEBUG: opaque magenta instead of invisible, so we can see directly
-                            // whether the exclusion test is firing for the texels you're pointing at,
-                            // rather than the mask and the underlying bug both looking like "nothing".
-                            color = 0xFFFF00FF;
+                            color &= 0x00FFFFFF;
                             break;
                         }
                     }

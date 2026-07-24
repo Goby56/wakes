@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 
 import java.util.*;
 
@@ -25,6 +26,10 @@ public class WakeHandler {
     public static Resolution resolution = WakesConfig.wakeResolution;
     private WakeTextureAtlas textureAtlas;
     private List<OcclusionZone> lastOcclusionZones = List.of();
+
+    // cheap per-tick heuristic that narrows the per-frame precise SAT+per-texel pass
+    // down to a small candidate set instead of re-testing every wake node every frame.
+    private final Set<WakeChunk> chunksNeedingFrameRefresh = new HashSet<>();
 
     private WakeHandler(Level world) {
         this.world = world;
@@ -65,12 +70,6 @@ public class WakeHandler {
         List<OcclusionZone> occlusionZones = computeOcclusionZones();
         this.lastOcclusionZones = occlusionZones;
 
-        // Insert newly-spawned nodes (and create their chunks) before the tick/draw pass below,
-        // so a node created this tick — e.g. right at a boat's current position — gets its first
-        // draw() call this same tick, tested against this same tick's occlusion zones. Draining
-        // this after the tick/draw loop (as before) meant a brand-new node's first draw() call
-        // happened next tick, by which point a moving occluder had already moved past it, so the
-        // one tick where it truly overlapped never coincided with an actual draw call.
         while (toBeInserted.peek() != null) {
             WakeNode node = toBeInserted.poll();
             WakeChunkPos pos = WakeChunkPos.fromWakeNode(node);
@@ -119,9 +118,9 @@ public class WakeHandler {
         }
     }
 
-    /** The exact zone list used for the most recent tick's actual texel painting — for debug
-     *  visualization only, so what's drawn matches 1:1 with what really got tested, rather than
-     *  a fresh (possibly render-time-skewed) recomputation. */
+    /** The exact zone list most recently tested: tick-rate baseline, or frame-rate interpolated
+     *  wherever something nearby is moving. Debug visualization only, so what's drawn matches
+     *  what actually got tested. */
     public List<OcclusionZone> getLastOcclusionZones() {
         return lastOcclusionZones;
     }
@@ -130,13 +129,62 @@ public class WakeHandler {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return List.of();
         List<OcclusionZone> zones = new ArrayList<>();
+        chunksNeedingFrameRefresh.clear();
         for (Entity entity : level.entitiesForRendering()) {
             if (entity instanceof ProducesWake producer) {
                 OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
-                if (dims != null) zones.add(OcclusionZone.from(entity, dims));
+                if (dims != null) {
+                    OcclusionZone zone = OcclusionZone.from(entity, dims);
+                    zones.add(zone);
+
+                    boolean moved = entity.getX() != entity.xo || entity.getY() != entity.yo
+                            || entity.getZ() != entity.zo || entity.getYRot() != entity.yRotO;
+                    if (moved) {
+                        markChunksNeedingFrameRefresh(entity, dims);
+                    }
+                }
             }
         }
         return zones;
+    }
+
+    private void markChunksNeedingFrameRefresh(Entity entity, OcclusionDimensions dims) {
+        // Deliberately generous, rotation-independent reach; WakeNode.draw() still does the
+        // exact SAT test, this just picks which chunks are worth re-checking.
+        double reach = OcclusionZone.paddedHalfWidth(dims) + OcclusionZone.paddedHalfLength(dims) + 1.0;
+        AABB reachBox = new AABB(
+                entity.getX() - reach, entity.getY() - 3, entity.getZ() - reach,
+                entity.getX() + reach, entity.getY() + 3, entity.getZ() + reach
+        );
+        for (WakeChunk chunk : wakeChunks.values()) {
+            if (chunk.boundingBox.intersects(reachBox)) {
+                chunksNeedingFrameRefresh.add(chunk);
+            }
+        }
+    }
+
+    /** Called every frame, before the atlas upload, so a moving occluder's mask tracks its
+     *  interpolated position instead of sitting frozen until the next tick. No-op when nothing
+     *  nearby moved this tick. */
+    public void refreshInterpolatedOcclusion(float partialTick) {
+        if (chunksNeedingFrameRefresh.isEmpty()) return;
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) return;
+
+        List<OcclusionZone> interpolatedZones = new ArrayList<>();
+        for (Entity entity : level.entitiesForRendering()) {
+            if (entity instanceof ProducesWake producer) {
+                OcclusionDimensions dims = producer.wakes$getOcclusionDimensions();
+                if (dims != null) {
+                    interpolatedZones.add(OcclusionZone.fromInterpolated(entity, dims, partialTick));
+                }
+            }
+        }
+        this.lastOcclusionZones = interpolatedZones; // keep the debug gizmo in sync
+
+        for (WakeChunk chunk : chunksNeedingFrameRefresh) {
+            chunk.drawWakes(interpolatedZones);
+        }
     }
 
     public void registerSplashPlane(SplashPlaneParticle splashPlane) {

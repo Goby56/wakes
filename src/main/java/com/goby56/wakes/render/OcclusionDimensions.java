@@ -14,5 +14,5 @@ public record OcclusionDimensions(float width, float length) {
             Codec.FLOAT.fieldOf("length").forGetter(OcclusionDimensions::length)
     ).apply(instance, OcclusionDimensions::new));
 
-    public static final OcclusionDimensions DEFAULT_BOAT = new OcclusionDimensions(1.4f, 2.2f);
+    public static final OcclusionDimensions DEFAULT_BOAT = new OcclusionDimensions(1.2f, 1.8f);
 }
