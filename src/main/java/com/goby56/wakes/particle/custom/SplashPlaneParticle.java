@@ -71,7 +71,7 @@ public class SplashPlaneParticle extends Particle {
         this.prevYaw = this.yaw;
 
         if (this.owner instanceof ProducesWake wakeOwner) {
-            if (this.owner.isRemoved() || !wakeOwner.wakes$onFluidSurface() || wakeOwner.wakes$getHorizontalVelocity() < 1e-2) {
+            if (this.owner.isRemoved() || !wakeOwner.wakes$onFluidSurface() || wakeOwner.wakes$getHorizontalVelocity() < 1e-2 || wakeOwner.wakes$wakeHeight() == null) {
                 this.remove();
             } else {
                 this.aliveTick(wakeOwner);
