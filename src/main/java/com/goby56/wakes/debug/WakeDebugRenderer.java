@@ -10,10 +10,10 @@ import com.goby56.wakes.simulation.WakeChunk;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.simulation.WakeNode;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.gizmos.GizmoStyle;
@@ -63,7 +63,7 @@ public class WakeDebugRenderer {
         }
     }
 
-    public static void addOcclusionZoneGizmos(LevelRenderContext context) {
+    public static void addOcclusionZoneGizmos(WorldRenderContext context) {
         if (!WakesConfig.drawOcclusionZones) return;
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
@@ -102,7 +102,7 @@ public class WakeDebugRenderer {
         return new Vec3(center.x + worldX, center.y, center.z + worldZ);
     }
 
-    public static void drawAtlasOverlay(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {
+    public static void drawAtlasOverlay(GuiGraphics context, DeltaTracker deltaTracker) {
         if (!WakesConfig.showAtlas) return;
 
         WakeHandler.getInstance().ifPresent(wh -> {

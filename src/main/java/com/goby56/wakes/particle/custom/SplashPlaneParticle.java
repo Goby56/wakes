@@ -141,7 +141,7 @@ public class SplashPlaneParticle extends Particle {
 
     public void translateMatrix(Camera camera, PoseStack matrices) {
         Vec3 cameraPos = camera.position();
-        float tickDelta = camera.getCameraEntityPartialTicks(net.minecraft.client.Minecraft.getInstance().getDeltaTracker());
+        float tickDelta = camera.getPartialTickTime();
         float x = (float) (Mth.lerp(tickDelta, this.xo, this.x) - cameraPos.x());
         float y = (float) (Mth.lerp(tickDelta, this.yo, this.y) - cameraPos.y());
         float z = (float) (Mth.lerp(tickDelta, this.zo, this.z) - cameraPos.z());

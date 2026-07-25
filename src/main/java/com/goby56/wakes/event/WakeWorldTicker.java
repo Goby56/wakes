@@ -5,12 +5,12 @@ import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.simulation.WakeHandler;
 import com.goby56.wakes.debug.WakesDebugInfo;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 
-public class WakeWorldTicker implements ClientTickEvents.EndLevelTick, ServerEntityLevelChangeEvents.AfterPlayerChange {
+public class WakeWorldTicker implements ClientTickEvents.EndWorldTick, ServerEntityWorldChangeEvents.AfterPlayerChange {
 
     @Override
     public void onEndTick(ClientLevel world) {
@@ -21,7 +21,7 @@ public class WakeWorldTicker implements ClientTickEvents.EndLevelTick, ServerEnt
     }
 
     @Override
-    public void afterChangeLevel(ServerPlayer player, ServerLevel origin, ServerLevel destination) {
+    public void afterChangeWorld(ServerPlayer player, ServerLevel origin, ServerLevel destination) {
         WakeHandler.init(destination);
     }
 }

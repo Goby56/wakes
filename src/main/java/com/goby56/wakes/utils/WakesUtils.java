@@ -44,8 +44,8 @@ public class WakesUtils {
         int blockLevel = world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, blockPos);
         int skyLevel = Math.max(0, world.getBrightness(net.minecraft.world.level.LightLayer.SKY, blockPos) - world.getSkyDarken());
 
-        float blockB = net.minecraft.client.renderer.Lightmap.getBrightness(dim, blockLevel);
-        float skyB = net.minecraft.client.renderer.Lightmap.getBrightness(dim, skyLevel);
+        float blockB = net.minecraft.client.renderer.LightTexture.getBrightness(dim, blockLevel);
+        float skyB = net.minecraft.client.renderer.LightTexture.getBrightness(dim, skyLevel);
 
         // Warm block light, neutral sky light, with an ambient floor so wakes stay
         // visible at night / in caves rather than fading to black.

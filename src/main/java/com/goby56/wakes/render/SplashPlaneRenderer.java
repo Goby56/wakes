@@ -12,13 +12,14 @@ import io.github.jdiemke.triangulation.DelaunayTriangulator;
 import io.github.jdiemke.triangulation.NotEnoughPointsException;
 import io.github.jdiemke.triangulation.Triangle2D;
 import io.github.jdiemke.triangulation.Vector2D;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.model.geom.builders.UVPair;
-import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -29,7 +30,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
+public class SplashPlaneRenderer implements WorldRenderEvents.EndMain {
 
     private static ArrayList<Vector2D> points;
     private static List<Triangle2D> triangles;
@@ -39,11 +40,11 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
     private static final double SQRT_8 = Math.sqrt(8);
 
     @Override
-    public void collectSubmits(LevelRenderContext context) {
+    public void endMain(WorldRenderContext context) {
         renderAll(context);
     }
 
-    private void renderAll(LevelRenderContext context) {
+    private void renderAll(WorldRenderContext context) {
         if (WakeHandler.getInstance().isEmpty()) {
             return;
         }
@@ -53,19 +54,22 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
 
         wakeHandler.getTextureAtlas().uploadDirty();
 
-        var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
-            for (SplashPlaneParticle particle : planes) {
-                SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), vc);
-            }
-        };
+        MultiBufferSource.BufferSource bufferSource = (MultiBufferSource.BufferSource) context.consumers();
+        VertexConsumer colorVc = bufferSource.getBuffer(WakesClient.WAKE_COLOR_RENDER_TYPE);
+        VertexConsumer depthVc = bufferSource.getBuffer(WakesClient.WAKE_RENDER_TYPE);
 
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_RENDER_TYPE, renderer);
+        for (SplashPlaneParticle particle : planes) {
+            SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), colorVc);
+            SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), depthVc);
+        }
+
+        bufferSource.endBatch(WakesClient.WAKE_COLOR_RENDER_TYPE);
+        bufferSource.endBatch(WakesClient.WAKE_RENDER_TYPE);
         WakesDebugInfo.splashPlanes = planes.size();
     }
 
 
-    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, LevelRenderContext context, PoseStack matrices, VertexConsumer vc) {
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, WorldRenderContext context, PoseStack matrices, VertexConsumer vc) {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
@@ -76,10 +80,10 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
         }
         if (splashPlane.drawContext == null) return;
 
-        splashPlane.updateYaw(context.gameRenderer().mainCamera().getCameraEntityPartialTicks(net.minecraft.client.Minecraft.getInstance().getDeltaTracker()));
+        splashPlane.updateYaw(context.gameRenderer().getMainCamera().getPartialTickTime());
 
         matrices.pushPose();
-        splashPlane.translateMatrix(context.gameRenderer().mainCamera(), matrices);
+        splashPlane.translateMatrix(context.gameRenderer().getMainCamera(), matrices);
         matrices.mulPose(Axis.YP.rotationDegrees(splashPlane.lerpedYaw + 180f));
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
@@ -89,7 +93,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
         matrices.popPose();
 
         ClientLevel world = Minecraft.getInstance().level;
-        int light = LightCoordsUtil.getLightCoords(world, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()));
+        int light = LevelRenderer.getLightColor(world, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()));
         renderSurface(matrix, splashPlane.drawContext, vc, light);
     }
 

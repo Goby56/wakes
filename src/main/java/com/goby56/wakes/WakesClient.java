@@ -11,27 +11,20 @@ import com.goby56.wakes.render.OcclusionDimensionsManager;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.render.WakeTextureAtlas;
-import com.goby56.wakes.simulation.WakeHandler;
-import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
-import net.minecraft.client.renderer.BindGroupLayouts;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.irisshaders.iris.api.v0.IrisProgram;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
@@ -40,8 +33,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 public class WakesClient implements ClientModInitializer {
 
@@ -70,9 +61,9 @@ public class WakesClient implements ClientModInitializer {
 			RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
 				.withLocation(Identifier.fromNamespaceAndPath("wakes", "pipeline/entity_translucent_wake_color"))
 				.withShaderDefine("PER_FACE_LIGHTING")
-				.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
-				.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-				.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+				.withDepthTestFunction(DepthTestFunction.GREATER_DEPTH_TEST)
+				.withBlend(BlendFunction.TRANSLUCENT)
+				.withDepthWrite(false)
 				.withCull(false)
 				.build()
 		);
@@ -93,9 +84,8 @@ public class WakesClient implements ClientModInitializer {
 					.withLocation(Identifier.fromNamespaceAndPath("wakes", "pipeline/entity_translucent_wake"))
 					.withShaderDefine("ALPHA_CUTOUT", 0.8f)
 					.withShaderDefine("PER_FACE_LIGHTING")
-					.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
-					.withColorTargetState(new ColorTargetState(Optional.empty(), GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_NONE))
-					// .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+					.withDepthTestFunction(DepthTestFunction.GREATER_DEPTH_TEST)
+					.withColorWrite(false)
 					.withCull(false)
 					.build()
 		);
@@ -124,8 +114,8 @@ public class WakesClient implements ClientModInitializer {
 
 		// Wake handler handling
 		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
-		ClientTickEvents.END_LEVEL_TICK.register(new WakeWorldTicker());
-		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(new WakeWorldTicker());
+		ClientTickEvents.END_WORLD_TICK.register(new WakeWorldTicker());
+		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(new WakeWorldTicker());
 
 		// Tell Iris what our custom wake pipelines actually are, instead of leaving it to guess
 		// via internal fuzzy-matching (ShaderKey.findBestMatch), since that's what several shader
@@ -139,18 +129,18 @@ public class WakesClient implements ClientModInitializer {
 
 		// Rendering events
 		wakeRenderer = new WakeRenderer();
-		LevelRenderEvents.COLLECT_SUBMITS.register(wakeRenderer);
+		WorldRenderEvents.END_MAIN.register(wakeRenderer);
 		SplashPlaneRenderer splashPlaneRenderer = new SplashPlaneRenderer();
-		LevelRenderEvents.COLLECT_SUBMITS.register(splashPlaneRenderer);
+		WorldRenderEvents.END_MAIN.register(splashPlaneRenderer);
 
 		// Hooked to render (not tick) so it can interpolate to partial-tick like the boat model
 		// itself does, instead of snapping to a new position/yaw only once per game tick.
-		LevelRenderEvents.COLLECT_SUBMITS.register(WakeDebugRenderer::addOcclusionZoneGizmos);
+		WorldRenderEvents.END_MAIN.register(WakeDebugRenderer::addOcclusionZoneGizmos);
 
 		FrustumManager frustumManager = new FrustumManager();
-		LevelExtractionEvents.END_EXTRACTION.register(frustumManager);
+		WorldRenderEvents.END_EXTRACTION.register(frustumManager);
 
-		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
 				OcclusionDimensionsManager.ID, new OcclusionDimensionsManager());
 
 		SplashPlaneRenderer.initSplashPlane();

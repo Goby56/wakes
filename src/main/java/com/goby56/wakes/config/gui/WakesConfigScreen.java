@@ -2,7 +2,7 @@ package com.goby56.wakes.config.gui;
 
 import com.goby56.wakes.utils.WakesUtils;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -25,9 +25,9 @@ public class WakesConfigScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(context, mouseX, mouseY, delta);
-        context.centeredText(this.font, this.title.getString(), this.width / 2, this.height / 4 + 20, 0xFFFFFFFF);
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        super.render(context, mouseX, mouseY, delta);
+        context.drawCenteredString(this.font, this.title.getString(), this.width / 2, this.height / 4 + 20, 0xFFFFFFFF);
     }
 
 }

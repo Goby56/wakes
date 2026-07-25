@@ -9,13 +9,14 @@ import com.goby56.wakes.debug.WakesDebugInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.LightCoordsUtil;
 import org.joml.Matrix4f;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -24,18 +25,18 @@ import org.joml.Matrix4fc;
 
 import java.util.*;
 
-public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
+public class WakeRenderer implements WorldRenderEvents.EndMain {
 
     private static RenderType renderType() {
         return WakesClient.WAKE_RENDER_TYPE;
     }
 
     @Override
-    public void collectSubmits(LevelRenderContext context) {
+    public void endMain(WorldRenderContext context) {
         submit(context);
     }
 
-    private void submit(LevelRenderContext context) {
+    private void submit(WorldRenderContext context) {
         if (WakesConfig.disableMod) {
             return;
         }
@@ -56,9 +57,9 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
             wakeHandler.refreshInterpolatedOcclusion(partialTick);
             WakesDebugInfo.addDirtyUploads(wakeHandler.getTextureAtlas().uploadDirty());
 
-            Vec3 camera = context.levelState().cameraRenderState.pos;
+            Vec3 camera = context.worldState().cameraRenderState.pos;
 
-            PoseStack matrices = context.poseStack();
+            PoseStack matrices = context.matrices();
             matrices.pushPose();
             matrices.translate(-camera.x, -camera.y, -camera.z);
             Matrix4f matrixCopy = new Matrix4f(matrices.last().pose());
@@ -70,23 +71,27 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
             float surfaceBias = (submerged ? -SURFACE_EPSILON : SURFACE_EPSILON) + extraOffset;
             RenderType type = renderType();
 
-            var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
-                for (WakeChunk wakeChunk : wakeChunks) {
-                    for (WakeNode wakeNode : wakeChunk.getNodes()) {
-                        UVPair uv = wakeNode.drawContext.getUV();
-                        float uvOffset = wakeNode.drawContext.getUVOffset();
-                        int light = LightCoordsUtil.getLightCoords(world, wakeNode.blockPos());
-                        float x0 = (float) wakeNode.x;
-                        float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
-                        float z0 = (float) wakeNode.z;
-                        float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
-                        emitQuad(vc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
-                    }
-                }
-            };
+            MultiBufferSource.BufferSource bufferSource = (MultiBufferSource.BufferSource) context.consumers();
+            VertexConsumer colorVc = bufferSource.getBuffer(WakesClient.WAKE_COLOR_RENDER_TYPE);
+            VertexConsumer depthVc = bufferSource.getBuffer(type);
 
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), type, renderer);
+            for (WakeChunk wakeChunk : wakeChunks) {
+                for (WakeNode wakeNode : wakeChunk.getNodes()) {
+                    UVPair uv = wakeNode.drawContext.getUV();
+                    float uvOffset = wakeNode.drawContext.getUVOffset();
+                    int light = LevelRenderer.getLightColor(world, wakeNode.blockPos());
+                    float x0 = (float) wakeNode.x;
+                    float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
+                    float z0 = (float) wakeNode.z;
+                    float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
+                    emitQuad(colorVc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
+                    emitQuad(depthVc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
+                }
+            }
+
+            // Flush immediately so it draws into the currently-bound (Iris-compatible) framebuffer
+            bufferSource.endBatch(WakesClient.WAKE_COLOR_RENDER_TYPE);
+            bufferSource.endBatch(type);
         } catch (Throwable t) {
             WakesClient.LOGGER.error("WakeRenderer: EXCEPTION during render", t);
         }
