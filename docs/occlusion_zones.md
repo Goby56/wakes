@@ -45,6 +45,70 @@ samples it — there is no GPU-side discard/depth-mask involved.
   — currently boats + chest boats only, deliberately excluding rafts (they
   sit flush on the surface, no hull dip to hide anything under).
 
+## Giving an entity (vanilla or modded) an occlusion zone
+
+Two independent, datapack-only steps — no mixins or code changes needed on
+the entity's side.
+
+### 1. Opt in via the `occludes_wake` tag
+
+An entity type only gets an occlusion zone at all if it's a member of
+`#wakes:occludes_wake`. `WakeSpawnerMixin` checks this tag before ever
+resolving `OcclusionDimensions` for an entity — untagged entities are never
+occluded, regardless of step 2.
+
+To add a modded (or currently-excluded vanilla) entity, ship a datapack that
+extends the tag:
+
+```json
+// data/wakes/tags/entity_type/occludes_wake.json
+{
+  "replace": false,
+  "values": [
+    "mymod:river_barge"
+  ]
+}
+```
+
+`"replace": false` merges with the existing vanilla list instead of
+overwriting it.
+
+### 2. Override the occlusion rectangle's dimensions (optional)
+
+Once tagged, an entity automatically gets `OcclusionDimensions.DEFAULT_BOAT`
+— a 1.2 (width) x 1.8 (length) block rectangle, matching a vanilla boat's
+hull. If that's the wrong size for the entity (a modded ship, a much smaller
+raft-like entity, etc.), add an override file at:
+
+```
+data/<namespace>/wakes_occlusion_dimensions/<path>.json
+```
+
+The file's own resource location — `<namespace>:<path>` — must exactly match
+the target entity's registry id (`EntityType.getKey(...)`). There is no
+"entity" field inside the JSON; the file's location *is* the id it overrides.
+For example, to size the zone for `mymod:river_barge`:
+
+```json
+// data/mymod/wakes_occlusion_dimensions/river_barge.json
+{
+  "width": 2.5,
+  "length": 5.0
+}
+```
+
+Both fields are floats in blocks:
+- **`width`** — full extent along the entity's local width axis (perpendicular
+  to its facing direction).
+- **`length`** — full extent along the entity's local length axis (the
+  direction it faces).
+
+The rectangle is centered on the entity's world XZ position, oriented by its
+yaw, and applied at the wake's surface Y layer (not the entity's own Y) — see
+`OcclusionZone.from`/`fromInterpolated` above. `OcclusionDimensionsManager`
+reloads these overrides on every datapack/resource reload, same as any other
+`SimpleJsonResourceReloadListener` data.
+
 ## Why it's built this way
 
 ### Two passes (tick-rate + frame-rate), not one
