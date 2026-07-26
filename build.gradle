@@ -4,7 +4,7 @@ plugins {
 	id 'me.fallenbreath.yamlang' version '1.4.1'
 }
 
-version = project.mod_version
+version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
 base {

@@ -3,15 +3,13 @@ package com.goby56.wakes;
 import com.goby56.wakes.config.WakesConfig;
 import com.goby56.wakes.debug.WakeDebugRenderer;
 import com.goby56.wakes.debug.WakesDebugInfo;
-import com.goby56.wakes.event.WakeClientTicker;
-import com.goby56.wakes.event.WakeWorldTicker;
+import com.goby56.wakes.event.WakeTickEvents;
 import com.goby56.wakes.particle.ModParticles;
 import com.goby56.wakes.render.FrustumManager;
 import com.goby56.wakes.render.OcclusionDimensionsManager;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.render.WakeTextureAtlas;
-import com.goby56.wakes.simulation.WakeHandler;
 import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
@@ -25,13 +23,11 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelExtractionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.irisshaders.iris.api.v0.IrisApi;
 import net.irisshaders.iris.api.v0.IrisProgram;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
@@ -123,9 +119,8 @@ public class WakesClient implements ClientModInitializer {
 		ModParticles.registerParticles();
 
 		// Wake handler handling
-		ClientTickEvents.START_CLIENT_TICK.register(new WakeClientTicker());
-		ClientTickEvents.END_LEVEL_TICK.register(new WakeWorldTicker());
-		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(new WakeWorldTicker());
+		ClientTickEvents.START_CLIENT_TICK.register(new WakeTickEvents());
+		ClientTickEvents.END_LEVEL_TICK.register(new WakeTickEvents());
 
 		// Tell Iris what our custom wake pipelines actually are, instead of leaving it to guess
 		// via internal fuzzy-matching (ShaderKey.findBestMatch), since that's what several shader

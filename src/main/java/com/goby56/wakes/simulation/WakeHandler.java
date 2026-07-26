@@ -25,7 +25,7 @@ public class WakeHandler {
     private final ArrayList<SplashPlaneParticle> splashPlanes;
 
     public static Resolution resolution = WakesConfig.wakeResolution;
-    private WakeTextureAtlas textureAtlas;
+    public final WakeTextureAtlas textureAtlas;
     private List<OcclusionZone> lastOcclusionZones = List.of();
 
     // cheap per-tick heuristic that narrows the per-frame precise SAT+per-texel pass
@@ -36,11 +36,15 @@ public class WakeHandler {
         this.world = world;
         this.toBeInserted = new QueueSet<>();
         this.splashPlanes = new ArrayList<>();
+
+        this.textureAtlas = new WakeTextureAtlas();
+        this.textureAtlas.setResolution(resolution.res);
     }
 
     public static Optional<WakeHandler> getInstance() {
         if (INSTANCE == null) {
-            if (Minecraft.getInstance().level == null) {
+            // Ensure we are on the client thread
+            if (!Minecraft.getInstance().isSameThread() || Minecraft.getInstance().level == null) {
                 return Optional.empty();
             }
             INSTANCE = new WakeHandler(Minecraft.getInstance().level);
@@ -94,12 +98,10 @@ public class WakeHandler {
             wakeChunks.remove(pos);
         }
 
-        if (textureAtlas != null) {
-            long tUpload = System.nanoTime();
-            int rows = textureAtlas.uploadActiveRegion();
-            WakesDebugInfo.atlasUploadTime = System.nanoTime() - tUpload;
-            WakesDebugInfo.atlasUploadRows = rows;
-        }
+        long tUpload = System.nanoTime();
+        int rows = textureAtlas.uploadActiveRegion();
+        WakesDebugInfo.atlasUploadTime = System.nanoTime() - tUpload;
+        WakesDebugInfo.atlasUploadRows = rows;
 
         for (int i = this.splashPlanes.size() - 1; i >= 0; i--) {
             if (!this.splashPlanes.get(i).isAlive()) {
@@ -238,14 +240,6 @@ public class WakeHandler {
             }
         }
         return splashPlanes;
-    }
-
-    public WakeTextureAtlas getTextureAtlas() {
-        if (textureAtlas == null) {
-            textureAtlas = new WakeTextureAtlas();
-            textureAtlas.setResolution(resolution.res);
-        }
-        return textureAtlas;
     }
 
     private void reset() {

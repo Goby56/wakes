@@ -59,7 +59,7 @@ public class WakeNode {
         this.z = z;
         this.floodLevel = floodLevel;
         this.wakeHandler = wakeHandler;
-        this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
+        this.drawContext = wakeHandler.textureAtlas.claimSubTexture();
         this.biomeColor = BiomeColors.getAverageWaterColor((ClientLevel) wakeHandler.world, this.blockPos());
         this.refreshBucketColors();
     }

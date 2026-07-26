@@ -21,6 +21,7 @@ public class LilyPadFallMixin {
 
     @Inject(at = @At("TAIL"), method = "fallOn")
     public void onLandedUpon(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance, CallbackInfo ci) {
+        if (!world.isClientSide()) return;
         if (!world.getBlockState(pos.above()).is(Blocks.LILY_PAD)) return;
         if (WakesConfig.disableMod) return;
         EffectSpawningRule rule = WakesUtils.getEffectRuleFromSource(entity);

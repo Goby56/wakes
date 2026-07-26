@@ -82,7 +82,7 @@ public class WakesDebugInfo implements DebugScreenEntry {
         int atlasUsed = 0;
         int atlasCapacity = WakeTextureAtlas.CAPACITY;
         var wh = WakeHandler.getInstance();
-        if (wh.isPresent()) atlasUsed = wh.get().getTextureAtlas().occupiedCount();
+        if (wh.isPresent()) atlasUsed = wh.get().textureAtlas.occupiedCount();
 
         debugScreenDisplayer.addToGroup(Identifier.fromNamespaceAndPath("wakes", "debug_category"),
                 List.of(

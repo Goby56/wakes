@@ -54,7 +54,7 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
         try {
             float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
             wakeHandler.refreshInterpolatedOcclusion(partialTick);
-            WakesDebugInfo.addDirtyUploads(wakeHandler.getTextureAtlas().uploadDirty());
+            WakesDebugInfo.addDirtyUploads(wakeHandler.textureAtlas.uploadDirty());
 
             Vec3 camera = context.levelState().cameraRenderState.pos;
 

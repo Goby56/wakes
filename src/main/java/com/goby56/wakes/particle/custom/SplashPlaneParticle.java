@@ -45,7 +45,7 @@ public class SplashPlaneParticle extends Particle {
     protected SplashPlaneParticle(ClientLevel world, double x, double y, double z) {
         super(world, x, y, z);
         WakeHandler.getInstance().ifPresent(wakeHandler -> {
-            this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
+            this.drawContext = wakeHandler.textureAtlas.claimSubTexture();
             wakeHandler.registerSplashPlane(this);
         });
     }
@@ -105,7 +105,7 @@ public class SplashPlaneParticle extends Particle {
         // If resolution changed, release the old atlas slot and claim a new one sized correctly.
         if (this.simulationNode.res != WakeHandler.resolution.res) {
             if (this.drawContext != null) this.drawContext.invalidate();
-            WakeHandler.getInstance().ifPresent(wh -> this.drawContext = wh.getTextureAtlas().claimSubTexture());
+            WakeHandler.getInstance().ifPresent(wh -> this.drawContext = wh.textureAtlas.claimSubTexture());
             this.simulationNode = new SimulationNode.SplashPlaneSimulation();
         }
 

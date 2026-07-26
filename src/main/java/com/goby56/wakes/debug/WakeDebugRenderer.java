@@ -106,7 +106,7 @@ public class WakeDebugRenderer {
         if (!WakesConfig.showAtlas) return;
 
         WakeHandler.getInstance().ifPresent(wh -> {
-            WakeTextureAtlas atlas = wh.getTextureAtlas();
+            WakeTextureAtlas atlas = wh.textureAtlas;
             int screenH = Minecraft.getInstance().getWindow().getScreenHeight();
             context.blit(RenderPipelines.GUI_TEXTURED, WakeTextureAtlas.ATLAS_ID,
                     0, 0, 0, 0,
