@@ -72,25 +72,13 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
             RenderType type = renderType();
 
             MultiBufferSource.BufferSource bufferSource = (MultiBufferSource.BufferSource) context.consumers();
+
             VertexConsumer colorVc = bufferSource.getBuffer(WakesClient.WAKE_COLOR_RENDER_TYPE);
-            VertexConsumer depthVc = bufferSource.getBuffer(type);
-
-            for (WakeChunk wakeChunk : wakeChunks) {
-                for (WakeNode wakeNode : wakeChunk.getNodes()) {
-                    UVPair uv = wakeNode.drawContext.getUV();
-                    float uvOffset = wakeNode.drawContext.getUVOffset();
-                    int light = LevelRenderer.getLightColor(world, wakeNode.blockPos());
-                    float x0 = (float) wakeNode.x;
-                    float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
-                    float z0 = (float) wakeNode.z;
-                    float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
-                    emitQuad(colorVc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
-                    emitQuad(depthVc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
-                }
-            }
-
-            // Flush immediately so it draws into the currently-bound (Iris-compatible) framebuffer
+            emitWakeQuads(colorVc, wakeChunks, world, matrixCopy, surfaceBias);
             bufferSource.endBatch(WakesClient.WAKE_COLOR_RENDER_TYPE);
+
+            VertexConsumer depthVc = bufferSource.getBuffer(type);
+            emitWakeQuads(depthVc, wakeChunks, world, matrixCopy, surfaceBias);
             bufferSource.endBatch(type);
         } catch (Throwable t) {
             WakesClient.LOGGER.error("WakeRenderer: EXCEPTION during render", t);
@@ -98,6 +86,23 @@ public class WakeRenderer implements WorldRenderEvents.EndMain {
 
         WakesDebugInfo.addRenderTime(System.nanoTime() - tRendering);
         WakesDebugInfo.visibleNodes = wakeChunks.stream().mapToInt(c -> c.occupied).sum();
+    }
+
+    private void emitWakeQuads(VertexConsumer vc, List<WakeChunk> wakeChunks, ClientLevel world,
+                               Matrix4f matrix, float surfaceBias) {
+        for (WakeChunk wakeChunk : wakeChunks) {
+            for (WakeNode wakeNode : wakeChunk.getNodes()) {
+                if (wakeNode.drawContext == null) continue;
+                UVPair uv = wakeNode.drawContext.getUV();
+                float uvOffset = wakeNode.drawContext.getUVOffset();
+                int light = LevelRenderer.getLightColor(world, wakeNode.blockPos());
+                float x0 = (float) wakeNode.x;
+                float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
+                float z0 = (float) wakeNode.z;
+                float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
+                emitQuad(vc, matrix, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
+            }
+        }
     }
 
     private static final float SURFACE_EPSILON = 0.01f;
