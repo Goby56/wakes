@@ -59,6 +59,9 @@ public class WakeNode {
         this.z = z;
         this.floodLevel = floodLevel;
         this.wakeHandler = wakeHandler;
+    }
+
+    public void init() {
         this.drawContext = wakeHandler.getTextureAtlas().claimSubTexture();
         this.biomeColor = BiomeColors.getAverageWaterColor((ClientLevel) wakeHandler.world, this.blockPos());
         this.refreshBucketColors();
@@ -80,6 +83,7 @@ public class WakeNode {
     }
 
     public void draw(List<OcclusionZone> occlusionZones) {
+        if (drawContext == null) return;
         int res = simulationNode.res;
 
         // Broad phase: exact SAT test, so only zones that actually overlap this node's 1x1
