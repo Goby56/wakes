@@ -113,6 +113,7 @@ public abstract class WakeSpawnerMixin implements ProducesWake {
 
 	@Unique
 	private boolean onFluidSurface() {
+		if (!this.isInWater()) return false;
 		double hitboxMaxY = this.getBoundingBox().maxY;
 		BlockPos blockPos = BlockPos.containing(this.getX(), hitboxMaxY, this.getZ());
 		FluidState fluidState = this.level.getFluidState(blockPos);

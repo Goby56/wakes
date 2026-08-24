@@ -116,6 +116,7 @@ public class WakeChunk {
             return;
         }
         this.set(x, z, node);
+        node.init();
         for (WakeNode neighbor : getAdjacentNodes(x, z)) {
             neighbor.updateAdjacency(node);
         }
