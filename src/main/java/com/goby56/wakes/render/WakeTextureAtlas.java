@@ -32,6 +32,8 @@ public class WakeTextureAtlas {
     // lowest free index, so occupied slots are always a contiguous prefix of the atlas.
     private int highWaterMark = 0;
 
+    private int firstFreeHint = 0;
+
     public static final int CAPACITY = ATLAS_WIDTH * ATLAS_WIDTH - 1; // Include error texture
 
     public WakeTextureAtlas() {
@@ -54,6 +56,7 @@ public class WakeTextureAtlas {
         Arrays.fill(occupiedSubTextures, false);
         Arrays.fill(dirtySubTextures, false);
         highWaterMark = 0;
+        firstFreeHint = 0;
         if (scratch != null) scratch.close();
         scratch = new NativeImage(nodeResolution, nodeResolution, false);
     }
@@ -111,9 +114,10 @@ public class WakeTextureAtlas {
     }
 
     public DrawContext claimSubTexture() {
-        for (int i = 0; i < CAPACITY; i++) {
+        for (int i = firstFreeHint; i < CAPACITY; i++) {
             if (!occupiedSubTextures[i]) {
                 occupiedSubTextures[i] = true;
+                firstFreeHint = i + 1;
                 if (i + 1 > highWaterMark) highWaterMark = i + 1;
                 return new DrawContext(i, this);
             }
@@ -123,6 +127,7 @@ public class WakeTextureAtlas {
 
     protected void vacateSubTexture(int subTextureIndex) {
         occupiedSubTextures[subTextureIndex] = false;
+        if (subTextureIndex < firstFreeHint) firstFreeHint = subTextureIndex;
     }
 
     public int occupiedCount() {
