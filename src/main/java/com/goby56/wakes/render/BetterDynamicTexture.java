@@ -2,10 +2,10 @@ package com.goby56.wakes.render;
 
 import com.goby56.wakes.WakesClient;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
-import com.mojang.blaze3d.GpuFormat;
+import com.mojang.renderpearl.api.textures.FilterMode;
+import com.mojang.renderpearl.api.GpuFormat;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 
 import java.nio.ByteBuffer;

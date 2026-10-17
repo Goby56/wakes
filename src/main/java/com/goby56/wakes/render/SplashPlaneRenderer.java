@@ -80,7 +80,7 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
 
         matrices.pushPose();
         splashPlane.translateMatrix(context.gameRenderer().mainCamera(), matrices);
-        matrices.mulPose(Axis.YP.rotationDegrees(splashPlane.lerpedYaw + 180f));
+        matrices.rotateDegrees(Axis.YP, splashPlane.lerpedYaw + 180f);
         float velocity = (float) Math.floor(((ProducesWake) entity).wakes$getHorizontalVelocity() * 20) / 20f;
         float progress = Math.min(1f, velocity / WakesConfig.maxSplashPlaneVelocity);
         float scalar = (float) (WakesConfig.splashPlaneScale * Math.sqrt(entity.getBbWidth() * Math.max(1f, progress) + 1) / 3f);
