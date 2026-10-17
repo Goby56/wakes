@@ -25,6 +25,7 @@ import net.minecraft.world.entity.Entity;
 import com.mojang.math.Axis;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,19 +54,25 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
 
         wakeHandler.textureAtlas.uploadDirty();
 
-        var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
-            for (SplashPlaneParticle particle : planes) {
-                SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), vc);
-            }
-        };
-
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_RENDER_TYPE, renderer);
+        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE,
+                planeGeometry(planes, context, WakesConfig.wakeOpacity));
+        if (WakesClient.useDepthPass()) {
+            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_RENDER_TYPE,
+                    planeGeometry(planes, context, WakesClient.WAKE_DEPTH_PASS_ALPHA));
+        }
         WakesDebugInfo.splashPlanes = planes.size();
     }
 
+    private static CustomGeometryRenderer planeGeometry(List<SplashPlaneParticle> planes, LevelRenderContext context, float alpha) {
+        return (pose, vc) -> {
+            for (SplashPlaneParticle particle : planes) {
+                SplashPlaneRenderer.render(particle.owner, particle, context, new PoseStack(), vc, alpha);
+            }
+        };
+    }
 
-    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, LevelRenderContext context, PoseStack matrices, VertexConsumer vc) {
+
+    public static <T extends Entity> void render(T entity, SplashPlaneParticle splashPlane, LevelRenderContext context, PoseStack matrices, VertexConsumer vc, float alpha) {
         if (WakesConfig.disableMod || !WakesUtils.getEffectRuleFromSource(entity).renderPlanes) {
             return;
         }
@@ -90,10 +97,10 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
 
         ClientLevel world = Minecraft.getInstance().level;
         int light = LightCoordsUtil.getLightCoords(world, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()));
-        renderSurface(matrix, splashPlane.drawContext, vc, light);
+        renderSurface(matrix, splashPlane.drawContext, vc, light, alpha);
     }
 
-    private static void renderSurface(Matrix4f matrix, WakeTextureAtlas.DrawContext drawContext, VertexConsumer vc, int light) {
+    private static void renderSurface(Matrix4f matrix, WakeTextureAtlas.DrawContext drawContext, VertexConsumer vc, int light, float alpha) {
         UVPair uv = drawContext.getUV();
         float uvOffset = drawContext.getUVOffset();
         for (int s = -1; s < 2; s++) {
@@ -105,29 +112,29 @@ public class SplashPlaneRenderer implements LevelRenderEvents.CollectSubmits {
                 Vec3 n1 = normals.get(i + 1);
                 Vec3 v2 = vertices.get(i + 2);
                 Vec3 n2 = normals.get(i + 2);
-                addDegenerateQuad(vc, matrix, s, v0, n0, v1, n1, v2, n2, uv, uvOffset, light);
-                addDegenerateQuad(vc, matrix, s, v0, n0, v2, n2, v1, n1, uv, uvOffset, light);
+                addDegenerateQuad(vc, matrix, s, v0, n0, v1, n1, v2, n2, uv, uvOffset, light, alpha);
+                addDegenerateQuad(vc, matrix, s, v0, n0, v2, n2, v1, n1, uv, uvOffset, light, alpha);
             }
         }
     }
 
-    private static void addVertex(VertexConsumer vc, Matrix4f matrix, int side, Vec3 vertex, Vec3 normal, UVPair uv, float uvOffset, int light) {
+    private static void addVertex(VertexConsumer vc, Matrix4f matrix, int side, Vec3 vertex, Vec3 normal, UVPair uv, float uvOffset, int light, float alpha) {
         vc.addVertex(matrix,
                         (float) (side * (vertex.x * WakesConfig.splashPlaneWidth + WakesConfig.splashPlaneGap)),
                         (float) (vertex.z * WakesConfig.splashPlaneHeight),
                         (float) (vertex.y * WakesConfig.splashPlaneDepth))
-                .setColor(1f, 1f, 1f, WakesConfig.wakeOpacity)
+                .setColor(1f, 1f, 1f, alpha)
                 .setUv(uv.u() + (float) vertex.x * uvOffset, uv.v() + (float) vertex.y * uvOffset)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)
                 .setNormal((float) normal.x, (float) normal.y, (float) normal.z);
     }
 
-    private static void addDegenerateQuad(VertexConsumer vc, Matrix4f matrix, int side, Vec3 a, Vec3 an, Vec3 b, Vec3 bn, Vec3 c, Vec3 cn, UVPair uv, float uvOffset, int light) {
-        addVertex(vc, matrix, side, a, an, uv, uvOffset, light);
-        addVertex(vc, matrix, side, b, bn, uv, uvOffset, light);
-        addVertex(vc, matrix, side, c, cn, uv, uvOffset, light);
-        addVertex(vc, matrix, side, c, cn, uv, uvOffset, light);
+    private static void addDegenerateQuad(VertexConsumer vc, Matrix4f matrix, int side, Vec3 a, Vec3 an, Vec3 b, Vec3 bn, Vec3 c, Vec3 cn, UVPair uv, float uvOffset, int light, float alpha) {
+        addVertex(vc, matrix, side, a, an, uv, uvOffset, light, alpha);
+        addVertex(vc, matrix, side, b, bn, uv, uvOffset, light, alpha);
+        addVertex(vc, matrix, side, c, cn, uv, uvOffset, light, alpha);
+        addVertex(vc, matrix, side, c, cn, uv, uvOffset, light, alpha);
     }
 
     private static double upperBound(double x) {

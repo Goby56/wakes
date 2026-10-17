@@ -10,12 +10,16 @@ import com.goby56.wakes.render.OcclusionDimensionsManager;
 import com.goby56.wakes.render.SplashPlaneRenderer;
 import com.goby56.wakes.render.WakeRenderer;
 import com.goby56.wakes.render.WakeTextureAtlas;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.renderpearl.api.GpuFormat;
 import com.mojang.renderpearl.api.pipeline.BlendFunction;
 import com.mojang.renderpearl.api.pipeline.ColorTargetState;
 import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.pipeline.CompareOp;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.oit.OitPipelineSet;
 import net.minecraft.client.renderer.BindGroupLayouts;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
@@ -54,10 +58,15 @@ public class WakesClient implements ClientModInitializer {
 
 	// Pass 1: render all alpha values to color buffer, no depth write — faint wakes remain visible
 	public static final RenderPipeline WAKE_COLOR_PIPELINE = buildWakeColorPipeline();
+	// Used instead of pass 1 when "Improved Transparency" (OIT) is on, see docs/wake_transparency_tradeoffs.md
+	public static final OitPipelineSet WAKE_OIT_PIPELINES = buildWakeOitPipelines();
 	public static final RenderType WAKE_COLOR_RENDER_TYPE = buildWakeColorRenderType();
 
 	// Pass 2: depth-only — ALPHA_CUTOUT discards low-alpha pixels, survivors write depth but no color
-	// (color already came from pass 1; writing it again here would double-blend and cause a visible seam at the cutoff)
+	public static final float WAKE_DEPTH_CUTOUT = 0.8f;
+	// Iris replaces ALPHA_CUTOUT with its own alpha > 0.1 test on texture.a * vertex.a, so pass 2 emits this
+	// vertex alpha to land that test on WAKE_DEPTH_CUTOUT. Vanilla cuts on texture.a alone, so it's unaffected
+	public static final float WAKE_DEPTH_PASS_ALPHA = 0.1f / WAKE_DEPTH_CUTOUT;
 	public static final RenderPipeline WAKE_PIPELINE = buildWakePipeline();
 	public static final RenderType WAKE_RENDER_TYPE = buildWakeRenderType();
 
@@ -74,8 +83,34 @@ public class WakesClient implements ClientModInitializer {
 		);
 	}
 
+	// Mirrors vanilla's OIT_ENTITY set, minus OIT_ENTITY_SNIPPET's ALPHA_CUTOUT 0.1 so faint wake keeps fading
+	private static OitPipelineSet buildWakeOitPipelines() {
+		RenderPipeline.Builder base = RenderPipeline.builder()
+				.withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+				.withBindGroupLayout(BindGroupLayouts.FOG)
+				.withBindGroupLayout(BindGroupLayouts.LIGHTING)
+				.withBindGroupLayout(BindGroupLayouts.SAMPLER0)
+				.withVertexShader("core/entity")
+				.withFragmentShader("core/entity")
+				.withVertexBinding(0, DefaultVertexFormat.ENTITY)
+				.withPrimitiveTopology(PrimitiveTopology.QUADS)
+				.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+				.withCull(false);
+		OitPipelineSet set = OitPipelineSet.builder("wakes_wake", base)
+				.withAccumulateModifier(builder -> builder
+						.withShaderDefine("PER_FACE_LIGHTING")
+						.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
+						.withBindGroupLayout(BindGroupLayouts.SAMPLER2))
+				.build();
+		RenderPipelines.register(set.depthBoundsPipeline());
+		RenderPipelines.register(set.transmittancePipeline());
+		RenderPipelines.register(set.accumulatePipeline());
+		return set;
+	}
+
 	private static RenderType buildWakeColorRenderType() {
 		RenderSetup setup = RenderSetup.builder(WAKE_COLOR_PIPELINE)
+				.setOitPipelines(WAKE_OIT_PIPELINES)
 				.withTexture("Sampler0", WakeTextureAtlas.ATLAS_ID)
 				.useLightmap()
 				.useOverlay()
@@ -87,7 +122,7 @@ public class WakesClient implements ClientModInitializer {
 		return RenderPipelines.register(
 			RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
 					.withLocation(Identifier.fromNamespaceAndPath("wakes", "pipeline/entity_translucent_wake"))
-					.withShaderDefine("ALPHA_CUTOUT", 0.8f)
+					.withShaderDefine("ALPHA_CUTOUT", WAKE_DEPTH_CUTOUT)
 					.withShaderDefine("PER_FACE_LIGHTING")
 					.withBindGroupLayout(BindGroupLayouts.SAMPLER1)
 					.withColorTargetState(new ColorTargetState(Optional.empty(), GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_NONE))
@@ -156,6 +191,11 @@ public class WakesClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "atlas_debug"),
                 WakeDebugRenderer::drawAtlasOverlay);
+	}
+
+	// OIT already makes near-opaque wake occlude water, so the depth-only pass would only add back a hard edge
+	public static boolean useDepthPass() {
+		return !Minecraft.getInstance().gameRenderer.useImprovedTransparency();
 	}
 
 	public static boolean areShadersEnabled() {

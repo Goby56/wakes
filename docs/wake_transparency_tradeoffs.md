@@ -17,18 +17,42 @@ blend color seam an earlier version of this had (see Method C → D below).
 texture, since it's a runtime-changeable config value and shader defines are
 fixed at pipeline registration time.
 
-**Known caveat, Iris/shader packs specifically:** once pass 1 is correctly
-classified as `ENTITIES_TRANSLUCENT` for Iris (see `docs/occlusion_zones.md`
-/ `docs/shader_compat.md`), it becomes subject to whatever a shader pack's
-own translucent-object handling does for its water/SSR effects — which
-appears to treat *any* translucent fragment as occluding the pack's own water
-render beneath it, regardless of how close to zero its alpha is. Since pass 1
-intentionally draws at every alpha level down to near-zero (that's the whole
-point — smooth fade for faint wake), this can show the sea floor instead of
-water under very faint wake, under some shader packs. A shader-specific
-single-pass alternative was prototyped to work around this and reverted (see
-history) — currently unresolved, tracked as a known limitation rather than
-patched over.
+This only describes the **"Improved Transparency" off** path (and Iris, which
+forces that setting off). With it on, 26.3 uses order-independent
+transparency: the color pass draws through `WAKE_OIT_PIPELINES` and the depth
+pass is skipped (`WakesClient.useDepthPass()`); see "Improved Transparency
+(OIT)" below.
+
+**Sea floor showing through wake (fixed for shaders).** Water is depth-rejected
+wherever pass 2 wrote depth, so pass 1's color there blends over the opaque
+scene (the sea floor) instead of over water.
+
+- **Vanilla:** pass 2 writes depth above alpha 0.8, so only the 0-20% that
+  pass 1 lets through at alpha 0.8-1.0 shows the sea floor. Barely visible.
+- **Iris/shader packs:** our `ALPHA_CUTOUT 0.8` never reaches the GPU. It is
+  a define for Mojang's `entity.fsh`, which the pack's own program replaces.
+  `assignPipeline(WAKE_PIPELINE, ENTITIES)` resolves through
+  `ShaderKey.findBestMatch`, which only checks that `ALPHA_CUTOUT` *exists*
+  and picks `ENTITIES_CUTOUT` (`AlphaTests.ONE_TENTH_ALPHA`, alpha > 0.1).
+  Pass 2 therefore writes depth above alpha 0.1, water is removed under all
+  of it, and the whole 10-80% band of faint wake shows the sea floor.
+  Found in Iris 1.11.7+26.3 bytecode, confirmed by the fix below working.
+
+An earlier hypothesis (the pack's water/SSR logic treating any translucent
+fragment as occluding water) is superseded by the above.
+
+Fix for shaders (confirmed in-game under a shader pack, no visible change in
+vanilla): pass 2 writes no
+color, so its alpha only feeds the cutoff test. Pass 2 emits a constant vertex
+alpha of `WAKE_DEPTH_PASS_ALPHA = 0.1 / 0.8 = 0.125` (pass 1 keeps
+`wakeOpacity`), so Iris's `alpha > 0.1` test passes exactly where the texture
+alpha is above 0.8. Vanilla's `ALPHA_CUTOUT` tests texture alpha before the
+vertex color multiply, so it is unaffected. Relies
+on the pack multiplying texture alpha by vertex color (most do) and not
+adding a stricter alpha test of its own, so a pack that still shows the sea
+floor most likely breaks one of those. Not verified directly: whether Iris
+keeps pass 2's `WRITE_NONE` mask on the pack's MRT outputs (if not, pass 2
+would also draw a faint 12.5% color layer).
 
 There is no version of this that is simultaneously one pass, perfectly
 smooth, and fully correct occlusion — see "why" below for what was tried and
@@ -55,6 +79,12 @@ The only two escape hatches from "binary per-draw":
 (A third, more exotic option — fragment shader interlock / ROVs — exists and
 is covered below, but doesn't actually get further than the shader-rewrite
 cost of Method F.)
+
+Order-independent transparency sidesteps the constraint instead of escaping
+it. Method A only failed because water drawn *after* opaque foam blends over
+it, which is a draw-order problem the depth write was faking a fix for. OIT
+removes draw order from blending and gives continuous, alpha-proportional
+occlusion. See "Improved Transparency (OIT)" below.
 
 ## Why: what was tried, in order
 
@@ -88,7 +118,9 @@ are active — effectively Method B (single `ALPHA_CUTOUT` pass, real color
 output, depth write) replacing both passes, so there's no near-zero-alpha
 translucent fragment for a shader pack to misinterpret. Reverted to keep the
 original two-pass split active under shaders too, pending further
-investigation — not committed as the shipped behavior.
+investigation — not committed as the shipped behavior. In hindsight this
+could not have fixed it: its `ALPHA_CUTOUT` would also have been replaced by
+Iris's 0.1 alpha test (see the sea floor caveat above).
 
 **Method E — dithered/stochastic cutout (not implemented).** Custom fragment
 shader comparing alpha against a spatial dither pattern (e.g. 4x4 Bayer
@@ -125,3 +157,75 @@ read/write a buffer *it* owns. Making water actually respect that buffer
 still requires rewriting water's shader (Method F's cost), plus real
 serialization overhead and inconsistent driver/API support. Doesn't add a
 cheaper option; confirms Methods F/G's cost is the actual floor.
+
+## Improved Transparency (OIT), 26.3+
+
+In 26.3 the "Improved Transparency" video setting no longer means Fabulous's
+per-category render targets. It enables order-independent transparency.
+Findings below are from the 26.3 client jar (shaders under
+`assets/minecraft/shaders/include/oit*.glsl`, Java under
+`net.minecraft.client.renderer.oit`).
+
+### The crash that forced this (fixed)
+
+Before Method I, with the setting on, `SubmitNodeCollection` aliases `translucentCustomGeometry`
+(and every other translucent phase) to a single `oitTranslucent` phase.
+`WAKE_COLOR_RENDER_TYPE` has a blend function, so `submitCustomGeometry`
+routes it there (splash planes share it). The OIT phase draws through
+`PreparedRenderType.drawFromBufferOit`, which throws
+`IllegalStateException: Render type wakes:entity_translucent_wake_color does
+not have OIT pipelines set up.` when the render type has no `OitPipelineSet`.
+The depth-only pass has no blend, so it stays in the solid phase and is
+unaffected. Confirmed in-game (crash in `LevelRenderer.executeOit`).
+
+Iris forces the setting off while shaders are enabled
+(`MixinDisableFabulousGraphics`), so this only affects vanilla rendering.
+
+### How vanilla OIT works
+
+Wavelet OIT (`OIT_WAVELET_RANK 2`). Render types opt in via
+`RenderSetup.builder(...).setOitPipelines(OitPipelineSet)`; a set holds one
+pipeline per `OitStage`, none of which write depth.
+
+1. **Depth bounds:** per pixel, nearest/farthest translucent depth, plus the
+   nearest translucent fragment with alpha > 0.99 (`OIT_FULLY_OPAQUE_ALPHA`).
+2. **Depth bounds cull:** writes that near-opaque depth into the main depth
+   buffer, so later stages depth-reject everything behind it.
+3. **Transmittance:** each fragment adds absorbance (`-log(1 - alpha)`) at
+   its depth, encoded as wavelet coefficients. Depth is normalized per pixel
+   between the nearest and farthest bound, so nearly coplanar layers (wake
+   just above water) still land in different bins.
+4. **Accumulate + composite:** each fragment's color is weighted by the
+   transmittance in front of it, then resolved onto the main target.
+
+### Method I: single OIT pass (current state with the setting on)
+
+OIT gives both goals without Method D's tradeoffs: step 2 makes opaque foam
+hide the water behind it per pixel regardless of draw order, and step 3
+makes faint wake attenuate water continuously. So with the setting on:
+
+- One pass is enough. `WAKE_COLOR_RENDER_TYPE` carries `WAKE_OIT_PIPELINES`
+  via `setOitPipelines`, and `WakeRenderer`/`SplashPlaneRenderer` skip the
+  depth-only pass when `GameRenderer.useImprovedTransparency()` is true (it
+  would only reintroduce the hard 0.8 edge). With the setting off, the same
+  render type draws through its normal pipeline as before.
+- `WAKE_OIT_PIPELINES` mirrors vanilla's `OIT_ENTITY` set (same bind groups,
+  entity shader, and accumulate modifier adding `PER_FACE_LIGHTING` +
+  overlay/lightmap samplers) except for `OIT_ENTITY_SNIPPET`'s
+  `ALPHA_CUTOUT 0.1`, so faint wake keeps fading (the depth bounds stage
+  already discards alpha < 0.01). Compared side by side in-game against
+  using `RenderPipelines.OIT_ENTITY` directly; the no-cutout version looked
+  better.
+- Only alpha > 0.99 counts as fully opaque. Foam at 0.95 lets ~5% of the
+  water through instead of hiding it.
+- `RenderPipelines.register(OitPipelineSet)` is private, so the three stage
+  pipelines are registered individually. `OitPipelineSet.Builder` prefixes
+  locations itself (`minecraft:pipeline/oit_<stage>_wakes_wake`).
+
+The wakes now take three paths:
+
+| Setup | Approach |
+|---|---|
+| Vanilla, Improved Transparency off | Method D (tiny sea floor band at alpha 0.8-1.0) |
+| Vanilla, Improved Transparency on | Method I, single OIT pass |
+| Iris with shaders (OIT forced off) | Method D plus the vertex-alpha cutoff fix (`WAKE_DEPTH_PASS_ALPHA`) |

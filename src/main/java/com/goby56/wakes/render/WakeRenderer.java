@@ -22,6 +22,8 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
 
+import net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer;
+
 import java.util.*;
 
 public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
@@ -70,23 +72,12 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
             float surfaceBias = (submerged ? -SURFACE_EPSILON : SURFACE_EPSILON) + extraOffset;
             RenderType type = renderType();
 
-            var renderer = (net.minecraft.client.renderer.SubmitNodeCollector.CustomGeometryRenderer) (pose, vc) -> {
-                for (WakeChunk wakeChunk : wakeChunks) {
-                    for (WakeNode wakeNode : wakeChunk.getNodes()) {
-                        UVPair uv = wakeNode.drawContext.getUV();
-                        float uvOffset = wakeNode.drawContext.getUVOffset();
-                        int light = LightCoordsUtil.getLightCoords(world, wakeNode.blockPos());
-                        float x0 = (float) wakeNode.x;
-                        float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
-                        float z0 = (float) wakeNode.z;
-                        float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
-                        emitQuad(vc, matrixCopy, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light);
-                    }
-                }
-            };
-
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE, renderer);
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), type, renderer);
+            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), WakesClient.WAKE_COLOR_RENDER_TYPE,
+                    wakeGeometry(wakeChunks, world, matrixCopy, surfaceBias, WakesConfig.wakeOpacity));
+            if (WakesClient.useDepthPass()) {
+                context.submitNodeCollector().submitCustomGeometry(context.poseStack(), type,
+                        wakeGeometry(wakeChunks, world, matrixCopy, surfaceBias, WakesClient.WAKE_DEPTH_PASS_ALPHA));
+            }
         } catch (Throwable t) {
             WakesClient.LOGGER.error("WakeRenderer: EXCEPTION during render", t);
         }
@@ -97,20 +88,37 @@ public class WakeRenderer implements LevelRenderEvents.CollectSubmits {
 
     private static final float SURFACE_EPSILON = 0.01f;
 
+    private CustomGeometryRenderer wakeGeometry(List<WakeChunk> wakeChunks, ClientLevel world, Matrix4fc matrix, float surfaceBias, float alpha) {
+        return (pose, vc) -> {
+            for (WakeChunk wakeChunk : wakeChunks) {
+                for (WakeNode wakeNode : wakeChunk.getNodes()) {
+                    UVPair uv = wakeNode.drawContext.getUV();
+                    float uvOffset = wakeNode.drawContext.getUVOffset();
+                    int light = LightCoordsUtil.getLightCoords(world, wakeNode.blockPos());
+                    float x0 = (float) wakeNode.x;
+                    float y  = (float) (wakeNode.y + WakeNode.WATER_OFFSET) + surfaceBias;
+                    float z0 = (float) wakeNode.z;
+                    float u0 = uv.u(), v0 = uv.v(), u1 = u0 + uvOffset, v1 = v0 + uvOffset;
+                    emitQuad(vc, matrix, x0, z0, x0 + 1, z0 + 1, y, u0, v0, u1, v1, light, alpha);
+                }
+            }
+        };
+    }
+
     /** Emits a single horizontal quad spanning [x0,z0]..[x1,z1].
      *  entityTranslucent uses NO_CULL so this single quad is visible from both sides. */
     private void emitQuad(VertexConsumer vc, Matrix4fc m,
                           float x0, float z0, float x1, float z1, float y,
-                          float u0, float v0, float u1, float v1, int light) {
-        vert(vc, m, x0, y, z0, u0, v0, light);
-        vert(vc, m, x0, y, z1, u0, v1, light);
-        vert(vc, m, x1, y, z1, u1, v1, light);
-        vert(vc, m, x1, y, z0, u1, v0, light);
+                          float u0, float v0, float u1, float v1, int light, float alpha) {
+        vert(vc, m, x0, y, z0, u0, v0, light, alpha);
+        vert(vc, m, x0, y, z1, u0, v1, light, alpha);
+        vert(vc, m, x1, y, z1, u1, v1, light, alpha);
+        vert(vc, m, x1, y, z0, u1, v0, light, alpha);
     }
 
-    private void vert(VertexConsumer vc, Matrix4fc m, float x, float y, float z, float u, float v, int light) {
+    private void vert(VertexConsumer vc, Matrix4fc m, float x, float y, float z, float u, float v, int light, float alpha) {
         vc.addVertex(m, x, y, z)
-                .setColor(1f, 1f, 1f, WakesConfig.wakeOpacity)
+                .setColor(1f, 1f, 1f, alpha)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(light)

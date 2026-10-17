@@ -19,10 +19,18 @@ available match; since that pass writes no color regardless
 pack's own alpha-test threshold shifting the depth-write boundary, not a
 visual color/lighting mismatch.
 
-__DISCLAIMER__: Some shaders add wavy water, which means water will clip with
-the wake textures. In some cases there's an option to disable this.
+That risk is real. `ShaderKey.findBestMatch` only checks that the pipeline
+*has* an `ALPHA_CUTOUT` define, not its value, and resolves `WAKE_PIPELINE`
+to `ENTITIES_CUTOUT` (alpha > 0.1). Our 0.8 cutoff is lost, the depth pass
+writes depth under faint wake, and water is rejected there: this is the
+sea-floor-through-wake bug. Fixed (confirmed in-game) by the vertex-alpha
+fix (`WAKE_DEPTH_PASS_ALPHA`); details in
+`docs/wake_transparency_tradeoffs.md`.
 
-## Why: without explicit assignment, several packs broke wake rendering entirely
+Iris also forces vanilla's "Improved Transparency" (OIT in 26.3+) off while
+shaders are enabled (`MixinDisableFabulousGraphics`), so the OIT path never
+runs under shaders.
+
 
 Before `assignPipeline()` was added, wake pipelines went through Iris's
 internal fuzzy matcher (`ShaderKey.findBestMatch()`, which scores pipelines
@@ -33,19 +41,29 @@ pipelines to their correct Iris program categories fixed this without
 requiring any change to the pipelines themselves — confirmed working across
 the packs below.
 
-## Compatible: [Iris](https://modrinth.com/mod/iris) shaders (NOT UP TO DATE)
-- Complementary V4
-- Complementary Reimagined*
-- Rethinking Voxels
-- Shrimple
+__DISCLAIMER__: Some shaders add wavy water, which means water will clip with
+the wake textures. In some cases there's an option to disable this.
 
-\*Note
-- Complementary Reimagined: Wakes sometimes suddenly disappear or have strange colors. See [issue 17](https://github.com/Goby56/wakes/issues/17) and [issue 21](https://github.com/Goby56/wakes/issues/21).
+## [Iris](https://modrinth.com/mod/iris) shader packs
 
-## Known incompatibilities
-- LS RenderPearl
-- BSL (can't figure out how to turn off wavy water, aside from that it works fine)
-- Overimagined Shaders (works when camera is close to the water)
+Tested with Iris 1.11.7 on Minecraft 26.3.
+
+### Works
+- BSL
+- Bliss (splash planes cast jagged shadows)
+- Complementary Reimagined
+- Complementary Unbound
+- Mellow
+
+### Partially works
+These render wakes correctly, but the wake color is hard to tell apart from
+the pack's water.
+- MakeUp Ultra Fast
+- Photon
+- Solas
+
+### Doesn't work
+- I Like Vanilla (wakes flicker)
 
 ## Optifine shaders
 Currently not supported
