@@ -15,6 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.network.chat.MutableComponent;
@@ -163,6 +165,9 @@ public class WakesUtils {
         }
         if (source instanceof ItemEntity) {
             return WakesConfig.itemSpawning;
+        }
+        if (source instanceof Projectile) {
+            return WakesConfig.projectileSpawning;
         }
         return EffectSpawningRule.DISABLED;
     }

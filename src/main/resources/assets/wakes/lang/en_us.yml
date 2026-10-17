@@ -52,6 +52,8 @@ wakes:
         mobSpawning.tooltip: What effect should be visible when mobs moves in water?
         itemSpawning: Items
         itemSpawning.tooltip: What effect should be visible when an item moves in water?
+        projectileSpawning: Projectiles
+        projectileSpawning.tooltip: What effect should be visible when a projectile moves in water?
         wavePropagationFactor: Wave propagation factor
         wavePropagationFactor.tooltip: The impact a pixels has on its neighboring pixels inside the wakes
         waveDecayFactor: Wave decay factor

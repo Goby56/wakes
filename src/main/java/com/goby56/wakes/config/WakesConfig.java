@@ -28,6 +28,7 @@ public class WakesConfig extends MidnightConfig {
     @Entry(category = GENERAL) public static EffectSpawningRule otherPlayersSpawning = EffectSpawningRule.ONLY_SIMULATION;
     @Entry(category = GENERAL) public static EffectSpawningRule mobSpawning = EffectSpawningRule.ONLY_SIMULATION;
     @Entry(category = GENERAL) public static EffectSpawningRule itemSpawning = EffectSpawningRule.ONLY_SIMULATION;
+    @Entry(category = GENERAL) public static EffectSpawningRule projectileSpawning = EffectSpawningRule.ONLY_SIMULATION;
 
     @Comment(category = GENERAL, centered = true) public static Comment wakeBehaviourDivider;
     @Entry(category = GENERAL) public static float wavePropagationFactor = 0.95f;
